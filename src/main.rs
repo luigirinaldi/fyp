@@ -101,8 +101,11 @@ struct ModAnalysis;
 impl Analysis<ModIR> for ModAnalysis {
     type Data = Option<String>;
 
-    fn make(egraph: &EGraph<ModIR, Self>, enode: &ModIR) -> Self::Data {
-        None
+    fn make(_egraph: &EGraph<ModIR, Self>, enode: &ModIR) -> Self::Data {
+        match enode {
+            ModIR::Mod(modulus, _child) => Some(modulus.clone()),
+            _ => None,
+        }
     }
 
     fn merge(&mut self, a: &mut Self::Data, b: Self::Data) -> DidMerge {
@@ -110,12 +113,20 @@ impl Analysis<ModIR> for ModAnalysis {
     }
 }
 
+#[rustfmt::skip]
+fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
+    vec![
+        rewrite!("comm-add";    "(+ ?a ?b)" => "(+ ?b ?a)"),
+        rewrite!("mod-sum";     "(% (+ (% ?a) (% ?b))" => "")
+    ]
+}
+
 fn make_assoc_expr() {
     // let's try just using the language we just made
     // we'll make an e-graph with just the unit () analysis for now
     let mut egraph = EGraph::<ModIR, ModAnalysis>::default();
 
-    let expr_a: RecExpr<ModIR> = "(%par (+ a b))".parse().unwrap();
+    let expr_a: RecExpr<ModIR> = "(%p (+ a b))".parse().unwrap();
     let var_a = egraph.add_expr(&expr_a);
     // let expr_b: RecExpr<ModIR> = "(% b)".parse().unwrap();
     // let var_b = egraph.add_expr(&expr_b);
