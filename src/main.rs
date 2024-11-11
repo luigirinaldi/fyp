@@ -23,10 +23,12 @@ define_language! {
 struct ModAnalysis;
 
 impl Analysis<ModIR> for ModAnalysis {
-    type Data = Option<String>;
+    type Data = Option<Vec<String>>;
 
-    fn make(_egraph: &EGraph<ModIR, Self>, _enode: &ModIR) -> Self::Data {
-        None
+    fn make(_egraph: &EGraph<ModIR, Self>, enode: &ModIR) -> Self::Data {
+        match enode {
+            _ => None,
+        }
     }
 
     fn merge(&mut self, _a: &mut Self::Data, _b: Self::Data) -> DidMerge {
@@ -40,6 +42,16 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("comm-add";    "(+ ?a ?b)" => "(+ ?b ?a)"),
         rewrite!("mod-sum";     "(% ?p (+ (% ?q ?a) ?b))" => "(% ?p (+ ?a ?b))")
     ]
+}
+
+// implements a < b
+fn less_than(a: &str, b: &str) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
+    let a_var: Var = a.parse().unwrap();
+    let b_var: Var = b.parse().unwrap();
+    move |egraph, _root, subst: &Subst| {
+        let id_a = subst[a_var];
+        let id_b = subst[b_var];
+    }
 }
 
 fn make_assoc_expr() {
