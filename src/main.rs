@@ -93,24 +93,25 @@ fn less_than(a: &str, b: &str) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &
 }
 
 // preconditions encoded as a list of conjunctions
-fn check_equivalence(preconditions: &[&str], start: &str, end: &str) {
+fn check_equivalence(preconditions: &[&str], lhs: &str, rhs: &str) {
     let rewrite_rules = &rules();
 
     let precond_exprs: Vec<RecExpr<ModIR>> =
         preconditions.iter().map(|&p| p.parse().unwrap()).collect();
 
-    let start_expr: RecExpr<ModIR> = start.parse().unwrap();
-    let goals: &[Pattern<ModIR>] = &[end.parse().unwrap()];
+    let lhs_expr: RecExpr<ModIR> = lhs.parse().unwrap();
+    let rhs_expr: RecExpr<ModIR> = rhs.parse().unwrap();
+    let lhs_pattern = Pattern::from(&lhs_expr);
+    let rhs_pattern = Pattern::from(&rhs_expr);
     let mut runner = Runner::default()
         .with_explanations_enabled()
         // .without_explanation_length_optimization()
-    ;
+        .with_expr(&lhs_expr)
+        .with_expr(&rhs_expr);
 
-    runner = runner.with_expr(&start_expr);
-
-    // add the preconditions to the truth values of the egraph
     // println!("Egraph pre preconditions: {:#?}", runner.egraph);
 
+    // add the preconditions to the truth values of the egraph
     let truth_id = runner.egraph.add(ModIR::Bool(true));
     for precond in &precond_exprs {
         println!("{:?}", precond);
@@ -120,51 +121,40 @@ fn check_equivalence(preconditions: &[&str], start: &str, end: &str) {
 
     // println!("Egraph post preconditions: {:#?}", runner.egraph);
 
-    // NOTE this is a bit of hack, we rely on the fact that the
-    // initial root is the last expr added by the runner. We can't
-    // use egraph.find_expr(start) because it may have been pruned
-    // away
-    let id = runner.egraph.find(*runner.roots.last().unwrap());
-
-    let goals_vec = goals.to_vec();
-    runner = runner.with_hook(move |r| {
-        if goals_vec
-            .iter()
-            .all(|g: &Pattern<_>| g.search_eclass(&r.egraph, id).is_some())
-        {
-            Err("Proved all goals".into())
-        } else {
-            Ok(())
-        }
-    });
     let mut runner = runner.run(rewrite_rules);
+
+    let equiv = !runner.egraph.equivs(&lhs_expr, &rhs_expr).is_empty();
+
+    println!(
+        "LHS and RHS are{}equivalent!",
+        if equiv { " " } else { " not " }
+    );
 
     let report = runner.report();
     println!("{report}");
-    runner.egraph.check_goals(id, goals);
+
+    let id = runner.egraph.find(*runner.roots.first().unwrap());
 
     if runner.egraph.are_explanations_enabled() {
-        for goal in goals {
-            let matches = goal.search_eclass(&runner.egraph, id).unwrap();
-            let subst = matches.substs[0].clone();
-            // don't optimize the length for the first egraph
-            runner = runner.without_explanation_length_optimization();
-            let mut explained = runner.explain_matches(&start_expr, &goal.ast, &subst);
-            explained.get_string_with_let();
-            let flattened = explained.make_flat_explanation().clone();
-            let vanilla_len = flattened.len();
-            explained.check_proof(rewrite_rules);
-            assert!(explained.get_tree_size() > 0);
+        let matches = rhs_pattern.search_eclass(&runner.egraph, id).unwrap();
+        let subst = matches.substs[0].clone();
+        // don't optimize the length for the first egraph
+        runner = runner.without_explanation_length_optimization();
+        let mut explained = runner.explain_matches(&lhs_expr, &rhs_pattern.ast, &subst);
+        explained.get_string_with_let();
+        let flattened = explained.make_flat_explanation().clone();
+        let vanilla_len = flattened.len();
+        explained.check_proof(rewrite_rules);
+        assert!(explained.get_tree_size() > 0);
 
-            runner = runner.with_explanation_length_optimization();
-            let mut explained_short = runner.explain_matches(&start_expr, &goal.ast, &subst);
-            explained_short.get_string_with_let();
-            println!("{}", explained_short.get_flat_string());
-            let short_len = explained_short.get_flat_strings().len();
-            assert!(short_len <= vanilla_len);
-            assert!(explained_short.get_tree_size() > 0);
-            explained_short.check_proof(rewrite_rules);
-        }
+        runner = runner.with_explanation_length_optimization();
+        let mut explained_short = runner.explain_matches(&lhs_expr, &rhs_pattern.ast, &subst);
+        explained_short.get_string_with_let();
+        println!("{}", explained_short.get_flat_string());
+        let short_len = explained_short.get_flat_strings().len();
+        assert!(short_len <= vanilla_len);
+        assert!(explained_short.get_tree_size() > 0);
+        explained_short.check_proof(rewrite_rules);
     }
 }
 
@@ -174,6 +164,6 @@ fn main() {
     check_equivalence(
         &["(< r q)"],
         "(% r ( + (% p a) (% q (+ (% p b) (% p c)))))",
-        "(% r ( + (% p a) (+ (% p b) (% p c))))",
+        "(% r ( + (% q (+ (% p a) (% p b))) (% p c)))",
     );
 }
