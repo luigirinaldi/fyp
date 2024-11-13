@@ -45,7 +45,11 @@ impl Analysis<ModIR> for ModAnalysis {
 #[rustfmt::skip]
 fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     vec![
-        rewrite!("comm-add";    "(+ ?a ?b)" => "(+ ?b ?a)"),
+        // normal arithmetic
+        rewrite!("add-comm";    "(+ ?a ?b)" => "(+ ?b ?a)"),
+        rewrite!("add-assoc";   "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
+
+        // mod related
         rewrite!("mod-sum";     "(% ?p (+ (% ?q ?a) ?b))"           => "(% ?p (+ ?a ?b))" if less_than("?p", "?q")),         // if q >= p
         rewrite!("mod-sum-1";   "(% ?p (+ (% ?q ?a) (% ?q ?b)))"    => "(+ (% ?q ?a) (% ?q ?b))" if less_than("?q","?p")),  // if q  < p
 
