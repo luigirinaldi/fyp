@@ -7,10 +7,7 @@ definition "assoc_rhs (a::nat) (t::nat) (b::nat) (s::nat) (c::nat) (p::nat) (q::
 definition "assoc_lhs (a::nat) (t::nat) (b::nat) (s::nat) (c::nat) (p::nat) (q::nat) (r::nat)
  = ((((a mod 2^t) + (b mod 2^s)) mod 2^q) + (c mod 2^p)) mod 2^r"
 
-
- value "(2::nat)^2 > 2^(1 + 1) - 2"
- 
- lemma simple_rewrite:
+lemma simple_rewrite:
   "((p > 0) \<and> (q > 0) \<and> (p \<ge> q)) \<Longrightarrow> 
   (((a::int) mod 2^p) + (b::int)) mod 2^q = (a + b) mod 2^q"
   by (metis dvd_power_le even_numeral mod_add_cong mod_mod_cancel)
