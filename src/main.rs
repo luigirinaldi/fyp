@@ -10,10 +10,16 @@ define_language! {
         "-" = Sub([Id; 2]),
         "*" = Mul([Id; 2]),
         "/" = Div([Id; 2]),
+        // Operators to handle preconditions
+        ">" = GT([Id; 2]),
+        ">=" = GTE([Id; 2]),
+        "<" = LT([Id; 2]),
+        "<=" = LTE([Id; 2]),
         // Numbers
         Num(Num),
         // variables on which the operators operate
         Var(Symbol),
+        Bool(bool),
     }
 }
 
@@ -40,41 +46,69 @@ impl Analysis<ModIR> for ModAnalysis {
 fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     vec![
         rewrite!("comm-add";    "(+ ?a ?b)" => "(+ ?b ?a)"),
-        rewrite!("mod-sum";     "(% ?p (+ (% ?q ?a) ?b))" => "(% ?p (+ ?a ?b))")
+        // rewrite!("mod-sum";     "(% ?p (+ (% ?q ?a) ?b))"           => "(% ?p (+ ?a ?b))"),         // if q >= p
+        rewrite!("mod-sum-1";   "(% ?p (+ (% ?q ?a) (% ?q ?b)))"    => "(+ (% ?q ?a) (% ?q ?b))" if check_condition("(+ (< ?p ?q) false)")),  // if q  < p
+
     ]
 }
 
-// implements a < b
-fn less_than(a: &str, b: &str) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
-    let a_var: Var = a.parse().unwrap();
-    let b_var: Var = b.parse().unwrap();
-    move |egraph, _root, subst: &Subst| {
-        let id_a = subst[a_var];
-        let id_b = subst[b_var];
+fn check_condition(cond: &str) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
+    let cond_expr: RecExpr<ModIR> = cond.parse().unwrap();
+    println!("printing conditions {:#?}", cond_expr);
+    // look up the expr in the egraph
+    // if a vector of ids is returned then check that they are in the same eclass as the truth node
+    move |egraph, _root, _subst| {
+        egraph
+            .lookup_expr_ids(&cond_expr)
+            .and_then(|ids| {
+                egraph
+                    .lookup(ModIR::Bool(true))
+                    .and_then(|truth| Some(ids.iter().any(|&id| id == truth)))
+            })
+            .unwrap_or(false)
     }
 }
 
-fn make_assoc_expr() {
-    // let's try just using the language we just made
-    // we'll make an e-graph with just the unit () analysis for now
-    let mut egraph = EGraph::<ModIR, ModAnalysis>::default();
+// implements a < b
+// fn less_than(a: &str, b: &str) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
+//     let a_var: Var = a.parse().unwrap();
+//     let b_var: Var = b.parse().unwrap();
+//     move |egraph, root, subst: &Subst| {
+//         let id_a = subst[a_var];
+//         let id_b = subst[b_var];
 
-    let expr_a: RecExpr<ModIR> = "(% p (+ a b))".parse().unwrap();
-    let _var_a = egraph.add_expr(&expr_a);
-    // let expr_b: RecExpr<ModIR> = "(% b)".parse().unwrap();
-    // let var_b = egraph.add_expr(&expr_b);
-    // let expr_c: RecExpr<ModIR> = "(% c)".parse().unwrap();
-    // let var_c = egraph.add_expr(&expr_c);
+//         let context = egraph[root].data;
 
-    // egraph.set_analysis_data(var_a, Some(String::from("p")));
-    // egraph.set_analysis_data(var_b, Some(String::from("p")));
-    // egraph.set_analysis_data(var_c, Some(String::from("p")));
+//         let result = context.iter().try_find(|candidate: String| );
+//         result.is_some()
+//     }
+// }
 
-    println!("{:#?}", egraph);
-}
+// fn make_assoc_expr() {
+//     // let's try just using the language we just made
+//     // we'll make an e-graph with just the unit () analysis for now
+//     let mut egraph = EGraph::<ModIR, ModAnalysis>::default();
 
-fn check_equivalence(start: &str, end: &str) {
+//     let expr_a: RecExpr<ModIR> = "(% p (+ a b))".parse().unwrap();
+//     let _var_a = egraph.add_expr(&expr_a);
+//     // let expr_b: RecExpr<ModIR> = "(% b)".parse().unwrap();
+//     // let var_b = egraph.add_expr(&expr_b);
+//     // let expr_c: RecExpr<ModIR> = "(% c)".parse().unwrap();
+//     // let var_c = egraph.add_expr(&expr_c);
+
+//     // egraph.set_analysis_data(var_a, Some(String::from("p")));
+//     // egraph.set_analysis_data(var_b, Some(String::from("p")));
+//     // egraph.set_analysis_data(var_c, Some(String::from("p")));
+
+//     println!("{:#?}", egraph);
+// }
+
+// preconditions encoded as a list of conjunctions
+fn check_equivalence(preconditions: &[&str], start: &str, end: &str) {
     let rewrite_rules = &rules();
+
+    let precond_exprs: Vec<RecExpr<ModIR>> =
+        preconditions.iter().map(|&p| p.parse().unwrap()).collect();
 
     let start_expr: RecExpr<ModIR> = start.parse().unwrap();
     let goals: &[Pattern<ModIR>] = &[end.parse().unwrap()];
@@ -84,6 +118,19 @@ fn check_equivalence(start: &str, end: &str) {
     ;
 
     runner = runner.with_expr(&start_expr);
+
+    // add the preconditions to the truth values of the egraph
+    // println!("Egraph pre preconditions: {:#?}", runner.egraph);
+
+    let truth_id = runner.egraph.add(ModIR::Bool(true));
+    for precond in &precond_exprs {
+        println!("{:?}", precond);
+        let p_id = runner.egraph.add_expr(precond);
+        runner.egraph.union(truth_id, p_id);
+    }
+
+    // println!("Egraph post preconditions: {:#?}", runner.egraph);
+
     // NOTE this is a bit of hack, we rely on the fact that the
     // initial root is the last expr added by the runner. We can't
     // use egraph.find_expr(start) because it may have been pruned
@@ -150,11 +197,12 @@ fn main() {
     // );
     //
     check_equivalence(
+        &["(> p r)", "(< q p)"],
         "(% r ( + (% p a) (% q (+ (% p b) (% p c)))))",
         "(% r ( + (% p a) (+ (% p b) (% p c))))",
     );
 
-    check_equivalence("(+ a (+ b (+ c d)))", "(+ (+ (+ c d) b) a)");
+    // check_equivalence("(+ a (+ b (+ c d)))", "(+ (+ (+ c d) b) a)");
 
     // egg::test::test_runner(
     //     "Simple test",
