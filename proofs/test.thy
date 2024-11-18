@@ -7,12 +7,12 @@ definition "assoc_rhs (a::nat) (t::nat) (b::nat) (s::nat) (c::nat) (p::nat) (q::
 definition "assoc_lhs (a::nat) (t::nat) (b::nat) (s::nat) (c::nat) (p::nat) (q::nat) (r::nat)
  = ((((a mod 2^t) + (b mod 2^s)) mod 2^q) + (c mod 2^p)) mod 2^r"
 
-lemma simple_rewrite:
+lemma rw_mod_sum_1:
   "((p > 0) \<and> (q > 0) \<and> (p \<ge> q)) \<Longrightarrow> 
   (((a::int) mod 2^p) + (b::int)) mod 2^q = (a + b) mod 2^q"
   by (metis dvd_power_le even_numeral mod_add_cong mod_mod_cancel)
 
-lemma simple_rewrite_2:  
+lemma rw_mod_sum_2:  
   assumes"(p > 0) \<and> (q > 0) \<and> (r > 0) \<and> (p < q) \<and> (r < q)" 
   shows "(((a::nat) mod 2^p) + (b::nat) mod 2^r) mod 2^q = ((a mod 2^p) + b mod 2^r)" 
   proof -
@@ -39,5 +39,5 @@ assumes "(r > 0) \<and> (p > 0) \<and> (q > 0) \<and> (s > 0)
       assoc_rhs a p b s c p q r 
         = assoc_lhs a p b s c p q r "
 proof -
-show ?thesis using simple_rewrite_2 simple_rewrite 
+show ?thesis using rw_mod_sum_1 rw_mod_sum_2 
 by (smt (z3) assms assoc_lhs_def assoc_rhs_def group_cancel.add1 le_imp_power_dvd mod_add_cong mod_mod_cancel)
