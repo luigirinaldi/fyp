@@ -6,7 +6,7 @@ type Num = num::BigRational;
 
 define_language! {
     enum ModIR {
-        "%" = Mod([Id; 2]),      // mod operator to capture the bitwidth of a given sub-expression
+        "%" = Mod([Id; 2]), // mod operator to capture the bitwidth of a given sub-expression
         // Arithmetic operators
         "+" = Add([Id; 2]),
         "-" = Sub([Id; 2]),
@@ -17,10 +17,11 @@ define_language! {
         ">=" = GTE([Id; 2]),
         "<"  = LT([Id; 2]),
         "<=" = LTE([Id; 2]),
+        // truth value for preconditions
+        Bool(bool),
         // Numbers
         Num(Num),
         // variables on which the operators operate
-        Bool(bool),
         Var(Symbol),
     }
 }
@@ -52,20 +53,18 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("add-assoc";   "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
         rewrite!("mul-comm";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mul-assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
-        rewrite!("add-distrib"; "(* ?a (+ ?b ?c))" => "(+ (* ?a ?b) (* ?a ?c))"),
+        rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" => "(+ (* ?a ?b) (* ?a ?c))"),
+        rewrite!("add-distrib-r";   "(+ (* ?a ?b) (* ?a ?c))" => "(* ?a (+ ?b ?c))"),
 
         // mod related
-        // rewrite!("mod-sum";
-        //     "(% ?p (+ (% ?q ?a) ?b))" => "(% ?p (+ ?a ?b))" if less_than("?p", "?q")),        // if q > p
-        multi_rewrite!("mod-sum";
-            "?l = (< ?p ?q) = true, ?c = (% ?p (+ (% ?q ?a) ?b))" => "?c = (% ?p (+ ?a ?b))"),      // if q > p
+        rewrite!("mod-sum";
+            "(% ?p (+ (% ?q ?a) ?b))" => "(% ?p (+ ?a ?b))" if less_than("?p", "?q")),
         rewrite!("mod-sum-1";
-            "(% ?p (+ (% ?q ?a) (% ?q ?b)))" => "(+ (% ?q ?a) (% ?q ?b))" if less_than("?q","?p")),  // if q < p
-        // conditionals
-        rewrite!("gt-lte"; "(> ?a ?b)" => "(<= ?b ?a)"),
-        rewrite!("lt-gte"; "(< ?a ?b)" => "(>= ?b ?a)"),
-        // rewrite!("gt-gte"; "(> ?a ?b)" => "(>= ?a (+ ?b 1))"),
-        // multi_rewrite!("trans"; "?p1 = (> ?a ?b) = true, ?p2 = (> ?b ?c) = true" => "?p3 = (> ?a (+ ?c 1)) = true"),
+            "(% ?p (+ (% ?q ?a) (% ?q ?b)))" => "(+ (% ?q ?a) (% ?q ?b))" if less_than("?q","?p")),
+        multi_rewrite!("mod-sum-mult";
+            "?l = (< ?p ?q) = true, ?c = (% ?p (+ (% ?q ?a) ?b))" => "?c = (% ?p (+ ?a ?b))"),
+        multi_rewrite!("mod-prod";
+            "?l = (> ?p (+ ?q ?q)) = true, ?c = (% ?p (* (% ?q ?a) (% ?q ?b)))" => "?c = (* (% ?q ?a) (% ?q ?b))"),
     ]
 }
 
@@ -140,7 +139,6 @@ fn check_equivalence(preconditions: &[&str], lhs: &str, rhs: &str) {
                 .unwrap();
             Ok(())
         })
-        // .without_explanation_length_optimization()
         .with_expr(&lhs_expr)
         .with_expr(&rhs_expr);
 
@@ -171,7 +169,7 @@ fn check_equivalence(preconditions: &[&str], lhs: &str, rhs: &str) {
 
     let id = runner.egraph.find(*runner.roots.first().unwrap());
 
-    if runner.egraph.are_explanations_enabled() {
+    if equiv {
         let matches = rhs_pattern.search_eclass(&runner.egraph, id).unwrap();
         let subst = matches.substs[0].clone();
         // don't optimize the length for the first egraph
@@ -196,18 +194,30 @@ fn check_equivalence(preconditions: &[&str], lhs: &str, rhs: &str) {
 
 fn main() {
     check_equivalence(
-        &["(> q r)", "(> r p)"],
+        &["(< r q)"],
+        "(% r ( + (% p a) (% q (+ (% p b) (% p c)))))",
+        "(% r ( + (% q (+ (% p a) (% p b))) (% p c)))",
+    );
+
+    check_equivalence(
+        &["(< p q)"],
         "(% r ( + (% p a) (% q (+ (% p b) (% p c)))))",
         "(% r ( + (% q (+ (% p a) (% p b))) (% p c)))",
     );
 
     // check_equivalence(
-    //     &["(> q p)", "(> r (+ p q))", "(>= t (+ p p))"],
+    //     &["(> q p)", "(> r (+ p q))"],
     //     "(% r (*
     //         (% p a)
     //         (% q (+ (% p b) (% p c)))))",
-    //     "(% r (+
-    //         (% t (* (% p a) (% p b)))
-    //         (% t (* (% p a) (% p c)))))",
+    //     // "(% r (+
+    //     //     (% q (* (% p a) (% p b)))
+    //     //     (% q (* (% p a) (% p c)))))",
+    //     // "(% r (+
+    //     //     (* (% p a) (% p b))
+    //     //     (* (% p a) (% p c))))",
+    //     "(% r (*
+    //         (% p a)
+    //         (+ (% p b) (% p c))))",
     // );
 }
