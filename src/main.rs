@@ -2,6 +2,9 @@ use std::time::Duration;
 
 use egg::*;
 
+use std::fs;
+use std::path::Path;
+
 type Num = num::BigRational;
 
 define_language! {
@@ -109,7 +112,20 @@ fn less_than(a: &str, b: &str) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &
 }
 
 // preconditions encoded as a list of conjunctions
-fn check_equivalence(preconditions: &[&str], lhs: &str, rhs: &str) {
+fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, rhs: &str) {
+    let name = String::from(name_str.unwrap_or("no-name-check"));
+    let dot_output_dir = String::from("target/") + &name;
+
+    if Path::new(&dot_output_dir).exists() {
+        fs::remove_dir_all(&dot_output_dir).unwrap_or_else(|why| {
+            println!("! {:?}", why.kind());
+        });
+    }
+
+    fs::create_dir_all(&dot_output_dir).unwrap_or_else(|why| {
+        println!("! {:?}", why.kind());
+    });
+
     let rewrite_rules = &rules();
 
     let precond_exprs: Vec<RecExpr<ModIR>> =
@@ -131,12 +147,26 @@ fn check_equivalence(preconditions: &[&str], lhs: &str, rhs: &str) {
         .with_explanations_enabled()
         .with_iter_limit(50)
         .with_time_limit(Duration::from_secs(60))
-        .with_hook(|runner| {
+        .with_hook(move |runner| {
             runner
                 .egraph
                 .dot()
-                .to_pdf(format!("target/iter_{}.pdf", runner.iterations.len()))
+                .to_dot(format!(
+                    "{}/iter_{}.dot",
+                    dot_output_dir,
+                    runner.iterations.len()
+                ))
                 .unwrap();
+            runner
+                .egraph
+                .dot()
+                .to_svg(format!(
+                    "{}/iter_{}.svg",
+                    dot_output_dir,
+                    runner.iterations.len()
+                ))
+                .unwrap();
+
             Ok(())
         })
         .with_expr(&lhs_expr)
@@ -194,12 +224,14 @@ fn check_equivalence(preconditions: &[&str], lhs: &str, rhs: &str) {
 
 fn main() {
     check_equivalence(
+        Some("assoc-1"),
         &["(< r q)"],
         "(% r ( + (% p a) (% q (+ (% p b) (% p c)))))",
         "(% r ( + (% q (+ (% p a) (% p b))) (% p c)))",
     );
 
     check_equivalence(
+        Some("assoc-2"),
         &["(< p q)"],
         "(% r ( + (% p a) (% q (+ (% p b) (% p c)))))",
         "(% r ( + (% q (+ (% p a) (% p b))) (% p c)))",
