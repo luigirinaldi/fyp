@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use egg::*;
 
+mod dot_equiv;
+
 use std::fs;
 use std::path::Path;
 
@@ -113,8 +115,8 @@ fn less_than(a: &str, b: &str) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &
 
 // preconditions encoded as a list of conjunctions
 fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, rhs: &str) {
-    let name = String::from(name_str.unwrap_or("no-name-check"));
-    let dot_output_dir = String::from("target/") + &name;
+    let name = name_str.unwrap_or("no-name-check");
+    let dot_output_dir = String::from("target/") + name;
 
     if Path::new(&dot_output_dir).exists() {
         fs::remove_dir_all(&dot_output_dir).unwrap_or_else(|why| {
@@ -141,25 +143,25 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
         preconditions
     );
 
-    let lhs_pattern = Pattern::from(&lhs_expr);
+    let _lhs_pattern = Pattern::from(&lhs_expr);
     let rhs_pattern = Pattern::from(&rhs_expr);
+
+    let lhs_clone = lhs_expr.clone();
+    let rhs_clone = rhs_expr.clone();
+
     let mut runner = Runner::default()
         .with_explanations_enabled()
         .with_iter_limit(50)
         .with_time_limit(Duration::from_secs(60))
         .with_hook(move |runner| {
-            runner
-                .egraph
-                .dot()
+            dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
                 .to_dot(format!(
                     "{}/iter_{}.dot",
                     dot_output_dir,
                     runner.iterations.len()
                 ))
                 .unwrap();
-            runner
-                .egraph
-                .dot()
+            dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
                 .to_svg(format!(
                     "{}/iter_{}.svg",
                     dot_output_dir,
@@ -184,8 +186,6 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
     // println!("Egraph post preconditions: {:#?}", runner.egraph);
 
     let mut runner = runner.run(rewrite_rules);
-
-    runner.egraph.dot().to_pdf("target/foo.pdf").unwrap();
 
     let equiv = !runner.egraph.equivs(&lhs_expr, &rhs_expr).is_empty();
 
