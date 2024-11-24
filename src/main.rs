@@ -52,14 +52,14 @@ impl Analysis<ModIR> for ModAnalysis {
 
 #[rustfmt::skip]
 fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
-    vec![
+    let mut rules = vec![
         // normal arithmetic
         rewrite!("add-comm";    "(+ ?a ?b)" => "(+ ?b ?a)"),
         rewrite!("add-assoc";   "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
         rewrite!("mul-comm";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mul-assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
-        rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" => "(+ (* ?a ?b) (* ?a ?c))"),
-        rewrite!("add-distrib-r";   "(+ (* ?a ?b) (* ?a ?c))" => "(* ?a (+ ?b ?c))"),
+        // rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"),
+        // rewrite!("add-distrib-r";   "(+ (* ?a ?b) (* ?a ?c))" => "(* ?a (+ ?b ?c))"),
 
         // mod related
         rewrite!("mod-sum";
@@ -70,8 +70,18 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
             "?l = (< ?p ?q) = true, ?c = (% ?p (+ (% ?q ?a) ?b))" => "?c = (% ?p (+ ?a ?b))"),
         multi_rewrite!("mod-prod";
             "?l = (> ?p (+ ?q ?q)) = true, ?c = (% ?p (* (% ?q ?a) (% ?q ?b)))" => "?c = (* (% ?q ?a) (% ?q ?b))"),
-    ]
+
+        rewrite!("gte-gtadd"; "(>= ?a ?b)" => "(> (+ ?a 1) ?b)"),
+    ];
+    rules.extend(rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
+    rules.extend(rewrite!("lt_gt"; "(> ?a ?b)" <=> "(< ?b ?a)"));
+    rules
 }
+
+// fn condition_rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
+//     vec![
+//     ]
+// }
 
 // fn check_condition(cond: &str) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
 //     let cond_expr: RecExpr<ModIR> = cond.parse().unwrap();
@@ -128,8 +138,6 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
         println!("! {:?}", why.kind());
     });
 
-    let rewrite_rules = &rules();
-
     let precond_exprs: Vec<RecExpr<ModIR>> =
         preconditions.iter().map(|&p| p.parse().unwrap()).collect();
 
@@ -185,6 +193,11 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
 
     // println!("Egraph post preconditions: {:#?}", runner.egraph);
 
+    println!("Expanding the preconditions");
+    // let runner = runner.run(&condition_rules());
+
+    let rewrite_rules = &rules();
+
     let mut runner = runner.run(rewrite_rules);
 
     let equiv = !runner.egraph.equivs(&lhs_expr, &rhs_expr).is_empty();
@@ -237,19 +250,20 @@ fn main() {
         "(% r ( + (% q (+ (% p a) (% p b))) (% p c)))",
     );
 
-    // check_equivalence(
-    //     &["(> q p)", "(> r (+ p q))"],
-    //     "(% r (*
-    //         (% p a)
-    //         (% q (+ (% p b) (% p c)))))",
-    //     // "(% r (+
-    //     //     (% q (* (% p a) (% p b)))
-    //     //     (% q (* (% p a) (% p c)))))",
-    //     // "(% r (+
-    //     //     (* (% p a) (% p b))
-    //     //     (* (% p a) (% p c))))",
-    //     "(% r (*
-    //         (% p a)
-    //         (+ (% p b) (% p c))))",
-    // );
+    check_equivalence(
+        Some("multiply"),
+        &["(> q p)", "(> r (+ p q))", "(>= q (+ p p))"],
+        "(% r (*
+            (% p a)
+            (% q (+ (% p b) (% p c)))))",
+        "(% r (+
+            (% q (* (% p a) (% p b)))
+            (% q (* (% p a) (% p c)))))",
+        // "(% r (+
+        //     (* (% p a) (% p b))
+        //     (* (% p a) (% p c))))",
+        // "(% r (*
+        //     (% p a)
+        //     (+ (% p b) (% p c))))",
+    );
 }
