@@ -17,7 +17,7 @@ define_language! {
         "+" = Add([Id; 2]),
         "-" = Sub([Id; 2]),
         "*" = Mul([Id; 2]),
-        "/" = Div([Id; 2]),
+        // "/" = Div([Id; 2]),
         // Operators to handle preconditions
         ">"  = GT([Id; 2]),
         ">=" = GTE([Id; 2]),
@@ -62,48 +62,54 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
 
         // mod related
         rewrite!("mod-sum";
-            "(% ?p (+ (% ?q ?a) ?b))" => "(% ?p (+ ?a ?b))" if precondition("(< ?p ?q)")),
+            "(% ?p (+ (% ?q ?a) ?b))" => "(% ?p (+ ?a ?b))"
+            if precondition(&["(>= ?q ?p)"])),
         rewrite!("mod-sum-1";
-            "(% ?p (+ (% ?q ?a) (% ?q ?b)))" => "(+ (% ?q ?a) (% ?q ?b))" if precondition("(> ?p ?q)")),
+            "(% ?p (+ (% ?q ?a) (% ?r ?b)))" => "(+ (% ?q ?a) (% ?r ?b))"
+                if (precondition(&["(< ?q ?p)","(< ?r ?p)"]))),
         // multi_rewrite!("mod-sum-mult";
         //     "?l = (< ?p ?q) = true, ?c = (% ?p (+ (% ?q ?a) ?b))" => "?c = (% ?p (+ ?a ?b))"),
         // multi_rewrite!("mod-prod";
         //     "?l = (> ?p (+ ?q ?q)) = true, ?c = (% ?p (* (% ?q ?a) (% ?q ?b)))" => "?c = (* (% ?q ?a) (% ?q ?b))"),
 
-        rewrite!("gte-gtadd"; "(>= ?a ?b)" => "(> (+ ?a 1) ?b)"),
+        // rewrite!("gte-gtadd"; "(>= ?a ?b)" => "(> (+ ?a 1) ?b)"),
     ];
-    rules.extend(rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
-    rules.extend(rewrite!("lt_gt"; "(> ?a ?b)" <=> "(< ?b ?a)"));
+    // rules.extend(rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
+    // rules.extend(rewrite!("lt_gt"; "(> ?a ?b)" <=> "(< ?b ?a)"));
+    rules.extend(rewrite!("gte-lt"; "(>= ?a ?b)" <=> "(< ?b ?a)"));
     rules
 }
 
-fn precondition(cond: &str) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
-    let cond_expr: RecExpr<ModIR> = cond.parse().unwrap();
-    // println!("printing conditions {:#?}", cond_expr);
-    // look up the expr in the egraph
-    // if a vector of ids is returned then check that they are in the same eclass as the truth node
+// given a list of preconditions, returns a function that checks that they are all satisfied
+fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
+    let cond_exprs: Vec<RecExpr<ModIR>> = conds.iter().map(|expr| expr.parse().unwrap()).collect();
+    // look up the expr in the egraph then check that they are in the same eclass as the truth node
     move |egraph, _root, subst| {
-        let mut cond_subst = cond_expr.clone();
+        let mut res = true;
+        for expr in &cond_exprs {
+            let mut cond_subst = expr.clone();
 
-        for (id, node) in cond_expr.items() {
-            match node {
-                ModIR::Var(s) => {
-                    let var = Var::from_str(s.to_string().as_str()).unwrap();
-                    let new_node = egraph.id_to_node(*subst.get(var).unwrap());
-                    cond_subst[id] = new_node.clone();
+            for (id, node) in expr.items() {
+                match node {
+                    ModIR::Var(s) => {
+                        let var = Var::from_str(s.to_string().as_str()).unwrap();
+                        let new_node = egraph.id_to_node(*subst.get(var).unwrap());
+                        cond_subst[id] = new_node.clone();
+                    }
+                    _ => (),
                 }
-                _ => (),
             }
-        }
 
-        egraph
-            .lookup_expr_ids(&cond_subst)
-            .and_then(|ids| {
-                egraph
-                    .lookup(ModIR::Bool(true))
-                    .and_then(|truth| Some(ids.iter().any(|&id| id == truth)))
-            })
-            .unwrap_or(false)
+            res &= egraph
+                .lookup_expr_ids(&cond_subst)
+                .and_then(|ids| {
+                    egraph
+                        .lookup(ModIR::Bool(true))
+                        .and_then(|truth| Some(ids.iter().any(|&id| id == truth)))
+                })
+                .unwrap_or(false);
+        }
+        res
     }
 }
 
@@ -229,9 +235,16 @@ fn main() {
 
     check_equivalence(
         Some("assoc-2"),
-        &["(< p q)"],
-        "(% r ( + (% p a) (% q (+ (% p b) (% p c)))))",
-        "(% r ( + (% q (+ (% p a) (% p b))) (% p c)))",
+        &["(< p q)", "(< s q)"],
+        "(% r ( + (% p a) (% q (+ (% p b) (% s c)))))",
+        "(% r ( + (% q (+ (% p a) (% p b))) (% s c)))",
+    );
+
+    check_equivalence(
+        Some("assoc-3"),
+        &["(< p q)", "(< s q)", "(< r u)"],
+        "(% r ( + (% p a) (% u (+ (% p b) (% s c)))))",
+        "(% r ( + (% q (+ (% p a) (% p b))) (% s c)))",
     );
 
     // check_equivalence(
