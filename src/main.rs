@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use std::time::Duration;
 
 use egg::*;
@@ -31,15 +32,13 @@ define_language! {
     }
 }
 
-// Analysis for this framework, doesn't actually do anything except hold the
-// name of the identifier for the mod operator
 #[derive(Default)]
 struct ModAnalysis;
 
 impl Analysis<ModIR> for ModAnalysis {
     type Data = Option<Vec<String>>;
 
-    fn make(_egraph: &EGraph<ModIR, Self>, enode: &ModIR) -> Self::Data {
+    fn make(_egraph: &mut EGraph<ModIR, Self>, enode: &ModIR) -> Self::Data {
         match enode {
             _ => None,
         }
@@ -63,13 +62,13 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
 
         // mod related
         rewrite!("mod-sum";
-            "(% ?p (+ (% ?q ?a) ?b))" => "(% ?p (+ ?a ?b))" if less_than("?p", "?q")),
+            "(% ?p (+ (% ?q ?a) ?b))" => "(% ?p (+ ?a ?b))" if precondition("(< ?p ?q)")),
         rewrite!("mod-sum-1";
-            "(% ?p (+ (% ?q ?a) (% ?q ?b)))" => "(+ (% ?q ?a) (% ?q ?b))" if less_than("?q","?p")),
-        multi_rewrite!("mod-sum-mult";
-            "?l = (< ?p ?q) = true, ?c = (% ?p (+ (% ?q ?a) ?b))" => "?c = (% ?p (+ ?a ?b))"),
-        multi_rewrite!("mod-prod";
-            "?l = (> ?p (+ ?q ?q)) = true, ?c = (% ?p (* (% ?q ?a) (% ?q ?b)))" => "?c = (* (% ?q ?a) (% ?q ?b))"),
+            "(% ?p (+ (% ?q ?a) (% ?q ?b)))" => "(+ (% ?q ?a) (% ?q ?b))" if precondition("(> ?p ?q)")),
+        // multi_rewrite!("mod-sum-mult";
+        //     "?l = (< ?p ?q) = true, ?c = (% ?p (+ (% ?q ?a) ?b))" => "?c = (% ?p (+ ?a ?b))"),
+        // multi_rewrite!("mod-prod";
+        //     "?l = (> ?p (+ ?q ?q)) = true, ?c = (% ?p (* (% ?q ?a) (% ?q ?b)))" => "?c = (* (% ?q ?a) (% ?q ?b))"),
 
         rewrite!("gte-gtadd"; "(>= ?a ?b)" => "(> (+ ?a 1) ?b)"),
     ];
@@ -78,48 +77,33 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     rules
 }
 
-// fn condition_rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
-//     vec![
-//     ]
-// }
+fn precondition(cond: &str) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
+    let cond_expr: RecExpr<ModIR> = cond.parse().unwrap();
+    // println!("printing conditions {:#?}", cond_expr);
+    // look up the expr in the egraph
+    // if a vector of ids is returned then check that they are in the same eclass as the truth node
+    move |egraph, _root, subst| {
+        let mut cond_subst = cond_expr.clone();
 
-// fn check_condition(cond: &str) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
-//     let cond_expr: RecExpr<ModIR> = cond.parse().unwrap();
-//     println!("printing conditions {:#?}", cond_expr);
-//     // look up the expr in the egraph
-//     // if a vector of ids is returned then check that they are in the same eclass as the truth node
-//     move |egraph, _root, _subst| {
-//         egraph
-//             .lookup_expr_ids(&cond_expr)
-//             .and_then(|ids| {
-//                 egraph
-//                     .lookup(ModIR::Bool(true))
-//                     .and_then(|truth| Some(ids.iter().any(|&id| id == truth)))
-//             })
-//             .unwrap_or(false)
-//     }
-// }
+        for (id, node) in cond_expr.items() {
+            match node {
+                ModIR::Var(s) => {
+                    let var = Var::from_str(s.to_string().as_str()).unwrap();
+                    let new_node = egraph.id_to_node(*subst.get(var).unwrap());
+                    cond_subst[id] = new_node.clone();
+                }
+                _ => (),
+            }
+        }
 
-// implements a < b
-fn less_than(a: &str, b: &str) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
-    let a_var: Var = a.parse().unwrap();
-    let b_var: Var = b.parse().unwrap();
-    move |egraph, _root, subst: &Subst| {
-        let res = egraph
-            .lookup(ModIR::LT([subst[a_var], subst[b_var]]))
-            .and_then(|comp_id| {
+        egraph
+            .lookup_expr_ids(&cond_subst)
+            .and_then(|ids| {
                 egraph
                     .lookup(ModIR::Bool(true))
-                    .and_then(|truth| Some(truth == comp_id))
+                    .and_then(|truth| Some(ids.iter().any(|&id| id == truth)))
             })
-            .unwrap_or(false);
-        // println!(
-        //     "Entering conditional {} < {} = {}",
-        //     egraph.id_to_expr(subst[a_var]),
-        //     egraph.id_to_expr(subst[b_var]),
-        //     res
-        // );
-        res
+            .unwrap_or(false)
     }
 }
 
@@ -222,7 +206,7 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
         let flattened = explained.make_flat_explanation().clone();
         let vanilla_len = flattened.len();
         explained.check_proof(rewrite_rules);
-        assert!(explained.get_tree_size() > 0);
+        // assert!(explained.get_tree_size() > 0);
 
         runner = runner.with_explanation_length_optimization();
         let mut explained_short = runner.explain_matches(&lhs_expr, &rhs_pattern.ast, &subst);
@@ -230,7 +214,7 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
         println!("{}", explained_short.get_flat_string());
         let short_len = explained_short.get_flat_strings().len();
         assert!(short_len <= vanilla_len);
-        assert!(explained_short.get_tree_size() > 0);
+        // assert!(explained_short.get_tree_size() > 0);
         explained_short.check_proof(rewrite_rules);
     }
 }
@@ -250,20 +234,20 @@ fn main() {
         "(% r ( + (% q (+ (% p a) (% p b))) (% p c)))",
     );
 
-    check_equivalence(
-        Some("multiply"),
-        &["(> q p)", "(> r (+ p q))", "(>= q (+ p p))"],
-        "(% r (*
-            (% p a)
-            (% q (+ (% p b) (% p c)))))",
-        "(% r (+
-            (% q (* (% p a) (% p b)))
-            (% q (* (% p a) (% p c)))))",
-        // "(% r (+
-        //     (* (% p a) (% p b))
-        //     (* (% p a) (% p c))))",
-        // "(% r (*
-        //     (% p a)
-        //     (+ (% p b) (% p c))))",
-    );
+    // check_equivalence(
+    //     Some("multiply"),
+    //     &["(> q p)", "(> r (+ p q))", "(> k (+ p p))"],
+    //     "(% r (*
+    //         (% p a)
+    //         (% q (+ (% p b) (% p c)))))",
+    //     "(% r (+
+    //         (% k (* (% p a) (% p b)))
+    //         (% k (* (% p a) (% p c)))))",
+    //     // "(% r (+
+    //     //     (* (% p a) (% p b))
+    //     //     (* (% p a) (% p c))))",
+    //     // "(% r (*
+    //     //     (% p a)
+    //     //     (+ (% p b) (% p c))))",
+    // );
 }

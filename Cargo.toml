@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 num = "*"
-egg = "0.9.5"
+egg = "0.10.0"
