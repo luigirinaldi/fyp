@@ -4,42 +4,37 @@ lemma rw_mod_sum_1:
   "((p > 0) \<and> (q > 0) \<and> (p \<ge> q)) \<Longrightarrow> 
   (((a::int) mod 2^p) + (b::int)) mod 2^q = (a + b) mod 2^q"
   by (metis dvd_power_le even_numeral mod_add_cong mod_mod_cancel)
-
+  
 lemma rw_mod_sum_2:  
   assumes"(p > 0) \<and> (q > 0) \<and> (r > 0) \<and> (p < q) \<and> (r < q)" 
-  shows "(((a::nat) mod 2^p) + (b::nat) mod 2^r) mod 2^q = (a mod 2^p + b mod 2^r)" 
+  shows "(((a::int) mod 2^p) + (b::int) mod 2^r) mod 2^q = (a mod 2^p + b mod 2^r)" 
   proof -
-  have "(a mod 2^p) \<le> 2^p - 1" by (metis Suc_mask_eq_exp mask_nat_def mod_Suc_le_divisor) 
-  also have "... \<le> 2^(q - 1) - 1" using assms diff_le_mono by force
-  moreover have "(b mod 2^r) \<le> 2^r - 1" by (metis Suc_mask_eq_exp mask_nat_def mod_Suc_le_divisor)
-  then have "... \<le> 2^(q -1) - 1" using assms diff_le_mono by force
+  have "(a mod 2^p) \<le> 2^p - 1" by simp
+  also have "... \<le> 2^(q - 1) - 1" using assms diff_le_mono by (simp add: add_le_imp_le_diff less_iff_succ_less_eq)
+  moreover have "(b mod 2^r) \<le> 2^r - 1" by auto
+  then have "... \<le> 2^(q -1) - 1" using assms diff_le_mono by (simp add: add_le_imp_le_diff less_iff_succ_less_eq)
   ultimately have "((a mod 2^p) + (b mod 2^r)) \<le> 2*(2^(q - 1) - 1)" 
-  using \<open>a mod 2 ^ p \<le> 2 ^ p - 1\<close> \<open>b mod 2 ^ r \<le> 2 ^ r - 1\<close> by linarith
+  using \<open>a mod 2 ^ p \<le> 2 ^ p - 1\<close> \<open>b mod 2 ^ r \<le> 2 ^ r - 1\<close> by (smt (verit, ccfv_SIG))
   moreover have "2*((2::nat)^(q - 1) - 1) < 2^q" using assms by (metis diff_less diff_mult_distrib2 neq0_conv numeral_Bit0_eq_double numerals(1) power_eq_0_iff power_eq_if zero_power2) 
-  ultimately have "((a mod 2^p) + (b mod 2^r)) mod 2^q = ((a mod 2^p) + b mod 2^r)" by simp
-  then show ?thesis by blast
-  qed
-  
+  ultimately show ?thesis by (smt (verit, best) One_nat_def Suc_pred assms mod_pos_pos_trivial pos_mod_sign push_bit_Suc push_bit_double push_bit_minus_one zero_less_power)
+qed
 
 
-definition "assoc_rhs (a::nat) (t::nat) (b::nat) (s::nat) (c::nat) (p::nat) (q::nat) (r::nat)
+definition "assoc_rhs (a::int) (t::nat) (b::int) (s::nat) (c::int) (p::nat) (q::nat) (r::nat)
     = ((a mod 2^t) + (((b mod 2^s) + (c mod 2^p)) mod 2^q)) mod 2^r"
 
-definition "assoc_lhs (a::nat) (t::nat) (b::nat) (s::nat) (c::nat) (p::nat) (q::nat) (r::nat)
+definition "assoc_lhs (a::int) (t::nat) (b::int) (s::nat) (c::int) (p::nat) (q::nat) (r::nat)
     = ((((a mod 2^t) + (b mod 2^s)) mod 2^q) + (c mod 2^p)) mod 2^r"
  
 theorem assoc_equiv:
-assumes "(r > 0) \<and> (p > 0) \<and> (q > 0) \<and> (s > 0) 
-  \<and> (
-  (p < q \<and> s < q) \<or> (q \<ge> r)
-)
- "
- shows "  assoc_rhs a p b s c p q r 
-        = assoc_lhs a p b s c p q r "
-proof -
-show ?thesis using rw_mod_sum_1 rw_mod_sum_2 
-by (smt (z3) assms assoc_lhs_def assoc_rhs_def group_cancel.add1 le_imp_power_dvd mod_add_cong mod_mod_cancel)
-qed
+     "((a mod 2^t) + (((b mod 2^s) + (c mod 2^p)) mod 2^q)) mod 2^r
+    = ((((a mod 2^t) + (b mod 2^s)) mod 2^q) + (c mod 2^p)) mod 2^r"
+    if "(r > 0) \<and> (p > 0) \<and> (q > 0) \<and> (s > 0)"
+and case_1: "(p < q \<and> s < q \<and> t < q) \<or> (q \<ge> r)"
+for a b c :: int and p q r s t :: nat
+by (smt (verit, del_insts) rw_mod_sum_1 rw_mod_sum_2 assoc_lhs_def assoc_rhs_def add.commute 
+    case_1 less_zeroE linorder_neqE_nat mod_pos_pos_trivial pos_mod_bound pos_mod_sign 
+    power_le_one_iff that(1) zero_less_power)
 
 lemma distrib_power:
 assumes "p > 0 \<and> q > 0"
