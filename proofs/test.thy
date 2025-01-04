@@ -80,3 +80,19 @@ shows "(((a mod 2^p) * (((b mod 2^s) + (c mod 2^t)) mod 2^q) mod 2^r)
      = ((((a mod 2^p) * (b mod 2^s)) mod 2^u) + ((a mod 2^p) * (c mod 2^t)) mod 2^v) mod 2^r)"
 by (simp add: rw_mod_sum_2 mod_prod assms(1) assms(2) assms(3) distrib_left less_or_eq_imp_le)
 
+
+lemma mul_remove_mod:
+assumes "p > 0 \<and> q > 0"
+assumes "p \<ge> q"
+shows "(((a::nat) mod 2^p) * (b::nat)) mod 2^q = (((a::nat) * (b::nat)) mod 2^q)"
+by (metis assms(2) dvd_power_le gcd_nat.refl mod_mod_cancel mod_mult_cong)
+
+theorem mod_mul_distrib_2:
+assumes "p > 0 \<and> s > 0 \<and> t > 0 \<and> q > 0 \<and> r > 0 \<and> u > 0 \<and> v > 0"
+assumes "a \<in> \<nat> \<and> b  \<in> \<nat>  \<and> c \<in> \<nat> \<and> p \<in> \<nat> \<and> q \<in> \<nat> \<and> r \<in> \<nat> \<and> s \<in> \<nat> \<and> t \<in> \<nat> \<and> u \<in> \<nat> \<and> v \<in> \<nat>"
+assumes "u \<ge> r \<and> v \<ge> r \<and> q \<ge> r"
+shows "((((a::nat) mod 2^p) * (((b mod 2^s) + (c mod 2^t)) mod 2^q) mod 2^r)
+     = ((((a mod 2^p) * (b mod 2^s)) mod 2^u) + ((a mod 2^p) * (c mod 2^t)) mod 2^v) mod 2^r)"
+     by (smt (verit, ccfv_threshold) 
+       assms mul_remove_mod rw_mod_sum_1 
+       distrib_left le_imp_power_dvd mod_add_cong mod_mod_cancel mult.commute)

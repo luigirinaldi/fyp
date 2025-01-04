@@ -18,6 +18,8 @@ define_language! {
         "-" = Sub([Id; 2]),
         "*" = Mul([Id; 2]),
         // "/" = Div([Id; 2]),
+        ">>" = ShiftR([Id;2]),
+        "<<" = ShiftL([Id;2]),
         // Operators to handle preconditions
         ">"  = GT([Id; 2]),
         ">=" = GTE([Id; 2]),
@@ -59,23 +61,25 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mul-assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
         // rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"),
         // rewrite!("add-distrib-r";   "(+ (* ?a ?b) (* ?a ?c))" => "(* ?a (+ ?b ?c))"),
+        rewrite!("mul-shift"; "(* ?a 2)" => "(<< ?a 1)"),
 
         // mod related
+        // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
         rewrite!("mod-sum";
             "(% ?p (+ (% ?q ?a) ?b))" => "(% ?p (+ ?a ?b))"
             if precondition(&["(>= ?q ?p)"])),
+        // mod sum rewrite preserving full precision
         rewrite!("mod-sum-1";
             "(% ?p (+ (% ?q ?a) (% ?r ?b)))" => "(+ (% ?q ?a) (% ?r ?b))"
             if precondition(&["(< ?q ?p)","(< ?r ?p)"])),
+        // precision preserving transform
         rewrite!("mod-mul";
             "(% ?r (* (% ?q ?a) (% ?p ?b)))" => "(* (% ?q ?a) (% ?p ?b))"
-            if precondition(&["(> ?r (+ ?p ?q))"]))
-        // multi_rewrite!("mod-sum-mult";
-        //     "?l = (< ?p ?q) = true, ?c = (% ?p (+ (% ?q ?a) ?b))" => "?c = (% ?p (+ ?a ?b))"),
-        // multi_rewrite!("mod-prod";
-        //     "?l = (> ?p (+ ?q ?q)) = true, ?c = (% ?p (* (% ?q ?a) (% ?q ?b)))" => "?c = (* (% ?q ?a) (% ?q ?b))"),
-
-        // rewrite!("gte-gtadd"; "(>= ?a ?b)" => "(> (+ ?a 1) ?b)"),
+            if precondition(&["(> ?r (+ ?p ?q))"])),
+        // precision loss due to smaller outer mod
+        rewrite!("mod-mul-1";
+            "(% ?q (* (% ?p ?a) ?b))" => "(% ?q (* ?a ?b))"
+            if precondition(&["(>= ?p ?q)"])),
     ];
     // rules.extend(rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     // rules.extend(rewrite!("lt_gt"; "(> ?a ?b)" <=> "(< ?b ?a)"));
@@ -260,11 +264,29 @@ fn main() {
         "(% r (+
             (% k (* (% p a) (% p b)))
             (% k (* (% p a) (% p c)))))",
-        // "(% r (+
-        //     (* (% p a) (% p b))
-        //     (* (% p a) (% p c))))",
-        // "(% r (*
-        //     (% p a)
-        //     (+ (% p b) (% p c))))",
     );
+
+    check_equivalence(
+        Some("multiply-2"),
+        &["(< r q)", "(< r k)"],
+        "(% r (*
+            (% p a)
+            (% q (+ (% p b) (% p c)))))",
+        "(% r (+
+            (% k (* (% p a) (% p b)))
+            (% k (* (% p a) (% p c)))))",
+    );
+
+    check_equivalence(
+        Some("multiply-3"),
+        &["(< r t)", "(< r u)", "(< r v)"],
+        "(% r (*
+            (% p a)
+            (% t (+ (% q b) (% s c)))))",
+        "(% r (+
+            (% u (* (% p a) (% q b)))
+            (% v (* (% p a) (% s c)))))",
+    );
+
+    check_equivalence(Some("mul"), &[], "(% r (* a 2))", "(% r (<< a 1))");
 }
