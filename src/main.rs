@@ -66,7 +66,10 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
             if precondition(&["(>= ?q ?p)"])),
         rewrite!("mod-sum-1";
             "(% ?p (+ (% ?q ?a) (% ?r ?b)))" => "(+ (% ?q ?a) (% ?r ?b))"
-                if (precondition(&["(< ?q ?p)","(< ?r ?p)"]))),
+            if precondition(&["(< ?q ?p)","(< ?r ?p)"])),
+        rewrite!("mod-mul";
+            "(% ?r (* (% ?q ?a) (% ?p ?b)))" => "(* (% ?q ?a) (% ?p ?b))"
+            if precondition(&["(> ?r (+ ?p ?q))"]))
         // multi_rewrite!("mod-sum-mult";
         //     "?l = (< ?p ?q) = true, ?c = (% ?p (+ (% ?q ?a) ?b))" => "?c = (% ?p (+ ?a ?b))"),
         // multi_rewrite!("mod-prod";
@@ -77,6 +80,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     // rules.extend(rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     // rules.extend(rewrite!("lt_gt"; "(> ?a ?b)" <=> "(< ?b ?a)"));
     rules.extend(rewrite!("gte-lt"; "(>= ?a ?b)" <=> "(< ?b ?a)"));
+    rules.extend(rewrite!("mul-distrib"; "(+ (* ?a ?b) (* ?a ?c))" <=> "(* ?a (+ ?b ?c))"));
     rules
 }
 
@@ -183,7 +187,7 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
 
     // println!("Egraph post preconditions: {:#?}", runner.egraph);
 
-    println!("Expanding the preconditions");
+    // println!("Expanding the preconditions");
     // let runner = runner.run(&condition_rules());
 
     let rewrite_rules = &rules();
@@ -198,7 +202,7 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
     );
 
     let report = runner.report();
-    println!("{report}");
+    // println!("{report}");
 
     let id = runner.egraph.find(*runner.roots.first().unwrap());
 
@@ -247,20 +251,20 @@ fn main() {
         "(% r ( + (% q (+ (% p a) (% p b))) (% s c)))",
     );
 
-    // check_equivalence(
-    //     Some("multiply"),
-    //     &["(> q p)", "(> r (+ p q))", "(> k (+ p p))"],
-    //     "(% r (*
-    //         (% p a)
-    //         (% q (+ (% p b) (% p c)))))",
-    //     "(% r (+
-    //         (% k (* (% p a) (% p b)))
-    //         (% k (* (% p a) (% p c)))))",
-    //     // "(% r (+
-    //     //     (* (% p a) (% p b))
-    //     //     (* (% p a) (% p c))))",
-    //     // "(% r (*
-    //     //     (% p a)
-    //     //     (+ (% p b) (% p c))))",
-    // );
+    check_equivalence(
+        Some("multiply"),
+        &["(< p q)", "(> k (+ p p))"],
+        "(% r (*
+            (% p a)
+            (% q (+ (% p b) (% p c)))))",
+        "(% r (+
+            (% k (* (% p a) (% p b)))
+            (% k (* (% p a) (% p c)))))",
+        // "(% r (+
+        //     (* (% p a) (% p b))
+        //     (* (% p a) (% p c))))",
+        // "(% r (*
+        //     (% p a)
+        //     (+ (% p b) (% p c))))",
+    );
 }
