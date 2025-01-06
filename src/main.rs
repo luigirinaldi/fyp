@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Error};
 use std::hash::DefaultHasher;
 use std::str::FromStr;
 use std::sync::mpsc::RecvError;
@@ -42,16 +42,55 @@ define_language! {
 struct ModAnalysis;
 
 impl Analysis<ModIR> for ModAnalysis {
-    type Data = Option<Vec<String>>;
+    type Data = Option<Num>;
 
-    fn make(_egraph: &mut EGraph<ModIR, Self>, enode: &ModIR) -> Self::Data {
+    fn make(egraph: &mut EGraph<ModIR, Self>, enode: &ModIR) -> Self::Data {
+        // first, we make a getter function that grabs the data for a given e-class id
+        let get = |id: &Id| egraph[*id].data.as_ref();
+
+        // now, we write the evaluator. Since the `Data` type is an `Option`, we
+        // can use the `?` operator in Rust, which trys to unpack the
+        // preceding optional value, "bailing" from the enclosing function if it's None
         match enode {
+            ModIR::Num(n) => Some(n.clone()),
+            ModIR::Add([a, b]) => Some(get(a)? + get(b)?),
+            ModIR::Sub([a, b]) => Some(get(a)? - get(b)?),
+            ModIR::Mul([a, b]) => Some(get(a)? * get(b)?),
+            ModIR::Var(_) => None,
             _ => None,
         }
     }
 
-    fn merge(&mut self, _a: &mut Self::Data, _b: Self::Data) -> DidMerge {
-        DidMerge(false, false)
+    fn merge(&mut self, to: &mut Self::Data, from: Self::Data) -> DidMerge {
+        match (to.as_mut(), from) {
+            // Neither side is known to be a constant so there's nothing
+            // to do when they merge.
+            (None, None) => DidMerge(false, false),
+
+            // Both sides are constants, so we should just make sure
+            // they're the same.
+            (Some(a), Some(b)) => {
+                assert_eq!(a, &b, "bad merge!");
+                DidMerge(false, false)
+            }
+
+            // The right side is a constant, so update `to` to be the same.
+            (None, Some(x)) => {
+                *to = Some(x);
+                DidMerge(true, false)
+            }
+
+            // The left side is a constant and the right is not, so there's
+            // nothing to do when they merge.
+            (Some(_), None) => DidMerge(false, false),
+        }
+    }
+
+    fn modify(egraph: &mut EGraph<ModIR, Self>, id: Id) {
+        if let Some(n) = egraph[id].data.clone() {
+            let id2 = egraph.add(ModIR::Num(n));
+            egraph.union(id, id2);
+        }
     }
 }
 
@@ -61,29 +100,45 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // normal arithmetic
         rewrite!("add-comm";    "(+ ?a ?b)" => "(+ ?b ?a)"),
         rewrite!("add-assoc";   "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
-        rewrite!("sub-comm";    "(- ?a ?b)" => "(- ?b ?a)"),
-        rewrite!("sub-assoc";   "(- (- ?a ?b) ?c)" => "(- ?a (- ?b ?c))"),
         rewrite!("mul-comm";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mul-assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
-        // rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"),
+
+        rewrite!("sub-canon"; "(- ?a ?b)" => "(+ ?a (* -1 ?b))"),
+        rewrite!("canon-sub"; "(+ ?a (* -1 ?b))" => "(- ?a ?b)"),
+        rewrite!("cancel-sub"; "(- ?a ?a)" => "0"),
+
+        rewrite!("minus1-distrib"; "(- ?a ?b)" => "(* -1 (- ?b ?a))"),
+
+        rewrite!("add2-mul"; "(+ ?a ?a)" => "(* 2 ?a)"),
+        rewrite!("mul-add2"; "(* 2 ?a)"  => "(+ ?a ?a)"),
+
+        rewrite!("zero-add"; "(+ ?a 0)" => "?a"),
+        rewrite!("zero-mul"; "(* ?a 0)" => "0"),
+        rewrite!("one-mul";  "(* ?a 1)" => "?a"),
+
+
+        // rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" s=> "(+ (* ?a ?b) (* ?a ?c))"),
         // rewrite!("add-distrib-r";   "(+ (* ?a ?b) (* ?a ?c))" => "(* ?a (+ ?b ?c))"),
-        rewrite!("mul-shift"; "(* ?a 2)" => "(<< ?a 1)"),
+        // rewrite!("mul-shift"; "(* ?a 2)" => "(<< ?a 1)"),
 
         // mod related
         // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
         rewrite!("mod-sum";
             "(% ?p (+ (% ?q ?a) ?b))" => "(% ?p (+ ?a ?b))"
             if precondition(&["(>= ?q ?p)"])),
+        rewrite!("mod-diff";
+            "(% ?p (- (% ?q ?a) ?b))" => "(% ?p (- ?a ?b))"
+            if precondition(&["(>= ?q ?p)"])),
         // mod sum rewrite preserving full precision
         rewrite!("mod-sum-1";
             "(% ?p (+ (% ?q ?a) (% ?r ?b)))" => "(+ (% ?q ?a) (% ?r ?b))"
             if precondition(&["(< ?q ?p)","(< ?r ?p)"])),
         // precision preserving transform
-        rewrite!("mod-mul";
+        rewrite!("mod-mul-simp1";
             "(% ?r (* (% ?q ?a) (% ?p ?b)))" => "(* (% ?q ?a) (% ?p ?b))"
             if precondition(&["(> ?r (+ ?p ?q))"])),
         // precision loss due to smaller outer mod
-        rewrite!("mod-mul-1";
+        rewrite!("mod-mul-simp2";
             "(% ?q (* (% ?p ?a) ?b))" => "(% ?q (* ?a ?b))"
             if precondition(&["(>= ?p ?q)"])),
 
@@ -93,10 +148,12 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
             if precondition(&["(?s)"])
         )
     ];
-    // rules.extend(rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     // rules.extend(rewrite!("lt_gt"; "(> ?a ?b)" <=> "(< ?b ?a)"));
+    rules.extend(rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
+    // multliplication across the mod (this works because mod b implies mod 2^b)
+    rules.extend(rewrite!("mod-mul"; "(* 2 (% ?b ?c))" <=> "(% (+ 1 ?b) (* 2 ?c))"));
     rules.extend(rewrite!("gte-lt"; "(>= ?a ?b)" <=> "(< ?b ?a)"));
-    rules.extend(rewrite!("mul-distrib"; "(+ (* ?a ?b) (* ?a ?c))" <=> "(* ?a (+ ?b ?c))"));
+    // rules.extend(rewrite!("mul-distrib"; "(+ (* ?a ?b) (* ?a ?c))" <=> "(* ?a (+ ?b ?c))"));
     rules
 }
 
@@ -273,12 +330,12 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
 
             apply_subst(egraph, subst, expr, expr.root(), &mut cond_subst);
 
-            println!(
-                "{:#?} => {:#?} {:#?}",
-                expr.to_string(),
-                cond_subst.to_string(),
-                cond_subst
-            );
+            // println!(
+            //     "{:#?} => {:#?} {:#?}",
+            //     expr.to_string(),
+            //     cond_subst.to_string(),
+            //     cond_subst
+            // );
             res &= egraph
                 .lookup_expr_ids(&cond_subst)
                 .and_then(|ids| {
@@ -346,7 +403,11 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
                 ))
                 .unwrap();
 
-            Ok(())
+            if !runner.egraph.equivs(&lhs_clone, &rhs_clone).is_empty() {
+                Err("Found equivalence".into())
+            } else {
+                Ok(())
+            }
         })
         .with_expr(&lhs_expr)
         .with_expr(&rhs_expr);
@@ -461,12 +522,30 @@ fn main() {
 
     // check_equivalence(Some("mul"), &[], "(% r (* a 2))", "(% r (<< a 1))");
 
-    // check_equivalence(
-    //     Some("signed"),
-    //     &["sign"],
-    //     "(@ sign (% b a))",
-    //     "(- (* 2 (% (- b 1) a)) (% b a))",
-    // );
+    check_equivalence(
+        Some("signed"),
+        &["sign"],
+        "(@ sign (% b a))",
+        "(- (* 2 (% (- b 1) a)) (% b a))",
+    );
+
+    check_equivalence(Some("test"), &["sign"], "(b)", "(+ 1 (- b 1))");
+
+    check_equivalence(
+        Some("signed-1"),
+        &["sign"],
+        "(@ sign (% b a))",
+        "(- (% b (* 2 a)) (% b a))",
+    );
+
+    check_equivalence(
+        Some("signed-2"),
+        &["s"],
+        "(@ s (% q (+ (@ s (% p a)) (@ s (% p b)))))",
+        "(- (% q (* 2 (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b)))))
+        (% q (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b)))))",
+        // "(@ s (% q (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b)))))",
+    );
 
     // check_equivalence(
     //     Some("signed"),
@@ -475,10 +554,10 @@ fn main() {
     //     "(@ sign (% p (+ b a)))",
     // );
 
-    check_equivalence(
-        Some("signed-assoc"),
-        &["(< r q)", "s"],
-        "(% r ( + (% p a) (% q (+ (% p b) (% p c)))))",
-        "(% r ( + (% q (+ (% p a) (% p b))) (% p c)))",
-    );
+    // check_equivalence(
+    //     Some("signed-assoc"),
+    //     &["(< q p)", "s"],
+    //     "( + (@ s (% p a)) (@ s (% q (+ (@ s (% p b)) (@ s (% p c))))))",
+    //     "( + (@ s (% q (+ (@ s (% p a)) (@ s (% p b))))) (@ s (% p c)))",
+    // );
 }
