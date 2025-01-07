@@ -5,6 +5,8 @@ use std::sync::mpsc::RecvError;
 use std::time::Duration;
 
 use egg::*;
+use num::rational::Ratio;
+use num::{BigInt, BigRational, One};
 
 mod dot_equiv;
 
@@ -22,6 +24,7 @@ define_language! {
         "-" = Sub([Id; 2]),
         "*" = Mul([Id; 2]),
         // "/" = Div([Id; 2]),
+        "~" = Neg(Id),
         ">>" = ShiftR([Id;2]),
         "<<" = ShiftL([Id;2]),
         // Operators to handle preconditions
@@ -53,6 +56,7 @@ impl Analysis<ModIR> for ModAnalysis {
         // preceding optional value, "bailing" from the enclosing function if it's None
         match enode {
             ModIR::Num(n) => Some(n.clone()),
+            ModIR::Neg(a) => Some(-(get(a)?.clone())),
             ModIR::Add([a, b]) => Some(get(a)? + get(b)?),
             ModIR::Sub([a, b]) => Some(get(a)? - get(b)?),
             ModIR::Mul([a, b]) => Some(get(a)? * get(b)?),
@@ -103,18 +107,18 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mul-comm";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mul-assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
 
-        rewrite!("sub-canon"; "(- ?a ?b)" => "(+ ?a (* -1 ?b))"),
-        rewrite!("canon-sub"; "(+ ?a (* -1 ?b))" => "(- ?a ?b)"),
+        // rewrite!("sub-canon"; "(- ?a ?b)" => "(+ ?a (* -1 ?b))"),
+        // rewrite!("canon-sub"; "(+ ?a (* -1 ?b))" => "(- ?a ?b)"),
         rewrite!("cancel-sub"; "(- ?a ?a)" => "0"),
 
-        rewrite!("minus1-distrib"; "(- ?a ?b)" => "(* -1 (- ?b ?a))"),
+        // rewrite!("minus1-distrib"; "(- ?a ?b)" => "(* -1 (- ?b ?a))"),
 
-        rewrite!("add2-mul"; "(+ ?a ?a)" => "(* 2 ?a)"),
-        rewrite!("mul-add2"; "(* 2 ?a)"  => "(+ ?a ?a)"),
+        // rewrite!("add2-mul"; "(+ ?a ?a)" => "(* 2 ?a)"),
+        // rewrite!("mul-add2"; "(* 2 ?a)"  => "(+ ?a ?a)"),
 
         rewrite!("zero-add"; "(+ ?a 0)" => "?a"),
-        rewrite!("zero-mul"; "(* ?a 0)" => "0"),
-        rewrite!("one-mul";  "(* ?a 1)" => "?a"),
+        // rewrite!("zero-mul"; "(* ?a 0)" => "0"),
+        // rewrite!("one-mul";  "(* ?a 1)" => "?a"),
 
 
         // rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" s=> "(+ (* ?a ?b) (* ?a ?c))"),
@@ -149,11 +153,14 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         )
     ];
     // rules.extend(rewrite!("lt_gt"; "(> ?a ?b)" <=> "(< ?b ?a)"));
-    rules.extend(rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
+    rules.extend(rewrite!("add-breakup"; "(+ (+ ?a ?b) (+ ?c ?d))" <=> "(+ ?a (+ ?b (+ ?c ?d)))"));
+    //
+    rules.extend(rewrite!("add-distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
+    rules.extend(rewrite!("sub-add"; "(- ?a ?b)" <=> "(+ ?a (~ ?b))"));
+    rules.extend(rewrite!("sub-neg"; "(~ ?b)" <=> "(* -1 ?b)"));
     // multliplication across the mod (this works because mod b implies mod 2^b)
     rules.extend(rewrite!("mod-mul"; "(* 2 (% ?b ?c))" <=> "(% (+ 1 ?b) (* 2 ?c))"));
     rules.extend(rewrite!("gte-lt"; "(>= ?a ?b)" <=> "(< ?b ?a)"));
-    // rules.extend(rewrite!("mul-distrib"; "(+ (* ?a ?b) (* ?a ?c))" <=> "(* ?a (+ ?b ?c))"));
     rules
 }
 
@@ -238,7 +245,11 @@ fn recursive_node_clone(
         }
         ModIR::Bool(_bool) => new_expr.add(root_node.clone()),
         ModIR::Num(_num) => new_expr.add(root_node.clone()),
-        _ => *root_id,
+        ModIR::Neg(a) => {
+            let id_a = recursive_node_clone(egraph, a, new_expr);
+
+            new_expr.add(ModIR::Neg(id_a))
+        }
     }
 }
 
@@ -268,6 +279,11 @@ fn apply_subst(
             let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
             let id_b = apply_subst(egraph, subst, base_expr, b, new_expr);
             new_expr.add(ModIR::Sign([id_a, id_b]))
+        }
+        ModIR::Neg(a) => {
+            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
+
+            new_expr.add(ModIR::Neg(id_a))
         }
         ModIR::Add([a, b]) => {
             let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
@@ -388,20 +404,20 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
         .with_iter_limit(50)
         .with_time_limit(Duration::from_secs(60))
         .with_hook(move |runner| {
-            dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
-                .to_dot(format!(
-                    "{}/iter_{}.dot",
-                    dot_output_dir,
-                    runner.iterations.len()
-                ))
-                .unwrap();
-            dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
-                .to_svg(format!(
-                    "{}/iter_{}.svg",
-                    dot_output_dir,
-                    runner.iterations.len()
-                ))
-                .unwrap();
+            // dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
+            //     .to_dot(format!(
+            //         "{}/iter_{}.dot",
+            //         dot_output_dir,
+            //         runner.iterations.len()
+            //     ))
+            //     .unwrap();
+            // dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
+            //     .to_svg(format!(
+            //         "{}/iter_{}.svg",
+            //         dot_output_dir,
+            //         runner.iterations.len()
+            //     ))
+            //     .unwrap();
 
             if !runner.egraph.equivs(&lhs_clone, &rhs_clone).is_empty() {
                 Err("Found equivalence".into())
@@ -542,8 +558,15 @@ fn main() {
         Some("signed-2"),
         &["s"],
         "(@ s (% q (+ (@ s (% p a)) (@ s (% p b)))))",
-        "(- (% q (* 2 (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b)))))
-        (% q (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b)))))",
+        "(-
+            (% q (+
+                (* 4 (% (- p 1) a))
+                    ( + ( ~ (* 2 (% p a))))
+                        (- (* 4 (% (- p 1) b)) (* 2 (% p b))
+                )
+            ))
+            (% q (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b))))
+        )",
         // "(@ s (% q (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b)))))",
     );
 
@@ -554,10 +577,10 @@ fn main() {
     //     "(@ sign (% p (+ b a)))",
     // );
 
-    // check_equivalence(
-    //     Some("signed-assoc"),
-    //     &["(< q p)", "s"],
-    //     "( + (@ s (% p a)) (@ s (% q (+ (@ s (% p b)) (@ s (% p c))))))",
-    //     "( + (@ s (% q (+ (@ s (% p a)) (@ s (% p b))))) (@ s (% p c)))",
-    // );
+    check_equivalence(
+        Some("signed-assoc"),
+        &["(< q p)", "s"],
+        "( + (@ s (% p a)) (@ s (% q (+ (@ s (% p b)) (@ s (% p c))))))",
+        "( + (@ s (% q (+ (@ s (% p a)) (@ s (% p b))))) (@ s (% p c)))",
+    );
 }

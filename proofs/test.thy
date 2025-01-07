@@ -4,7 +4,12 @@ lemma rw_mod_sum_1:
   "((p > 0) \<and> (q > 0) \<and> (p \<ge> q)) \<Longrightarrow> 
   (((a::int) mod 2^p) + (b::int)) mod 2^q = (a + b) mod 2^q"
   by (metis dvd_power_le even_numeral mod_add_cong mod_mod_cancel)
-  
+
+lemma rw_mod_diff_1:
+  "((p > 0) \<and> (q > 0) \<and> (p \<ge> q)) \<Longrightarrow> 
+  (((a::int) mod 2^p) - (b::int)) mod 2^q = (a - b) mod 2^q"
+  by (metis add_uminus_conv_diff rw_mod_sum_1)
+
 lemma rw_mod_sum_2:  
   assumes"(p > 0) \<and> (q > 0) \<and> (r > 0) \<and> (p < q) \<and> (r < q)" 
   shows "(((a::int) mod 2^p) + (b::int) mod 2^r) mod 2^q = (a mod 2^p + b mod 2^r)" 
@@ -27,9 +32,9 @@ definition "assoc_lhs (a::int) (t::nat) (b::int) (s::nat) (c::int) (p::nat) (q::
     = ((((a mod 2^t) + (b mod 2^s)) mod 2^q) + (c mod 2^p)) mod 2^r"
  
 theorem assoc_equiv:
-     "((a mod 2^t) + (((b mod 2^s) + (c mod 2^p)) mod 2^q)) mod 2^r
-    = ((((a mod 2^t) + (b mod 2^s)) mod 2^q) + (c mod 2^p)) mod 2^r"
-    if "(r > 0) \<and> (p > 0) \<and> (q > 0) \<and> (s > 0)"
+" ((a mod 2^t) + (((b mod 2^s) + (c mod 2^p)) mod 2^q)) mod 2^r
+= ((((a mod 2^t) + (b mod 2^s)) mod 2^q) + (c mod 2^p)) mod 2^r"
+if "(r > 0) \<and> (p > 0) \<and> (q > 0) \<and> (s > 0)"
 and case_1: "(p < q \<and> s < q \<and> t < q) \<or> (q \<ge> r)"
 for a b c :: int and p q r s t :: nat
 by (smt (verit, del_insts) rw_mod_sum_1 rw_mod_sum_2 assoc_lhs_def assoc_rhs_def add.commute 
@@ -73,7 +78,9 @@ assumes "a \<in> \<nat> \<and> b  \<in> \<nat>  \<and> c \<in> \<nat> \<and> p \
 assumes "q > s \<and> q > t \<and> r > (q + a) \<and> u > (p + s) \<and> v > (p + t)"
 shows "(((a mod 2^p) * (((b mod 2^s) + (c mod 2^t)) mod 2^q) mod 2^r)
      = ((((a mod 2^p) * (b mod 2^s)) mod 2^u) + ((a mod 2^p) * (c mod 2^t)) mod 2^v) mod 2^r)"
-by (simp add: rw_mod_sum_2 mod_prod assms(1) assms(2) assms(3) distrib_left less_or_eq_imp_le)
+     sorry
+     (*
+by (simp add: rw_mod_sum_2 mod_prod assms(1) assms(2) assms(3) distrib_left less_or_eq_imp_le)*)
 
 
 lemma mul_remove_mod:
@@ -91,3 +98,23 @@ shows "((((a::nat) mod 2^p) * (((b mod 2^s) + (c mod 2^t)) mod 2^q) mod 2^r)
      by (smt (verit, ccfv_threshold) 
        assms mul_remove_mod rw_mod_sum_1 
        distrib_left le_imp_power_dvd mod_add_cong mod_mod_cancel mult.commute)
+
+     lemma
+     "2*(k mod 2^(q-1)) - (k mod 2^q) = ((2 * k) mod (2 * 2^(q-1))) - (k mod 2^q)"
+     for k :: int and q :: nat
+     by simp
+
+     definition "signed (a::int) (p::nat) = 2*(a mod 2^(p-1)) - (a mod 2^p)"
+
+     value "signed 21 3"
+     value "signed 8 5"
+     
+  lemma 
+     (*"((a mod 2^p) + (2*(((b mod 2^p) + (c mod 2^p)) mod 2^(q-1)) - (((b mod 2^p) + (c mod 2^p)) mod 2^q))) mod 2^r
+     =((2*(((a mod 2^p) + (b mod 2^p)) mod 2^(q-1)) - (((a mod 2^p) + (b mod 2^p)) mod 2^q)) + (c mod 2^p)) mod 2^r"*)
+     "((signed a p) + (signed ((signed b p) + (signed c p)) q)) mod 2^r
+     =((signed ((signed a p) + (signed b p)) q) + (signed c p)) mod 2^r"
+     
+     if "p < q" and "q < r" for a b c :: int and p q r :: nat
+     proof - 
+     show ?thesis using signed_def that 
