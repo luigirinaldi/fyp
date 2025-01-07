@@ -107,18 +107,18 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mul-comm";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mul-assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
 
-        // rewrite!("sub-canon"; "(- ?a ?b)" => "(+ ?a (* -1 ?b))"),
-        // rewrite!("canon-sub"; "(+ ?a (* -1 ?b))" => "(- ?a ?b)"),
+        rewrite!("sub-canon"; "(- ?a ?b)" => "(+ ?a (* -1 ?b))"),
+        rewrite!("canon-sub"; "(+ ?a (* -1 ?b))" => "(- ?a ?b)"),
         rewrite!("cancel-sub"; "(- ?a ?a)" => "0"),
 
         // rewrite!("minus1-distrib"; "(- ?a ?b)" => "(* -1 (- ?b ?a))"),
 
         // rewrite!("add2-mul"; "(+ ?a ?a)" => "(* 2 ?a)"),
-        // rewrite!("mul-add2"; "(* 2 ?a)"  => "(+ ?a ?a)"),
+        rewrite!("mul-add2"; "(* 2 ?a)"  => "(+ ?a ?a)"),
 
         rewrite!("zero-add"; "(+ ?a 0)" => "?a"),
-        // rewrite!("zero-mul"; "(* ?a 0)" => "0"),
-        // rewrite!("one-mul";  "(* ?a 1)" => "?a"),
+        rewrite!("zero-mul"; "(* ?a 0)" => "0"),
+        rewrite!("one-mul";  "(* ?a 1)" => "?a"),
 
 
         // rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" s=> "(+ (* ?a ?b) (* ?a ?c))"),
@@ -132,6 +132,9 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
             if precondition(&["(>= ?q ?p)"])),
         rewrite!("mod-diff";
             "(% ?p (- (% ?q ?a) ?b))" => "(% ?p (- ?a ?b))"
+            if precondition(&["(>= ?q ?p)"])),
+        rewrite!("mod-diff-2";
+            "(% ?p (- ?a (% ?q ?b)))" => "(% ?p (- ?a ?b))"
             if precondition(&["(>= ?q ?p)"])),
         // mod sum rewrite preserving full precision
         rewrite!("mod-sum-1";
@@ -411,13 +414,13 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
             //         runner.iterations.len()
             //     ))
             //     .unwrap();
-            // dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
-            //     .to_svg(format!(
-            //         "{}/iter_{}.svg",
-            //         dot_output_dir,
-            //         runner.iterations.len()
-            //     ))
-            //     .unwrap();
+            dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
+                .to_svg(format!(
+                    "{}/iter_{}.svg",
+                    dot_output_dir,
+                    runner.iterations.len()
+                ))
+                .unwrap();
 
             if !runner.egraph.equivs(&lhs_clone, &rhs_clone).is_empty() {
                 Err("Found equivalence".into())
@@ -482,61 +485,59 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
 }
 
 fn main() {
-    // check_equivalence(
-    //     Some("assoc-1"),
-    //     &["(< r q)"],
-    //     "(% r ( + (% p a) (% q (+ (% p b) (% p c)))))",
-    //     "(% r ( + (% q (+ (% p a) (% p b))) (% p c)))",
-    // );
+    check_equivalence(
+        Some("assoc-1"),
+        &["(< r q)"],
+        "(% r ( + (% p a) (% q (+ (% p b) (% p c)))))",
+        "(% r ( + (% q (+ (% p a) (% p b))) (% p c)))",
+    );
 
-    // check_equivalence(
-    //     Some("assoc-2"),
-    //     &["(< p q)", "(< s q)"],
-    //     "(% r ( + (% p a) (% q (+ (% p b) (% s c)))))",
-    //     "(% r ( + (% q (+ (% p a) (% p b))) (% s c)))",
-    // );
+    check_equivalence(
+        Some("assoc-2"),
+        &["(< p q)", "(< s q)"],
+        "(% r ( + (% p a) (% q (+ (% p b) (% s c)))))",
+        "(% r ( + (% q (+ (% p a) (% p b))) (% s c)))",
+    );
 
-    // check_equivalence(
-    //     Some("assoc-3"),
-    //     &["(< p q)", "(< s q)", "(< r u)"],
-    //     "(% r ( + (% p a) (% u (+ (% p b) (% s c)))))",
-    //     "(% r ( + (% q (+ (% p a) (% p b))) (% s c)))",
-    // );
+    check_equivalence(
+        Some("assoc-3"),
+        &["(< p q)", "(< s q)", "(< r u)"],
+        "(% r ( + (% p a) (% u (+ (% p b) (% s c)))))",
+        "(% r ( + (% q (+ (% p a) (% p b))) (% s c)))",
+    );
 
-    // check_equivalence(
-    //     Some("multiply"),
-    //     &["(< p q)", "(> k (+ p p))"],
-    //     "(% r (*
-    //         (% p a)
-    //         (% q (+ (% p b) (% p c)))))",
-    //     "(% r (+
-    //         (% k (* (% p a) (% p b)))
-    //         (% k (* (% p a) (% p c)))))",
-    // );
+    check_equivalence(
+        Some("multiply"),
+        &["(< p q)", "(> k (+ p p))"],
+        "(% r (*
+            (% p a)
+            (% q (+ (% p b) (% p c)))))",
+        "(% r (+
+            (% k (* (% p a) (% p b)))
+            (% k (* (% p a) (% p c)))))",
+    );
 
-    // check_equivalence(
-    //     Some("multiply-2"),
-    //     &["(< r q)", "(< r k)"],
-    //     "(% r (*
-    //         (% p a)
-    //         (% q (+ (% p b) (% p c)))))",
-    //     "(% r (+
-    //         (% k (* (% p a) (% p b)))
-    //         (% k (* (% p a) (% p c)))))",
-    // );
+    check_equivalence(
+        Some("multiply-2"),
+        &["(< r q)", "(< r k)"],
+        "(% r (*
+            (% p a)
+            (% q (+ (% p b) (% p c)))))",
+        "(% r (+
+            (% k (* (% p a) (% p b)))
+            (% k (* (% p a) (% p c)))))",
+    );
 
-    // check_equivalence(
-    //     Some("multiply-3"),
-    //     &["(< r t)", "(< r u)", "(< r v)"],
-    //     "(% r (*
-    //         (% p a)
-    //         (% t (+ (% q b) (% s c)))))",
-    //     "(% r (+
-    //         (% u (* (% p a) (% q b)))
-    //         (% v (* (% p a) (% s c)))))",
-    // );
-
-    // check_equivalence(Some("mul"), &[], "(% r (* a 2))", "(% r (<< a 1))");
+    check_equivalence(
+        Some("multiply-3"),
+        &["(< r t)", "(< r u)", "(< r v)"],
+        "(% r (*
+            (% p a)
+            (% t (+ (% q b) (% s c)))))",
+        "(% r (+
+            (% u (* (% p a) (% q b)))
+            (% v (* (% p a) (% s c)))))",
+    );
 
     check_equivalence(
         Some("signed"),
@@ -556,19 +557,62 @@ fn main() {
 
     check_equivalence(
         Some("signed-2"),
-        &["s"],
-        "(@ s (% q (+ (@ s (% p a)) (@ s (% p b)))))",
-        "(-
-            (% q (+
-                (* 4 (% (- p 1) a))
-                    ( + ( ~ (* 2 (% p a))))
-                        (- (* 4 (% (- p 1) b)) (* 2 (% p b))
-                )
-            ))
-            (% q (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b))))
-        )",
-        // "(@ s (% q (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b)))))",
+        &["sign", "(>= p q)"],
+        "(% q (@ sign (% p a)))",
+        "(% q a)",
     );
+
+    check_equivalence(
+        Some("signed-4"),
+        &["s"],
+        "(+ (@ s (% p a)) (% p a))",
+        "(% p (* 2 a))",
+    );
+
+    check_equivalence(
+        Some("sum"),
+        &["(>= p p)"],
+        "(% p (+ (% p a) (% p a)))",
+        "(% p (* 2 a))",
+    );
+
+    // check_equivalence(
+    //     Some("signed-2a"),
+    //     &["sign", "(> q p)"],
+    //     "(% q (@ sign (% p a)))",
+    //     "(% q a)",
+    // );
+
+    // check_equivalence(
+    //     Some("signed-3"),
+    //     &["s"],
+    //     "(@ s (% q (+ (@ s (% p a)) (@ s (% p b)))))",
+    //     //     "(-
+    //     //     (% q (+
+    //     //         (* 4 (% (- p 1) a))
+    //     //             ( + ( ~ (* 2 (% p a))))
+    //     //                 (- (* 4 (% (- p 1) b)) (* 2 (% p b))
+    //     //         )
+    //     //     ))
+    //     //     (% q (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b))))
+    //     // )",
+    //     "(@ s (% q (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b)))))",
+    // )
+    // check_equivalence(
+    //     Some("signed-2"),
+    //     &["s"],
+    //     "(@ s (% q (+ (@ s (% p a)) (@ s (% p b)))))",
+    //     "(-
+    //         (% q (+
+    //             (* 4 (% (- p 1) a))
+    //                 ( + ( ~ (* 2 (% p a))))
+    //                     (- (* 4 (% (- p 1) b)) (* 2 (% p b))
+    //             )
+    //         ))
+    //         (% q (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b))))
+    //     )",
+    //     // "(@ s (% q (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b)))))",
+    // );
 
     // check_equivalence(
     //     Some("signed"),
@@ -577,10 +621,10 @@ fn main() {
     //     "(@ sign (% p (+ b a)))",
     // );
 
-    check_equivalence(
-        Some("signed-assoc"),
-        &["(< q p)", "s"],
-        "( + (@ s (% p a)) (@ s (% q (+ (@ s (% p b)) (@ s (% p c))))))",
-        "( + (@ s (% q (+ (@ s (% p a)) (@ s (% p b))))) (@ s (% p c)))",
-    );
+    // check_equivalence(
+    //     Some("signed-assoc"),
+    //     &["(< q p)", "s"],
+    //     "( + (@ s (% p a)) (@ s (% q (+ (@ s (% p b)) (@ s (% p c))))))",
+    //     "( + (@ s (% q (+ (@ s (% p a)) (@ s (% p b))))) (@ s (% p c)))",
+    // );
 }
