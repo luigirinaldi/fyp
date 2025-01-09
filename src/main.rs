@@ -1,12 +1,8 @@
-use std::fmt::{Debug, Error};
-use std::hash::DefaultHasher;
+use std::fmt::Debug;
 use std::str::FromStr;
-use std::sync::mpsc::RecvError;
 use std::time::Duration;
 
 use egg::*;
-use num::rational::Ratio;
-use num::{BigInt, BigRational, One};
 
 mod dot_equiv;
 
