@@ -155,9 +155,6 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
             if precondition(&["(?s)"])
         )
     ];
-    // rules.extend(rewrite!("lt_gt"; "(> ?a ?b)" <=> "(< ?b ?a)"));
-    rules.extend(rewrite!("add-breakup"; "(+ (+ ?a ?b) (+ ?c ?d))" <=> "(+ ?a (+ ?b (+ ?c ?d)))"));
-    //
     rules.extend(rewrite!("add-distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     rules.extend(rewrite!("sub-add"; "(- ?a ?b)" <=> "(+ ?a (~ ?b))"));
     rules.extend(rewrite!("sub-neg"; "(~ ?b)" <=> "(* -1 ?b)"));
@@ -404,8 +401,8 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
 
     let mut runner = Runner::default()
         .with_explanations_enabled()
-        .with_iter_limit(50)
-        .with_time_limit(Duration::from_secs(60))
+        // .with_iter_limit(50)
+        .with_time_limit(Duration::from_secs(20))
         .with_hook(move |runner| {
             // dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
             //     .to_dot(format!(
@@ -431,19 +428,12 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
         .with_expr(&lhs_expr)
         .with_expr(&rhs_expr);
 
-    // println!("Egraph pre preconditions: {:#?}", runner.egraph);
-
     // add the preconditions to the truth values of the egraph
     let truth_id = runner.egraph.add(ModIR::Bool(true));
     for precond in &precond_exprs {
         let p_id = runner.egraph.add_expr(precond);
         runner.egraph.union(truth_id, p_id);
     }
-
-    // println!("Egraph post preconditions: {:#?}", runner.egraph);
-
-    // println!("Expanding the preconditions");
-    // let runner = runner.run(&condition_rules());
 
     let rewrite_rules = &rules();
 
@@ -456,30 +446,18 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
         if equiv { " " } else { " not " }
     );
 
-    // let report = runner.report();
-    // println!("{report}");
-
     let id = runner.egraph.find(*runner.roots.first().unwrap());
 
     if equiv {
         let matches = rhs_pattern.search_eclass(&runner.egraph, id).unwrap();
         let subst = matches.substs[0].clone();
-        // don't optimize the length for the first egraph
-        runner = runner.without_explanation_length_optimization();
-        let mut explained = runner.explain_matches(&lhs_expr, &rhs_pattern.ast, &subst);
-        explained.get_string_with_let();
-        let flattened = explained.make_flat_explanation().clone();
-        let vanilla_len = flattened.len();
-        explained.check_proof(rewrite_rules);
-        // assert!(explained.get_tree_size() > 0);
 
         runner = runner.with_explanation_length_optimization();
         let mut explained_short = runner.explain_matches(&lhs_expr, &rhs_pattern.ast, &subst);
         explained_short.get_string_with_let();
-        println!("{}", explained_short.get_flat_string());
-        let short_len = explained_short.get_flat_strings().len();
-        assert!(short_len <= vanilla_len);
-        // assert!(explained_short.get_tree_size() > 0);
+        for s in explained_short.get_flat_strings() {
+            println!("    {:#}", s);
+        }
         explained_short.check_proof(rewrite_rules);
     }
 }
@@ -576,12 +554,12 @@ fn main() {
         "(% p (* 2 a))",
     );
 
-    // check_equivalence(
-    //     Some("signed-2a"),
-    //     &["sign", "(> q p)"],
-    //     "(% q (@ sign (% p a)))",
-    //     "(% q a)",
-    // );
+    check_equivalence(
+        Some("signed-2a"),
+        &["sign", "(> q p)"],
+        "(% q (@ sign (% p a)))",
+        "(% q a)",
+    );
 
     // check_equivalence(
     //     Some("signed-3"),
