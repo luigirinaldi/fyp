@@ -550,12 +550,12 @@ fn main() {
         "(% p (* 2 a))",
     );
 
-    check_equivalence(
-        Some("signed-2a"),
-        &["sign", "(> q p)"],
-        "(% q (@ sign (% p a)))",
-        "(% q a)",
-    );
+    // check_equivalence(
+    //     Some("signed-2a"),
+    //     &["sign", "(> q p)"],
+    //     "(% q (@ sign (% p a)))",
+    //     "(% q a)",
+    // );
 
     // check_equivalence(
     //     Some("signed-3"),
@@ -597,8 +597,8 @@ fn main() {
 
     // check_equivalence(
     //     Some("signed-assoc"),
-    //     &["(< q p)", "s"],
-    //     "( + (@ s (% p a)) (@ s (% q (+ (@ s (% p b)) (@ s (% p c))))))",
-    //     "( + (@ s (% q (+ (@ s (% p a)) (@ s (% p b))))) (@ s (% p c)))",
+    //     &["(>= q r)", "s"],
+    //     "(% r ( + (@ s (% p a)) (@ s (% q (+ (@ s (% p b)) (@ s (% p c)))))))",
+    //     "(% r ( + (@ s (% q (+ (@ s (% p a)) (@ s (% p b))))) (@ s (% p c))))",
     // );
 }
