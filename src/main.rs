@@ -18,9 +18,9 @@ define_language! {
         // Arithmetic operators
         "+" = Add([Id; 2]),
         "-" = Sub([Id; 2]),
+        "-" = Neg(Id),
         "*" = Mul([Id; 2]),
         // "/" = Div([Id; 2]),
-        "~" = Neg(Id),
         ">>" = ShiftR([Id;2]),
         "<<" = ShiftL([Id;2]),
         // Operators to handle preconditions
@@ -94,8 +94,15 @@ impl Analysis<ModIR> for ModAnalysis {
 
     fn modify(egraph: &mut EGraph<ModIR, Self>, id: Id) {
         if let Some(n) = egraph[id].data.clone() {
+            // add a num node
             let id2 = egraph.add(ModIR::Num(n));
             egraph.union(id, id2);
+            // // add a mod node (only really works for positive n)
+            // let min_width = (n as u32).next_power_of_two().ilog2() + 1;
+            // println!("adding {} of bw {}", n, min_width as i32);
+            // let bw_id = egraph.add(ModIR::Num(min_width as i32));
+            // let id3 = egraph.add(ModIR::Mod([bw_id, id2]));
+            // egraph.union(id, id3);
         }
     }
 }
@@ -151,6 +158,9 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
             "(% ?q (* (% ?p ?a) ?b))" => "(% ?q (* ?a ?b))"
             if precondition(&["(>= ?p ?q)"])),
 
+        rewrite!("mod-reduce-1"; "(% ?q (% ?p ?a))" => "(% ?p a)" if precondition(&["(>= ?q ?p)"])),
+        rewrite!("mod-reduce-2"; "(% ?q (% ?p ?a))" => "(% ?q a)" if precondition(&["(< ?q ?p)"])),
+
         // sign related
         rewrite!("signed";
             "(@ ?s (% ?bw ?a))" => "(- (* 2 (% (- ?bw 1) ?a)) (% ?bw ?a))"
@@ -158,11 +168,12 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         )
     ];
     rules.extend(rewrite!("add-distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
-    rules.extend(rewrite!("sub-add"; "(- ?a ?b)" <=> "(+ ?a (~ ?b))"));
-    rules.extend(rewrite!("sub-neg"; "(~ ?b)" <=> "(* -1 ?b)"));
+    rules.extend(rewrite!("sub-add"; "(- ?a ?b)" <=> "(+ ?a (- ?b))"));
+    rules.extend(rewrite!("sub-neg"; "(- ?b)" <=> "(* -1 ?b)"));
     // multliplication across the mod (this works because mod b implies mod 2^b)
     rules.extend(rewrite!("mod-mul"; "(* 2 (% ?b ?c))" <=> "(% (+ 1 ?b) (* 2 ?c))"));
-    rules.extend(rewrite!("gte-lt"; "(> ?a ?b)" <=> "(< ?b ?a)"));
+    rules.extend(rewrite!("gt-lt"; "(> ?a ?b)" <=> "(< ?b ?a)"));
+    rules.extend(rewrite!("gte-lte"; "(>= ?a ?b)" <=> "(<= ?b ?a)"));
     rules
 }
 
@@ -444,7 +455,8 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
     let equiv = !runner.egraph.equivs(&lhs_expr, &rhs_expr).is_empty();
 
     println!(
-        "LHS and RHS are{}equivalent!",
+        "{} LHS and RHS are{}equivalent!",
+        name,
         if equiv { " " } else { " not " }
     );
 
@@ -465,11 +477,102 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
 }
 
 fn main() {
+    // check_equivalence(
+    //     Some("mult_sum_same_nomod"),
+    //     &[],
+    //     "(+ (* a b) b)",
+    //     "(* (+ a 1) b)",
+    // );
+
+    // check_equivalence(
+    //     Some("mult_sum_same"),
+    //     &["(> t p)", "(> t 1)", "(>= s (+ p q))"],
+    //     "(% r (+ (% s (* (% p a) (% q b))) (% q b)))",
+    //     "(% r (* (% t (+ (% p a) (% 1 1))) (% q b)))",
+    // );
+
     check_equivalence(
-        Some("mult_sum_same_nomod"),
+        Some("commutativity-add"),
         &[],
-        "(+ (* a b) b)",
-        "(* (+ a 1) b)",
+        "(% r ( + (% p a) (% q b)))",
+        "(% r ( + (% q b) (% p a)))",
+    );
+
+    check_equivalence(
+        Some("commutativity-mult"),
+        &[],
+        "(% r ( * (% p a) (% q b)))",
+        "(% r ( * (% q b) (% p a)))",
+    );
+
+    check_equivalence(
+        Some("mult-assoc-1"),
+        &["(>= q t)", "(>= u t)"],
+        "(% t ( * (% u (* (% p a) (% r b))) (% s c)))",
+        "(% t ( * (% p a) (% q (* (% r b) (% s c)))))",
+    );
+
+    check_equivalence(
+        Some("mult-assoc-2"),
+        &["(>= q t)", "(<= (+ p r) u)"],
+        "(% t ( * (% u (* (% p a) (% r b))) (% s c)))",
+        "(% t ( * (% p a) (% q (* (% r b) (% s c)))))",
+    );
+
+    check_equivalence(
+        Some("mult-assoc-3"),
+        &["(<= (+ r s) q)", "(>= u t)"],
+        "(% t ( * (% u (* (% p a) (% r b))) (% s c)))",
+        "(% t ( * (% p a) (% q (* (% r b) (% s c)))))",
+    );
+
+    check_equivalence(
+        Some("mult-assoc-4"),
+        &["(<= (+ r s) q)", "(<= (+ p r) u)"],
+        "(% t ( * (% u (* (% p a) (% r b))) (% s c)))",
+        "(% t ( * (% p a) (% q (* (% r b) (% s c)))))",
+    );
+
+    check_equivalence(
+        Some("add-assoc-1"),
+        &["(>= q t)", "(>= u t)"],
+        "(% t ( + (% u (+ (% p a) (% r b))) (% s c)))",
+        "(% t ( + (% p a) (% q (+ (% r b) (% s c)))))",
+    );
+
+    check_equivalence(
+        Some("add-assoc-2"),
+        &["(< r q)", "(< s q)", "(>= u t)"],
+        "(% t ( + (% u (+ (% p a) (% r b))) (% s c)))",
+        "(% t ( + (% p a) (% q (+ (% r b) (% s c)))))",
+    );
+
+    check_equivalence(
+        Some("add-assoc-3"),
+        &["(>= q t)", "(< p u)", "(< r u)"],
+        "(% t ( + (% u (+ (% p a) (% r b))) (% s c)))",
+        "(% t ( + (% p a) (% q (+ (% r b) (% s c)))))",
+    );
+
+    check_equivalence(
+        Some("add-assoc-4"),
+        &["(< r q)", "(< s q)", "(< p u)", "(< r u)"],
+        "(% t ( + (% u (+ (% p a) (% r b))) (% s c)))",
+        "(% t ( + (% p a) (% q (+ (% r b) (% s c)))))",
+    );
+
+    check_equivalence(
+        Some("dist-over-add"),
+        &["(>= q r)", "(>= u r)", "(>= v r)"],
+        "(% r (* (% p a) (+ (% s b) (% t c))))",
+        "(% r (+ (% u (* (% p a) (% s b))) (% v (* (% p a) (% t c)) ) ))",
+    );
+
+    check_equivalence(
+        Some("sum-same"),
+        &[],
+        "(% q (+ (% p a) (% p a)))",
+        "(% q (* (% 2 2) (% p a)))",
     );
 
     check_equivalence(
@@ -479,12 +582,26 @@ fn main() {
         "(% r (* (% t (+ (% p a) (% 1 1))) (% q b)))",
     );
 
-    // check_equivalence(
-    //     Some("assoc-1"),
-    //     &["(< r q)"],
-    //     "(% r ( + (% p a) (% q (+ (% p b) (% p c)))))",
-    //     "(% r ( + (% q (+ (% p a) (% p b))) (% p c)))",
-    // );
+    check_equivalence(
+        Some("add_zero"),
+        &["(>= p p)"],
+        "(% p (+ (% p a) 0))",
+        "(% p a)",
+    );
+
+    check_equivalence(
+        Some("sub_to_neg"),
+        &[],
+        "(% r (- (% p a) (% q b)))",
+        "(% r (+ (% p a) (- (% q b))))",
+    );
+
+    check_equivalence(
+        Some("mul_one"),
+        &["(>= p p)"],
+        "(% p (* (% p a) 1))",
+        "(% p a)",
+    );
 
     // check_equivalence(
     //     Some("assoc-2"),
