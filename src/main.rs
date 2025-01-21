@@ -116,9 +116,9 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mul-comm";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mul-assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
 
-        rewrite!("sub-canon"; "(- ?a ?b)" => "(+ ?a (* -1 ?b))"),
-        rewrite!("canon-sub"; "(+ ?a (* -1 ?b))" => "(- ?a ?b)"),
-        rewrite!("cancel-sub"; "(- ?a ?a)" => "0"),
+        // rewrite!("sub-canon"; "(- ?a ?b)" => "(+ ?a (* -1 ?b))"),
+        // rewrite!("canon-sub"; "(+ ?a (* -1 ?b))" => "(- ?a ?b)"),
+        // rewrite!("cancel-sub"; "(- ?a ?a)" => "0"),
 
         // rewrite!("minus1-distrib"; "(- ?a ?b)" => "(* -1 (- ?b ?a))"),
 
@@ -162,16 +162,16 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mod-reduce-2"; "(% ?q (% ?p ?a))" => "(% ?q a)" if precondition(&["(< ?q ?p)"])),
 
         // sign related
-        rewrite!("signed";
-            "(@ ?s (% ?bw ?a))" => "(- (* 2 (% (- ?bw 1) ?a)) (% ?bw ?a))"
-            if precondition(&["(?s)"])
-        )
+        // rewrite!("signed";
+        //     "(@ ?s (% ?bw ?a))" => "(- (* 2 (% (- ?bw 1) ?a)) (% ?bw ?a))"
+        //     if precondition(&["(?s)"])
+        // )
     ];
     rules.extend(rewrite!("add-distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     rules.extend(rewrite!("sub-add"; "(- ?a ?b)" <=> "(+ ?a (- ?b))"));
     rules.extend(rewrite!("sub-neg"; "(- ?b)" <=> "(* -1 ?b)"));
     // multliplication across the mod (this works because mod b implies mod 2^b)
-    rules.extend(rewrite!("mod-mul"; "(* 2 (% ?b ?c))" <=> "(% (+ 1 ?b) (* 2 ?c))"));
+    // rules.extend(rewrite!("mod-mul"; "(* 2 (% ?b ?c))" <=> "(% (+ 1 ?b) (* 2 ?c))"));
     rules.extend(rewrite!("gt-lt"; "(> ?a ?b)" <=> "(< ?b ?a)"));
     rules.extend(rewrite!("gte-lte"; "(>= ?a ?b)" <=> "(<= ?b ?a)"));
     rules
