@@ -51,7 +51,12 @@ where
     /// Renders the `Dot` to a .png file with the given filename.
     /// Requires a `dot` binary to be on your `$PATH`.
     pub fn to_png(&self, filename: impl AsRef<Path>) -> Result<()> {
-        self.run_dot(&["-Tpng".as_ref(), "-o".as_ref(), filename.as_ref()])
+        self.run_dot(&[
+            "-Tpng".as_ref(),
+            "-o".as_ref(),
+            filename.as_ref(),
+            "-q".as_ref(),
+        ])
     }
 
     /// Renders the `Dot` to a .svg file with the given filename.
@@ -68,7 +73,12 @@ where
     /// Renders the `Dot` to a .pdf file with the given filename.
     /// Requires a `dot` binary to be on your `$PATH`.
     pub fn to_pdf(&self, filename: impl AsRef<Path>) -> Result<()> {
-        self.run_dot(&["-Tpdf".as_ref(), "-o".as_ref(), filename.as_ref()])
+        self.run_dot(&[
+            "-Tpdf".as_ref(),
+            "-o".as_ref(),
+            filename.as_ref(),
+            "-q".as_ref(),
+        ])
     }
 
     /// Invokes `dot` with the given arguments, piping this formatted
