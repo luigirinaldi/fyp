@@ -110,11 +110,10 @@ if "p \<ge> q"
 using bw_def 
 by (smt (verit) bw_max_val mod_pos_pos_trivial pos_mod_sign power_increasing that zero_less_power)
 
-definition "shl (a::int) (b::int) = a * 2^b"
-
 (* assuming b can always be cast to a nat *)
 definition "shl (a::int) (b::int) = a * 2^(nat(b))"
-value "shl (-3) 3"
+value "nat(-3)"
+value "shl (-3) (-3)"
 value "shl (bw 2 3) (bw 3 (3))"
 
 (* using try *)

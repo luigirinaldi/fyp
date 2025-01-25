@@ -10,6 +10,11 @@ lemma rw_mod_diff_1:
   (((a::int) mod 2^p) - (b::int)) mod 2^q = (a - b) mod 2^q"
   by (metis add_uminus_conv_diff rw_mod_sum_1)
 
+lemma rw_mod_diff_2:
+  "((p > 0) \<and> (q > 0) \<and> (p \<ge> q)) \<Longrightarrow> 
+  ((a::int) - ((b::int) mod 2^p)) mod 2^q = (a - b) mod 2^q"
+  by (metis dvd_power_le even_numeral mod_diff_cong mod_mod_cancel)
+  
 lemma rw_mod_sum_2:  
   assumes"(p > 0) \<and> (q > 0) \<and> (r > 0) \<and> (p < q) \<and> (r < q)" 
   shows "(((a::int) mod 2^p) + (b::int) mod 2^r) mod 2^q = (a mod 2^p + b mod 2^r)" 
