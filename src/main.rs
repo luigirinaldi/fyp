@@ -13,7 +13,7 @@ type Num = i32;
 
 define_language! {
     enum ModIR {
-        "%" = Mod([Id; 2]), // mod operator to capture the bitwidth of a given sub-expression
+        "bw" = Mod([Id; 2]), // mod operator to capture the bitwidth of a given sub-expression
         "@" = Sign([Id; 2]),
         // Arithmetic operators
         "+" = Add([Id; 2]),
@@ -126,7 +126,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mul-add2"; "(* 2 ?a)"  => "(+ ?a ?a)"),
 
         rewrite!("zero-add"; "(+ ?a 0)" => "?a"),
-        rewrite!("zero-mul"; "(* ?a 0)" => "0"),
+        // rewrite!("zero-mul"; "(* ?a 0)" => "0"),
         rewrite!("one-mul";  "(* ?a 1)" => "?a"),
 
 
@@ -137,41 +137,41 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // mod related
         // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
         rewrite!("mod-sum";
-            "(% ?p (+ (% ?q ?a) ?b))" => "(% ?p (+ ?a ?b))"
+            "(bw ?p (+ (bw ?q ?a) ?b))" => "(bw ?p (+ ?a ?b))"
             if precondition(&["(>= ?q ?p)"])),
         rewrite!("mod-diff";
-            "(% ?p (- (% ?q ?a) ?b))" => "(% ?p (- ?a ?b))"
+            "(bw ?p (- (bw ?q ?a) ?b))" => "(bw ?p (- ?a ?b))"
             if precondition(&["(>= ?q ?p)"])),
         rewrite!("mod-diff-2";
-            "(% ?p (- ?a (% ?q ?b)))" => "(% ?p (- ?a ?b))"
+            "(bw ?p (- ?a (bw ?q ?b)))" => "(bw ?p (- ?a ?b))"
             if precondition(&["(>= ?q ?p)"])),
         // mod sum rewrite preserving full precision
         rewrite!("mod-sum-1";
-            "(% ?p (+ (% ?q ?a) (% ?r ?b)))" => "(+ (% ?q ?a) (% ?r ?b))"
+            "(bw ?p (+ (bw ?q ?a) (bw ?r ?b)))" => "(+ (bw ?q ?a) (bw ?r ?b))"
             if precondition(&["(< ?q ?p)","(< ?r ?p)"])),
         // precision preserving transform
         rewrite!("mod-mul-simp1";
-            "(% ?r (* (% ?q ?a) (% ?p ?b)))" => "(* (% ?q ?a) (% ?p ?b))"
+            "(bw ?r (* (bw ?q ?a) (bw ?p ?b)))" => "(* (bw ?q ?a) (bw ?p ?b))"
             if precondition(&["(>= ?r (+ ?p ?q))"])),
         // precision loss due to smaller outer mod
         rewrite!("mod-mul-simp2";
-            "(% ?q (* (% ?p ?a) ?b))" => "(% ?q (* ?a ?b))"
+            "(bw ?q (* (bw ?p ?a) ?b))" => "(bw ?q (* ?a ?b))"
             if precondition(&["(>= ?p ?q)"])),
 
-        rewrite!("mod-reduce-1"; "(% ?q (% ?p ?a))" => "(% ?p a)" if precondition(&["(>= ?q ?p)"])),
-        rewrite!("mod-reduce-2"; "(% ?q (% ?p ?a))" => "(% ?q a)" if precondition(&["(< ?q ?p)"])),
+        rewrite!("mod-reduce-1"; "(bw ?q (bw ?p ?a))" => "(bw ?p a)" if precondition(&["(>= ?q ?p)"])),
+        // rewrite!("mod-reduce-2"; "(bw ?q (bw ?p ?a))" => "(bw ?q a)" if precondition(&["(< ?q ?p)"])),
 
         // sign related
         // rewrite!("signed";
-        //     "(@ ?s (% ?bw ?a))" => "(- (* 2 (% (- ?bw 1) ?a)) (% ?bw ?a))"
+        //     "(@ ?s (bw ?bw ?a))" => "(- (* 2 (bw (- ?bw 1) ?a)) (bw ?bw ?a))"
         //     if precondition(&["(?s)"])
         // )
     ];
     rules.extend(rewrite!("add-distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     rules.extend(rewrite!("sub-add"; "(- ?a ?b)" <=> "(+ ?a (- ?b))"));
-    rules.extend(rewrite!("sub-neg"; "(- ?b)" <=> "(* -1 ?b)"));
+    // rules.extend(rewrite!("sub-neg"; "(- ?b)" <=> "(* -1 ?b)"));
     // multliplication across the mod (this works because mod b implies mod 2^b)
-    // rules.extend(rewrite!("mod-mul"; "(* 2 (% ?b ?c))" <=> "(% (+ 1 ?b) (* 2 ?c))"));
+    // rules.extend(rewrite!("mod-mul"; "(* 2 (bw ?b ?c))" <=> "(bw (+ 1 ?b) (* 2 ?c))"));
     rules.extend(rewrite!("gt-lt"; "(> ?a ?b)" <=> "(< ?b ?a)"));
     rules.extend(rewrite!("gte-lte"; "(>= ?a ?b)" <=> "(<= ?b ?a)"));
     rules
@@ -417,13 +417,13 @@ fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, 
         // .with_iter_limit(50)
         .with_time_limit(Duration::from_secs(20))
         .with_hook(move |runner| {
-            // dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
-            //     .to_dot(format!(
-            //         "{}/iter_{}.dot",
-            //         dot_output_dir,
-            //         runner.iterations.len()
-            //     ))
-            //     .unwrap();
+            dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
+                .to_pdf(format!(
+                    "{}/iter_{}.pdf",
+                    dot_output_dir,
+                    runner.iterations.len()
+                ))
+                .unwrap();
             dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
                 .to_svg(format!(
                     "{}/iter_{}.svg",
@@ -487,174 +487,181 @@ fn main() {
     // check_equivalence(
     //     Some("mult_sum_same"),
     //     &["(> t p)", "(> t 1)", "(>= s (+ p q))"],
-    //     "(% r (+ (% s (* (% p a) (% q b))) (% q b)))",
-    //     "(% r (* (% t (+ (% p a) (% 1 1))) (% q b)))",
+    //     "(bw r (+ (bw s (* (bw p a) (bw q b))) (bw q b)))",
+    //     "(bw r (* (bw t (+ (bw p a) (bw 1 1))) (bw q b)))",
     // );
 
     check_equivalence(
         Some("commutativity-add"),
         &[],
-        "(% r ( + (% p a) (% q b)))",
-        "(% r ( + (% q b) (% p a)))",
+        "(bw r ( + (bw p a) (bw q b)))",
+        "(bw r ( + (bw q b) (bw p a)))",
     );
 
     check_equivalence(
         Some("commutativity-mult"),
         &[],
-        "(% r ( * (% p a) (% q b)))",
-        "(% r ( * (% q b) (% p a)))",
+        "(bw r ( * (bw p a) (bw q b)))",
+        "(bw r ( * (bw q b) (bw p a)))",
     );
 
     check_equivalence(
         Some("mult-assoc-1"),
         &["(>= q t)", "(>= u t)"],
-        "(% t ( * (% u (* (% p a) (% r b))) (% s c)))",
-        "(% t ( * (% p a) (% q (* (% r b) (% s c)))))",
+        "(bw t ( * (bw u (* (bw p a) (bw r b))) (bw s c)))",
+        "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
 
     check_equivalence(
         Some("mult-assoc-2"),
         &["(>= q t)", "(<= (+ p r) u)"],
-        "(% t ( * (% u (* (% p a) (% r b))) (% s c)))",
-        "(% t ( * (% p a) (% q (* (% r b) (% s c)))))",
+        "(bw t ( * (bw u (* (bw p a) (bw r b))) (bw s c)))",
+        "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
 
     check_equivalence(
         Some("mult-assoc-3"),
         &["(<= (+ r s) q)", "(>= u t)"],
-        "(% t ( * (% u (* (% p a) (% r b))) (% s c)))",
-        "(% t ( * (% p a) (% q (* (% r b) (% s c)))))",
+        "(bw t ( * (bw u (* (bw p a) (bw r b))) (bw s c)))",
+        "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
 
     check_equivalence(
         Some("mult-assoc-4"),
         &["(<= (+ r s) q)", "(<= (+ p r) u)"],
-        "(% t ( * (% u (* (% p a) (% r b))) (% s c)))",
-        "(% t ( * (% p a) (% q (* (% r b) (% s c)))))",
+        "(bw t ( * (bw u (* (bw p a) (bw r b))) (bw s c)))",
+        "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
 
     check_equivalence(
         Some("add-assoc-1"),
         &["(>= q t)", "(>= u t)"],
-        "(% t ( + (% u (+ (% p a) (% r b))) (% s c)))",
-        "(% t ( + (% p a) (% q (+ (% r b) (% s c)))))",
+        "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
+        "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
 
     check_equivalence(
         Some("add-assoc-2"),
         &["(< r q)", "(< s q)", "(>= u t)"],
-        "(% t ( + (% u (+ (% p a) (% r b))) (% s c)))",
-        "(% t ( + (% p a) (% q (+ (% r b) (% s c)))))",
+        "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
+        "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
 
     check_equivalence(
         Some("add-assoc-3"),
         &["(>= q t)", "(< p u)", "(< r u)"],
-        "(% t ( + (% u (+ (% p a) (% r b))) (% s c)))",
-        "(% t ( + (% p a) (% q (+ (% r b) (% s c)))))",
+        "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
+        "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
 
     check_equivalence(
         Some("add-assoc-4"),
         &["(< r q)", "(< s q)", "(< p u)", "(< r u)"],
-        "(% t ( + (% u (+ (% p a) (% r b))) (% s c)))",
-        "(% t ( + (% p a) (% q (+ (% r b) (% s c)))))",
+        "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
+        "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
 
     check_equivalence(
         Some("dist-over-add"),
         &["(>= q r)", "(>= u r)", "(>= v r)"],
-        "(% r (* (% p a) (+ (% s b) (% t c))))",
-        "(% r (+ (% u (* (% p a) (% s b))) (% v (* (% p a) (% t c)) ) ))",
+        "(bw r (* (bw p a) (+ (bw s b) (bw t c))))",
+        "(bw r (+ (bw u (* (bw p a) (bw s b))) (bw v (* (bw p a) (bw t c)) ) ))",
     );
 
     check_equivalence(
         Some("sum-same"),
         &[],
-        "(% q (+ (% p a) (% p a)))",
-        "(% q (* (% 2 2) (% p a)))",
+        "(bw q (+ (bw p a) (bw p a)))",
+        "(bw q (* (bw 2 2) (bw p a)))",
     );
 
     check_equivalence(
         Some("mult_sum_same"),
         &["(> t p)", "(> t 1)", "(>= s (+ p q))"],
-        "(% r (+ (% s (* (% p a) (% q b))) (% q b)))",
-        "(% r (* (% t (+ (% p a) (% 1 1))) (% q b)))",
+        "(bw r (+ (bw s (* (bw p a) (bw q b))) (bw q b)))",
+        "(bw r (* (bw t (+ (bw p a) (bw 1 1))) (bw q b)))",
     );
 
     check_equivalence(
         Some("add_zero"),
         &["(>= p p)"],
-        "(% p (+ (% p a) 0))",
-        "(% p a)",
+        "(bw p (+ (bw p a) 0))",
+        "(bw p a)",
     );
 
     check_equivalence(
         Some("sub_to_neg"),
         &[],
-        "(% r (- (% p a) (% q b)))",
-        "(% r (+ (% p a) (- (% q b))))",
+        "(bw r (- (bw p a) (bw q b)))",
+        "(bw r (+ (bw p a) (- (bw q b))))",
     );
 
     check_equivalence(
         Some("mul_one"),
         &["(>= p p)"],
-        "(% p (* (% p a) 1))",
-        "(% p a)",
+        "(bw p (* (bw p a) 1))",
+        "(bw p a)",
+    );
+
+    check_equivalence(
+        Some("add-assoc-paper"),
+        &["(>= q r)"],
+        "(bw r ( + (bw q (+ (bw p a) (bw p b))) (bw p c)))",
+        "(bw r ( + (bw p a) (bw q (+ (bw p b) (bw p c)))))",
     );
 
     // check_equivalence(
     //     Some("assoc-2"),
     //     &["(< p q)", "(< s q)"],
-    //     "(% r ( + (% p a) (% q (+ (% p b) (% s c)))))",
-    //     "(% r ( + (% q (+ (% p a) (% p b))) (% s c)))",
+    //     "(bw r ( + (bw p a) (bw q (+ (bw p b) (bw s c)))))",
+    //     "(bw r ( + (bw q (+ (bw p a) (bw p b))) (bw s c)))",
     // );
 
     // check_equivalence(
     //     Some("assoc-3"),
     //     &["(< p q)", "(< s q)", "(< r u)"],
-    //     "(% r ( + (% p a) (% u (+ (% p b) (% s c)))))",
-    //     "(% r ( + (% q (+ (% p a) (% p b))) (% s c)))",
+    //     "(bw r ( + (bw p a) (bw u (+ (bw p b) (bw s c)))))",
+    //     "(bw r ( + (bw q (+ (bw p a) (bw p b))) (bw s c)))",
     // );
 
     // check_equivalence(
     //     Some("multiply"),
     //     &["(< p q)", "(> k (+ p p))"],
-    //     "(% r (*
-    //         (% p a)
-    //         (% q (+ (% p b) (% p c)))))",
-    //     "(% r (+
-    //         (% k (* (% p a) (% p b)))
-    //         (% k (* (% p a) (% p c)))))",
+    //     "(bw r (*
+    //         (bw p a)
+    //         (bw q (+ (bw p b) (bw p c)))))",
+    //     "(bw r (+
+    //         (bw k (* (bw p a) (bw p b)))
+    //         (bw k (* (bw p a) (bw p c)))))",
     // );
 
     // check_equivalence(
     //     Some("multiply-2"),
     //     &["(< r q)", "(< r k)"],
-    //     "(% r (*
-    //         (% p a)
-    //         (% q (+ (% p b) (% p c)))))",
-    //     "(% r (+
-    //         (% k (* (% p a) (% p b)))
-    //         (% k (* (% p a) (% p c)))))",
+    //     "(bw r (*
+    //         (bw p a)
+    //         (bw q (+ (bw p b) (bw p c)))))",
+    //     "(bw r (+
+    //         (bw k (* (bw p a) (bw p b)))
+    //         (bw k (* (bw p a) (bw p c)))))",
     // );
 
     // check_equivalence(
     //     Some("multiply-3"),
     //     &["(< r t)", "(< r u)", "(< r v)"],
-    //     "(% r (*
-    //         (% p a)
-    //         (% t (+ (% q b) (% s c)))))",
-    //     "(% r (+
-    //         (% u (* (% p a) (% q b)))
-    //         (% v (* (% p a) (% s c)))))",
+    //     "(bw r (*
+    //         (bw p a)
+    //         (bw t (+ (bw q b) (bw s c)))))",
+    //     "(bw r (+
+    //         (bw u (* (bw p a) (bw q b)))
+    //         (bw v (* (bw p a) (bw s c)))))",
     // );
 
     // check_equivalence(
     //     Some("signed"),
     //     &["sign"],
-    //     "(@ sign (% b a))",
-    //     "(- (* 2 (% (- b 1) a)) (% b a))",
+    //     "(@ sign (bw b a))",
+    //     "(- (* 2 (bw (- b 1) a)) (bw b a))",
     // );
 
     // check_equivalence(Some("test"), &["sign"], "(b)", "(+ 1 (- b 1))");
@@ -662,80 +669,80 @@ fn main() {
     // check_equivalence(
     //     Some("signed-1"),
     //     &["sign"],
-    //     "(@ sign (% b a))",
-    //     "(- (% b (* 2 a)) (% b a))",
+    //     "(@ sign (bw b a))",
+    //     "(- (bw b (* 2 a)) (bw b a))",
     // );
 
     // check_equivalence(
     //     Some("signed-2"),
     //     &["sign", "(>= p q)"],
-    //     "(% q (@ sign (% p a)))",
-    //     "(% q a)",
+    //     "(bw q (@ sign (bw p a)))",
+    //     "(bw q a)",
     // );
 
     // // check_equivalence(
     // //     Some("signed-2a"),
     // //     &["sign", "(> q p)"],
-    // //     "(% q (@ sign (% p a)))",
-    // //     "(% q a)",
+    // //     "(bw q (@ sign (bw p a)))",
+    // //     "(bw q a)",
     // // );
 
     // check_equivalence(
     //     Some("signed-4"),
     //     &["s"],
-    //     "(+ (@ s (% p a)) (% p a))",
-    //     "(% p (* 2 a))",
+    //     "(+ (@ s (bw p a)) (bw p a))",
+    //     "(bw p (* 2 a))",
     // );
 
     // check_equivalence(
     //     Some("sum"),
     //     &["(>= p q)"],
-    //     "(% q (+ (% p a) (% p a)))",
-    //     "(% q (* 2 a))",
+    //     "(bw q (+ (bw p a) (bw p a)))",
+    //     "(bw q (* 2 a))",
     // );
 
     // // check_equivalence(
     // //     Some("signed-3"),
     // //     &["s"],
-    // //     "(@ s (% q (+ (@ s (% p a)) (@ s (% p b)))))",
+    // //     "(@ s (bw q (+ (@ s (bw p a)) (@ s (bw p b)))))",
     // //     //     "(-
-    // //     //     (% q (+
-    // //     //         (* 4 (% (- p 1) a))
-    // //     //             ( + ( ~ (* 2 (% p a))))
-    // //     //                 (- (* 4 (% (- p 1) b)) (* 2 (% p b))
+    // //     //     (bw q (+
+    // //     //         (* 4 (bw (- p 1) a))
+    // //     //             ( + ( ~ (* 2 (bw p a))))
+    // //     //                 (- (* 4 (bw (- p 1) b)) (* 2 (bw p b))
     // //     //         )
     // //     //     ))
-    // //     //     (% q (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b))))
+    // //     //     (bw q (+ (- (* 2 (bw (- p 1) a)) (bw p a)) (- (* 2 (bw (- p 1) b)) (bw p b))))
     // //     // )",
-    // //     "(@ s (% q (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b)))))",
+    // //     "(@ s (bw q (+ (- (* 2 (bw (- p 1) a)) (bw p a)) (- (* 2 (bw (- p 1) b)) (bw p b)))))",
     // // )
     // // check_equivalence(
     // //     Some("signed-3"),
     // //     &["s"],
-    // //     "(@ s (% q (+ (@ s (% p a)) (@ s (% p b)))))",
+    // //     "(@ s (bw q (+ (@ s (bw p a)) (@ s (bw p b)))))",
     // //     "(-
-    // //         (% q (+
-    // //             (* 4 (% (- p 1) a))
-    // //                 ( + ( ~ (* 2 (% p a))))
-    // //                     (- (* 4 (% (- p 1) b)) (* 2 (% p b))
+    // //         (bw q (+
+    // //             (* 4 (bw (- p 1) a))
+    // //                 ( + ( ~ (* 2 (bw p a))))
+    // //                     (- (* 4 (bw (- p 1) b)) (* 2 (bw p b))
     // //             )
     // //         ))
-    // //         (% q (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b))))
+    // //         (bw q (+ (- (* 2 (bw (- p 1) a)) (bw p a)) (- (* 2 (bw (- p 1) b)) (bw p b))))
     // //     )",
-    // //     // "(@ s (% q (+ (- (* 2 (% (- p 1) a)) (% p a)) (- (* 2 (% (- p 1) b)) (% p b)))))",
+    // //     // "(@ s (bw q (+ (- (* 2 (bw (- p 1) a)) (bw p a)) (- (* 2 (bw (- p 1) b)) (bw p b)))))",
     // // );
 
     // // check_equivalence(
     // //     Some("signed"),
     // //     &["sign"],
-    // //     "(@ sign (% p (+ a b)))",
-    // //     "(@ sign (% p (+ b a)))",
+    // //     "(@ sign (bw p (+ a b)))",
+    // //     "(@ sign (bw p (+ b a)))",
     // // );
 
     // // check_equivalence(
     // //     Some("signed-assoc"),
     // //     &["(< q (+ p 1))", "s"],
-    // //     "(% r ( + (@ s (% p a)) (@ s (% q (+ (@ s (% p b)) (@ s (% p c)))))))",
-    // //     "(% r ( + (@ s (% p a)) (+ (% q (+ (* 2 b) (* 2 c))) (% q (+ b c)))))", // "(% r ( + (@ s (% q (+ (@ s (% p a)) (@ s (% p b))))) (@ s (% p c))))",
+    // //     "(bw r ( + (@ s (bw p a)) (@ s (bw q (+ (@ s (bw p b)) (@ s (bw p c)))))))",
+    // //     "(bw r ( + (@ s (bw p a)) (+ (bw q (+ (* 2 b) (* 2 c))) (bw q (+ b c)))))", // "(bw r ( + (@ s (bw q (+ (@ s (bw p a)) (@ s (bw p b))))) (@ s (bw p c))))",
     // // );
 }
