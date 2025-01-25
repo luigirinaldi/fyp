@@ -114,6 +114,12 @@ theorem mult_by_one:
 if "bw p 1 = bw p b" and "p > 0" and "q > 0"
 using bw_def by (smt (verit, best) le_imp_power_dvd mod_mod_cancel mul_remove_prec mult.commute mult_cancel_right1 one_mod_2_pow_eq power_increasing_iff that(1) that(2) that(3))
 
+lemma reduce_mod:
+"bw p (bw q a) = bw q a"
+if "p \<ge> q"
+using bw_def 
+by (smt (verit) bw_max_val mod_pos_pos_trivial pos_mod_sign power_increasing that zero_less_power)
+
 definition "shl (a::int) (b::int) = a * 2^b"
 value "shl (-3) 3"
 value " (-3)"
