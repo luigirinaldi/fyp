@@ -1,9 +1,10 @@
+use egg::*;
+use num::ToPrimitive;
 use std::fmt::Debug;
+use std::fs::File;
+use std::io::Write;
 use std::str::FromStr;
 use std::time::Duration;
-
-use egg::*;
-use num::{BigInt, ToPrimitive};
 
 mod dot_equiv;
 
@@ -379,17 +380,23 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
 }
 
 // preconditions encoded as a list of conjunctions
-pub fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &str, rhs: &str) {
-    let name = name_str.unwrap_or("no-name-check");
-    let dot_output_dir = String::from("target/") + name;
+pub fn check_equivalence(
+    name_str: Option<&str>,
+    preconditions: &[&str],
+    lhs: &str,
+    rhs: &str,
+) -> std::io::Result<()> {
+    let name = name_str.unwrap_or("no-name-equivalence");
+    let output_dir = String::from("target/") + name;
+    let output_dir_for_graphs = output_dir.clone();
 
-    if Path::new(&dot_output_dir).exists() {
-        fs::remove_dir_all(&dot_output_dir).unwrap_or_else(|why| {
+    if Path::new(&output_dir).exists() {
+        fs::remove_dir_all(&output_dir).unwrap_or_else(|why| {
             println!("! {:?}", why.kind());
         });
     }
 
-    fs::create_dir_all(&dot_output_dir).unwrap_or_else(|why| {
+    fs::create_dir_all(&output_dir).unwrap_or_else(|why| {
         println!("! {:?}", why.kind());
     });
 
@@ -420,14 +427,14 @@ pub fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &s
             dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
                 .to_pdf(format!(
                     "{}/iter_{}.pdf",
-                    dot_output_dir,
+                    output_dir_for_graphs,
                     runner.iterations.len()
                 ))
                 .unwrap();
             dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
                 .to_svg(format!(
                     "{}/iter_{}.svg",
-                    dot_output_dir,
+                    output_dir_for_graphs,
                     runner.iterations.len()
                 ))
                 .unwrap();
@@ -454,11 +461,26 @@ pub fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &s
 
     let equiv = !runner.egraph.equivs(&lhs_expr, &rhs_expr).is_empty();
 
-    println!(
-        "{} LHS and RHS are{}equivalent!",
+    let output_file_path = output_dir + &String::from("/explanation.txt");
+    let mut file = File::create(output_file_path)?;
+
+    let output_str = format!(
+        "{} LHS and RHS are{}equivalent!\n",
         name,
         if equiv { " " } else { " not " }
     );
+
+    file.write(
+        format!(
+            "{}\nlhs:{}\nrhs:{}\nconditions:{:?}\n\n",
+            output_str,
+            lhs_expr.to_string(),
+            rhs_expr.to_string(),
+            preconditions
+        )
+        .as_bytes(),
+    )?;
+    print!("{}", output_str);
 
     let id = runner.egraph.find(*runner.roots.first().unwrap());
 
@@ -472,6 +494,18 @@ pub fn check_equivalence(name_str: Option<&str>, preconditions: &[&str], lhs: &s
         for s in explained_short.get_flat_strings() {
             println!("    {:#}", s);
         }
+        println!("    {:#}", rhs_pattern.to_string());
+        file.write(
+            format!(
+                "{}\n{}",
+                explained_short.get_flat_string(),
+                rhs_pattern.to_string()
+            )
+            .as_bytes(),
+        )?;
+
         explained_short.check_proof(rewrite_rules);
     }
+
+    Ok(())
 }
