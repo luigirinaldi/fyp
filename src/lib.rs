@@ -22,6 +22,8 @@ define_language! {
         "-" = Neg(Id),
         "*" = Mul([Id; 2]),
         // "/" = Div([Id; 2]),
+        "^" = Pow([Id;2]),
+        // bitvector operators
         ">>" = ShiftR([Id;2]),
         "<<" = ShiftL([Id;2]),
         // Operators to handle preconditions
@@ -48,16 +50,23 @@ impl Analysis<ModIR> for ModAnalysis {
         // first, we make a getter function that grabs the data for a given e-class id
         let get = |id: &Id| egraph[*id].data.as_ref();
 
-        // now, we write the evaluator. Since the `Data` type is an `Option`, we
-        // can use the `?` operator in Rust, which trys to unpack the
-        // preceding optional value, "bailing" from the enclosing function if it's None
         match enode {
             ModIR::Num(n) => Some(n.clone()),
             ModIR::Neg(a) => Some(-(get(a)?.clone())),
             ModIR::Add([a, b]) => Some(get(a)? + get(b)?),
             ModIR::Sub([a, b]) => Some(get(a)? - get(b)?),
             ModIR::Mul([a, b]) => Some(get(a)? * get(b)?),
+            ModIR::Pow([a, b]) => {
+                let a = get(a)?;
+                let b = *get(b)?;
+                if let Some(exp) = u32::try_from(b).ok() {
+                    Some(a.pow(exp))
+                } else {
+                    None
+                }
+            }
             ModIR::Mod([a, b]) => {
+                // implement euclidean mod
                 let ax = get(a)?;
                 let bx = get(b)?;
                 let bexp = 2_i32.pow(bx.clone().to_u32()?);
@@ -116,6 +125,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("add-assoc";   "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
         rewrite!("mul-comm";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mul-assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
+        rewrite!("pow_sum";     "(* (^ ?a ?b) (^ ?a ?c))" => "(^ ?a (+ ?b ?c))"),
 
         // rewrite!("sub-canon"; "(- ?a ?b)" => "(+ ?a (* -1 ?b))"),
         // rewrite!("canon-sub"; "(+ ?a (* -1 ?b))" => "(- ?a ?b)"),
@@ -167,6 +177,9 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         //     "(@ ?s (bw ?bw ?a))" => "(- (* 2 (bw (- ?bw 1) ?a)) (bw ?bw ?a))"
         //     if precondition(&["(?s)"])
         // )
+
+        // shift operations
+        rewrite!("left-shift"; "(<< ?a ?b)" => "(* ?a (^ 2 ?b))")
     ];
     rules.extend(rewrite!("add-distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     rules.extend(rewrite!("sub-add"; "(- ?a ?b)" <=> "(+ ?a (- ?b))"));
@@ -196,6 +209,12 @@ fn recursive_node_clone(
             let id_b = recursive_node_clone(egraph, b, new_expr);
 
             new_expr.add(ModIR::Mod([id_a, id_b]))
+        }
+        ModIR::Pow([a, b]) => {
+            let id_a = recursive_node_clone(egraph, a, new_expr);
+            let id_b = recursive_node_clone(egraph, b, new_expr);
+
+            new_expr.add(ModIR::Pow([id_a, id_b]))
         }
         ModIR::Sign([a, b]) => {
             let id_a = recursive_node_clone(egraph, a, new_expr);
@@ -283,6 +302,11 @@ fn apply_subst(
             // print!("{:#?} ,", new_node);
             // new_expr.add(new_node.clone());
             recursive_node_clone(egraph, subst.get(var).unwrap(), new_expr)
+        }
+        ModIR::Pow([a, b]) => {
+            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
+            let id_b = apply_subst(egraph, subst, base_expr, a, new_expr);
+            new_expr.add(ModIR::Pow([id_a, id_b]))
         }
         ModIR::Mod([a, b]) => {
             let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);

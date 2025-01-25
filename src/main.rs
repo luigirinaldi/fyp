@@ -1,12 +1,47 @@
 use hello_world::check_equivalence;
 
 fn main() {
-    check_equivalence(
-        Some("assoc-2"),
-        &["(< p q)", "(< s q)"],
-        "(bw r ( + (bw p a) (bw q (+ (bw p b) (bw s c)))))",
-        "(bw r ( + (bw q (+ (bw p a) (bw p b))) (bw s c)))",
+    let _ = check_equivalence(
+        Some("shift"),
+        &["(>= u r)", "(> t s)", "(> t q)"],
+        "(bw r (<< (bw u (<< (bw p a) (bw q b))) (bw s c)))",
+        "(bw r (<< (bw p a) (bw t (+ (bw q b) (bw s c)))))",
     );
+
+    let _ = check_equivalence(
+        Some("mul_by_two"),
+        &[],
+        "(bw r (* (bw p a) 2))",
+        "(bw r (<< (bw p a) 1))",
+    );
+
+    let _ = check_equivalence(
+        Some("left_shift_add_1"),
+        &["(>= u r)", "(>= s r)"],
+        "(bw r (<< (bw s (+ (bw p a) (bw q b))) (bw t c)))",
+        "(bw r (+ (bw u (<< (bw p a) (bw t c))) (bw u (<< (bw q b) (bw t c)))))",
+    );
+
+    let _ = check_equivalence(
+        Some("left_shift_add_2"),
+        &["(>= u r)", "(> s p)", "(> s q)"],
+        "(bw r (<< (bw s (+ (bw p a) (bw q b))) (bw t c)))",
+        "(bw r (+ (bw u (<< (bw p a) (bw t c))) (bw u (<< (bw q b) (bw t c)))))",
+    );
+
+    let _ = check_equivalence(
+        Some("left_shift_mult"),
+        &["(>= t r)", "(>= v r)"],
+        "(bw r (<< (bw t (* (bw p a) (bw q b))) (bw u c)))",
+        "(bw r (* (bw v (<< (bw p a) (bw u c))) (bw q b)))",
+    );
+
+    // let _ = check_equivalence(
+    //     Some("assoc-2"),
+    //     &["(< p q)", "(< s q)"],
+    //     "(bw r ( + (bw p a) (bw q (+ (bw p b) (bw s c)))))",
+    //     "(bw r ( + (bw q (+ (bw p a) (bw p b))) (bw s c)))",
+    // );
 
     // check_equivalence(
     //     Some("assoc-3"),
