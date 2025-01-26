@@ -151,11 +151,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("one-mul";  "(* ?a 1)" => "?a"),
         rewrite!("div-same"; "(÷ ?a ?a)" => "1"), 
         rewrite!("div2-mul"; "(÷ (* ?a ?b) ?b)" => "?a"),
-        // rewrite!("div-same"; "(÷ ?a ?a)" => "1"), 
 
-        // rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" s=> "(+ (* ?a ?b) (* ?a ?c))"),
-        // rewrite!("add-distrib-r";   "(+ (* ?a ?b) (* ?a ?c))" => "(* ?a (+ ?b ?c))"),
-        // rewrite!("mul-shift"; "(* ?a 2)" => "(<< ?a 1)"),
 
         // mod related
         // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
@@ -183,19 +179,20 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("div-simp"; "(bw ?p (÷ (bw ?q ?a) ?b))" => "(÷ (bw ?q ?a) ?b)" if precondition(&["(>= ?p ?q)"])),
 
         rewrite!("mod-reduce-1"; "(bw ?q (bw ?p ?a))" => "(bw ?p a)" if precondition(&["(>= ?q ?p)"])),
+        rewrite!("mod-reduce-2"; "(bw ?q (bw ?p ?a))" => "(bw ?q a)" if precondition(&["(< ?q ?p)"])),
 
-        rewrite!("pow-bw"; "(^ 2 (bw ?p ?a))" => "(bw (^ 2 (- ?p 1)) (^ 2 (bw ?p ?a))))"),
-        // rewrite!("mod-reduce-2"; "(bw ?q (bw ?p ?a))" => "(bw ?q a)" if precondition(&["(< ?q ?p)"])),
+        rewrite!("pow-bw"; "(^ 2 (bw ?p ?a))" => "(bw (- (^ 2 ?p) 1) (^ 2 (bw ?p ?a))))"),
 
         // sign related
-        // rewrite!("signed";
-        //     "(@ ?s (bw ?bw ?a))" => "(- (* 2 (bw (- ?bw 1) ?a)) (bw ?bw ?a))"
-        //     if precondition(&["(?s)"])
-        // )
+        rewrite!("signed";
+            "(@ ?s (bw ?bw ?a))" => "(- (* 2 (bw (- ?bw 1) ?a)) (bw ?bw ?a))"
+            if precondition(&["(?s)"])
+        ),
 
         // shift operations
         rewrite!("left-shift"; "(<< ?a ?b)" => "(* ?a (^ 2 ?b))"),
-        rewrite!("right-shift"; "(>> ?a ?b)" => "(÷ ?a (^ 2 ?b))")
+        rewrite!("right-shift"; "(>> ?a ?b)" => "(÷ ?a (^ 2 ?b))"),
+        // multi_rewrite!("trans"; "?p = (> ?a ?b) = true, ?q = (> b c) = true" => "?r = (> a c) = true")
     ];
     rules.extend(rewrite!("add-distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     rules.extend(rewrite!("sub-add"; "(- ?a ?b)" <=> "(+ ?a (- ?b))"));
@@ -204,6 +201,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     // rules.extend(rewrite!("mod-mul"; "(* 2 (bw ?b ?c))" <=> "(bw (+ 1 ?b) (* 2 ?c))"));
     rules.extend(rewrite!("gt-lt"; "(> ?a ?b)" <=> "(< ?b ?a)"));
     rules.extend(rewrite!("gte-lte"; "(>= ?a ?b)" <=> "(<= ?b ?a)"));
+    // rules.extend();
     rules
 }
 
@@ -406,16 +404,17 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
     // look up the expr in the egraph then check that they are in the same eclass as the truth node
     move |egraph, _root, subst| {
         let mut res = true;
+        let mut log = String::default();
         for expr in &cond_exprs {
             let mut cond_subst: RecExpr<ModIR> = RecExpr::default();
 
             apply_subst(egraph, subst, expr, expr.root(), &mut cond_subst);
 
             // println!(
-            //     "{:#?} => {:#?} {:#?}",
+            //     "{:#?} => {:#?}",
             //     expr.to_string(),
             //     cond_subst.to_string(),
-            //     cond_subst
+            //     // cond_subst
             // );
             res &= egraph
                 .lookup_expr_ids(&cond_subst)
@@ -425,7 +424,17 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
                         .and_then(|truth| Some(ids.iter().any(|&id| id == truth)))
                 })
                 .unwrap_or(false);
+            log.push_str(
+                format!(
+                    "{} => {}: {}\n&",
+                    expr.to_string(),
+                    cond_subst.to_string(),
+                    res
+                )
+                .as_str(),
+            );
         }
+        print!("{}", log);
         res
     }
 }
