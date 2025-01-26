@@ -155,7 +155,7 @@ impl<'a, L: Language, N: Analysis<L>> Debug for DotEquiv<'a, L, N> {
     }
 }
 
-fn get_classes_from_root<L: Language, N: Analysis<L>>(
+pub fn get_classes_from_root<L: Language, N: Analysis<L>>(
     egraph: &EGraph<L, N>,
     root_expr: &RecExpr<L>,
 ) -> HashMap<Id, bool> {
