@@ -21,7 +21,7 @@ define_language! {
         "-" = Sub([Id; 2]),
         "-" = Neg(Id),
         "*" = Mul([Id; 2]),
-        // "/" = Div([Id; 2]),
+        "÷" = Div([Id; 2]),
         "^" = Pow([Id;2]),
         // bitvector operators
         ">>" = ShiftR([Id;2]),
@@ -56,6 +56,15 @@ impl Analysis<ModIR> for ModAnalysis {
             ModIR::Add([a, b]) => Some(get(a)? + get(b)?),
             ModIR::Sub([a, b]) => Some(get(a)? - get(b)?),
             ModIR::Mul([a, b]) => Some(get(a)? * get(b)?),
+            ModIR::Div([a, b]) => {
+                let a = get(a)?;
+                let b = *get(b)?;
+                if b != 0 {
+                    Some(a.div_euclid(b))
+                } else {
+                    None
+                }
+            }
             ModIR::Pow([a, b]) => {
                 let a = get(a)?;
                 let b = *get(b)?;
@@ -67,10 +76,10 @@ impl Analysis<ModIR> for ModAnalysis {
             }
             ModIR::Mod([a, b]) => {
                 // implement euclidean mod
-                let ax = get(a)?;
-                let bx = get(b)?;
-                let bexp = 2_i32.pow(bx.clone().to_u32()?);
-                Some(((ax % bexp) + bexp) % bexp)
+                let a = get(a)?;
+                let b = *get(b)?;
+                let bexp = 2_i32.pow(b.to_u32()?);
+                Some(a.rem_euclid(bexp))
             }
             ModIR::Var(_) => None,
             _ => None,
@@ -126,6 +135,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mul-comm";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mul-assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
         rewrite!("pow_sum";     "(* (^ ?a ?b) (^ ?a ?c))" => "(^ ?a (+ ?b ?c))"),
+        rewrite!("div-mul";     "(÷ (÷ ?a ?b) ?c)" => "(÷ ?a (* ?b ?c))"),
 
         // rewrite!("sub-canon"; "(- ?a ?b)" => "(+ ?a (* -1 ?b))"),
         // rewrite!("canon-sub"; "(+ ?a (* -1 ?b))" => "(- ?a ?b)"),
@@ -133,13 +143,15 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
 
         // rewrite!("minus1-distrib"; "(- ?a ?b)" => "(* -1 (- ?b ?a))"),
 
-        // rewrite!("add2-mul"; "(+ ?a ?a)" => "(* 2 ?a)"),
+        // identities
+        rewrite!("add2-mul"; "(+ ?a ?a)" => "(* 2 ?a)"),
         rewrite!("mul-add2"; "(* 2 ?a)"  => "(+ ?a ?a)"),
-
         rewrite!("zero-add"; "(+ ?a 0)" => "?a"),
-        // rewrite!("zero-mul"; "(* ?a 0)" => "0"),
+        rewrite!("zero-mul"; "(* ?a 0)" => "0"),
         rewrite!("one-mul";  "(* ?a 1)" => "?a"),
-
+        rewrite!("div-same"; "(÷ ?a ?a)" => "1"), 
+        rewrite!("div2-mul"; "(÷ (* ?a ?b) ?b)" => "?a"),
+        // rewrite!("div-same"; "(÷ ?a ?a)" => "1"), 
 
         // rewrite!("add-distrib";     "(* ?a (+ ?b ?c))" s=> "(+ (* ?a ?b) (* ?a ?c))"),
         // rewrite!("add-distrib-r";   "(+ (* ?a ?b) (* ?a ?c))" => "(* ?a (+ ?b ?c))"),
@@ -168,8 +180,11 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mod-mul-simp2";
             "(bw ?q (* (bw ?p ?a) ?b))" => "(bw ?q (* ?a ?b))"
             if precondition(&["(>= ?p ?q)"])),
+        rewrite!("div-simp"; "(bw ?p (÷ (bw ?q ?a) ?b))" => "(÷ (bw ?q ?a) ?b)" if precondition(&["(>= ?p ?q)"])),
 
         rewrite!("mod-reduce-1"; "(bw ?q (bw ?p ?a))" => "(bw ?p a)" if precondition(&["(>= ?q ?p)"])),
+
+        rewrite!("pow-bw"; "(^ 2 (bw ?p ?a))" => "(bw (^ 2 (- ?p 1)) (^ 2 (bw ?p ?a))))"),
         // rewrite!("mod-reduce-2"; "(bw ?q (bw ?p ?a))" => "(bw ?q a)" if precondition(&["(< ?q ?p)"])),
 
         // sign related
@@ -179,7 +194,8 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // )
 
         // shift operations
-        rewrite!("left-shift"; "(<< ?a ?b)" => "(* ?a (^ 2 ?b))")
+        rewrite!("left-shift"; "(<< ?a ?b)" => "(* ?a (^ 2 ?b))"),
+        rewrite!("right-shift"; "(>> ?a ?b)" => "(÷ ?a (^ 2 ?b))")
     ];
     rules.extend(rewrite!("add-distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     rules.extend(rewrite!("sub-add"; "(- ?a ?b)" <=> "(+ ?a (- ?b))"));
@@ -209,6 +225,12 @@ fn recursive_node_clone(
             let id_b = recursive_node_clone(egraph, b, new_expr);
 
             new_expr.add(ModIR::Mod([id_a, id_b]))
+        }
+        ModIR::Div([a, b]) => {
+            let id_a = recursive_node_clone(egraph, a, new_expr);
+            let id_b = recursive_node_clone(egraph, b, new_expr);
+
+            new_expr.add(ModIR::Div([id_a, id_b]))
         }
         ModIR::Pow([a, b]) => {
             let id_a = recursive_node_clone(egraph, a, new_expr);
@@ -302,6 +324,11 @@ fn apply_subst(
             // print!("{:#?} ,", new_node);
             // new_expr.add(new_node.clone());
             recursive_node_clone(egraph, subst.get(var).unwrap(), new_expr)
+        }
+        ModIR::Div([a, b]) => {
+            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
+            let id_b = apply_subst(egraph, subst, base_expr, a, new_expr);
+            new_expr.add(ModIR::Div([id_a, id_b]))
         }
         ModIR::Pow([a, b]) => {
             let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
