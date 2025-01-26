@@ -46,19 +46,21 @@ impl<'a> CostFunction<ModIR> for EGraphCostFn<'a> {
     {
         // if a node is part of a shared eclass then make it cost less,
         // then in the cost minimization the extractor will favour expressions with shared enodes
-        let enode_base_cost = if *self
-            .shared_classes
-            .get(&self.egraph.lookup(enode.clone()).unwrap())
-            .unwrap()
-        {
-            // println!("shared enode!");
-            1
-        } else {
+        let enode_base_cost = match enode {
             // favour pure integer arithmetic expressions
-            match enode {
-                ModIR::ShiftL(_) => 100,
-                ModIR::ShiftR(_) => 100,
-                _ => 50,
+            ModIR::ShiftL(_) => 200,
+            ModIR::ShiftR(_) => 200,
+            _ => {
+                if *self
+                    .shared_classes
+                    .get(&self.egraph.lookup(enode.clone()).unwrap())
+                    .unwrap()
+                {
+                    // println!("shared enode!");
+                    1
+                } else {
+                    50
+                }
             }
         };
 

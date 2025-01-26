@@ -24,7 +24,8 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mul-assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
         rewrite!("pow_sum";     "(* (^ ?a ?b) (^ ?a ?c))" => "(^ ?a (+ ?b ?c))"),
         rewrite!("div-add";     "(÷ (+ ?a ?b) ?c)" => "(+ (÷ ?a ?c) (÷ ?b ?c))"),
-        rewrite!("div-mul";     "(÷ (÷ ?a ?b) ?c)" => "(÷ ?a (* ?b ?c))"),
+        rewrite!("div-mul";     "(÷ (* ?a ?b) ?c)" => "(* (÷ ?a ?c) ?b)"),
+        rewrite!("div-mul2";    "(÷ (÷ ?a ?b) ?c)" => "(÷ ?a (* ?b ?c))"),
 
         // rewrite!("sub-canon"; "(- ?a ?b)" => "(+ ?a (* -1 ?b))"),
         // rewrite!("canon-sub"; "(+ ?a (* -1 ?b))" => "(- ?a ?b)"),
@@ -38,9 +39,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("zero-add"; "(+ ?a 0)" => "?a"),
         rewrite!("zero-mul"; "(* ?a 0)" => "0"),
         rewrite!("one-mul";  "(* ?a 1)" => "?a"),
-        rewrite!("div-same"; "(÷ ?a ?a)" => "1"), 
-        rewrite!("div-mul-same"; "(÷ (* ?a ?b) ?b)" => "?a"),
-
+        rewrite!("div-same"; "(÷ ?a ?a)" => "1"),
 
         // mod related
         // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
