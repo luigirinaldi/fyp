@@ -110,11 +110,10 @@ if "p \<ge> q"
 using bw_def 
 by (smt (verit) bw_max_val mod_pos_pos_trivial pos_mod_sign power_increasing that zero_less_power)
 
-definition "shl (a::int) (b::int) = a * 2^b"
-
 (* assuming b can always be cast to a nat *)
 definition "shl (a::int) (b::int) = a * 2^(nat(b))"
-value "shl (-3) 3"
+value "nat(-3)"
+value "shl (-3) (-3)"
 value "shl (bw 2 3) (bw 3 (3))"
 
 (* using try *)
@@ -123,8 +122,19 @@ theorem mult_by_two:
 using bw_def shl_def by force
 
 (* Bitvector logic identities *)
-theorem merge_left_shift:
+(*theorem merge_left_shift:
 "bw r (shl (bw u (shl (bw p a) (bw q b))) (bw s c)) = bw r (shl (bw p a) (bw t (bw q b + bw s c)))"
 if "t > max q s" and "u \<ge> r"
 using bw_def shl_def add_full_prec add_remove_prec sorry
+*)
 
+
+(*theorem merge_left_shift:
+"bw r (bw u (bw p a * 2 ^ nat(bw q b)) * 2 ^ nat(bw s c)) = bw r (bw p a * 2^nat(bw t (bw q b + bw s c)))"
+if "t > max q s" and "u \<ge> r"*)
+
+lemma div_gte:
+"bw p ((bw q a) div (bw r b)) = bw q a div (bw r b)"
+if "p \<ge> q"
+using bw_def bw_max_val try
+by (smt (verit, ccfv_SIG) div_by_1 mod_div_trivial pos_imp_zdiv_nonneg_iff pos_mod_sign reduce_mod that zdiv_mono2 zero_less_power zmod_trivial_iff)

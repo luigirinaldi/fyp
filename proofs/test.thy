@@ -123,3 +123,12 @@ shows "((((a::nat) mod 2^p) * (((b mod 2^s) + (c mod 2^t)) mod 2^q) mod 2^r)
      if "p < q" and "q < r" for a b c :: int and p q r :: nat
      proof - 
      show ?thesis using signed_def that 
+
+
+     sorry
+     qed
+
+(*lemma "((a::int) div 2^b) div 2^c = a div (2^(b+c))" if "b >0" and "c >0" *)
+
+
+lemma "(a::int) *2^p mod 2^q = (a*2^p * (2^q div 2^q)mod (1*2^q))" if "p > 0"  and "q >0" try
