@@ -67,7 +67,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("div-simp"; "(bw ?p (÷ (bw ?q ?a) ?b))" => "(÷ (bw ?q ?a) ?b)" if precondition(&["(>= ?p ?q)"])),
 
         rewrite!("mod-reduce-1"; "(bw ?q (bw ?p ?a))" => "(bw ?p a)" if precondition(&["(>= ?q ?p)"])),
-        rewrite!("mod-reduce-2"; "(bw ?q (bw ?p ?a))" => "(bw ?q a)" if precondition(&["(< ?q ?p)"])),
+        // rewrite!("mod-reduce-2"; "(bw ?q (bw ?p ?a))" => "(bw ?q a)" if precondition(&["(< ?q ?p)"])),
 
         rewrite!("pow-bw"; "(^ 2 (bw ?p ?a))" => "(bw (- (^ 2 ?p) 1) (^ 2 (bw ?p ?a))))"),
 

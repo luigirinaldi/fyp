@@ -102,3 +102,9 @@ check_equiv_test!(
 );
 
 check_equiv_test!(mul_one, &["(>= p p)"], "(bw p (* (bw p a) 1))", "(bw p a)");
+check_equiv_test!(
+    mul_two,
+    &[],
+    "(bw r (* (bw p a) 2))",
+    "(bw r (<< (bw p a) 1))"
+);
