@@ -43,6 +43,8 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
 
         // mod related
         // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
+        rewrite!("mod-1"; "(bw ?p 1)" => "1"),
+        rewrite!("mod-0"; "(bw ?p 0)" => "0"),
         rewrite!("mod-sum";
             "(bw ?p (+ (bw ?q ?a) ?b))" => "(bw ?p (+ ?a ?b))"
             if precondition(&["(>= ?q ?p)"])),

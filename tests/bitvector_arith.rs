@@ -92,7 +92,12 @@ check_equiv_test!(
     "(bw r (* (bw t (+ (bw p a) (bw 1 1))) (bw q b)))"
 );
 
-check_equiv_test!(add_zero, &["(>= p p)"], "(bw p (+ (bw p a) 0))", "(bw p a)");
+check_equiv_test!(
+    add_zero,
+    &["(>= p p)"],
+    "(bw p (+ (bw p a) (bw q 0)))",
+    "(bw p a)"
+);
 
 check_equiv_test!(
     sub_to_neg,
@@ -101,7 +106,12 @@ check_equiv_test!(
     "(bw r (+ (bw p a) (- (bw q b))))"
 );
 
-check_equiv_test!(mul_one, &["(>= p p)"], "(bw p (* (bw p a) 1))", "(bw p a)");
+check_equiv_test!(
+    mul_one,
+    &["(>= p p)"],
+    "(bw p (* (bw p a) (bw q 1)))",
+    "(bw p a)"
+);
 check_equiv_test!(
     mul_two,
     &[],
