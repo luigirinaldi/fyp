@@ -1,6 +1,6 @@
 use egg::*;
 use std::fs::File;
-use std::io::Write;
+use std::io::{Error, Write};
 use std::str::FromStr;
 use std::time::Duration;
 
@@ -46,12 +46,12 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mod-sum";
             "(bw ?p (+ (bw ?q ?a) ?b))" => "(bw ?p (+ ?a ?b))"
             if precondition(&["(>= ?q ?p)"])),
-        rewrite!("mod-diff";
-            "(bw ?p (- (bw ?q ?a) ?b))" => "(bw ?p (- ?a ?b))"
-            if precondition(&["(>= ?q ?p)"])),
-        rewrite!("mod-diff-2";
-            "(bw ?p (- ?a (bw ?q ?b)))" => "(bw ?p (- ?a ?b))"
-            if precondition(&["(>= ?q ?p)"])),
+        // rewrite!("mod-diff";
+        //     "(bw ?p (- (bw ?q ?a) ?b))" => "(bw ?p (- ?a ?b))"
+        //     if precondition(&["(>= ?q ?p)"])),
+        // rewrite!("mod-diff-2";
+        //     "(bw ?p (- ?a (bw ?q ?b)))" => "(bw ?p (- ?a ?b))"
+        //     if precondition(&["(>= ?q ?p)"])),
         // mod sum rewrite preserving full precision
         rewrite!("mod-sum-1";
             "(bw ?p (+ (bw ?q ?a) (bw ?r ?b)))" => "(+ (bw ?q ?a) (bw ?r ?b))"
@@ -86,7 +86,8 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     rules.extend(rewrite!("sub-add"; "(- ?a ?b)" <=> "(+ ?a (- ?b))"));
     // rules.extend(rewrite!("sub-neg"; "(- ?b)" <=> "(* -1 ?b)"));
     // multliplication across the mod (this works because mod b implies mod 2^b)
-    // rules.extend(rewrite!("mod-mul"; "(* 2 (bw ?b ?c))" <=> "(bw (+ 1 ?b) (* 2 ?c))"));
+    // c * (a mod b) = (c * a mod b * c)
+    // rules.extend(rewrite!("mod-mul"; "(* (^ 2 ?e) (bw ?b ?c))" <=> "(bw (+ ?e ?b) (* (^ 2 ?e) ?c))"));
     rules.extend(rewrite!("gt-lt"; "(> ?a ?b)" <=> "(< ?b ?a)"));
     rules.extend(rewrite!("gte-lte"; "(>= ?a ?b)" <=> "(<= ?b ?a)"));
     // rules.extend();
@@ -454,6 +455,7 @@ pub fn check_equivalence(
         )?;
 
         explained_short.check_proof(rewrite_rules);
+        Ok(())
     } else {
         let cost_func = EGraphCostFn::new(&runner.egraph, &lhs_expr, &rhs_expr);
         // try to extract simplified representations
@@ -469,7 +471,6 @@ pub fn check_equivalence(
             best_lhs_expr.to_string(),
             best_rhs_expr.to_string()
         );
+        Err(Error::other("equivalence not found"))
     }
-
-    Ok(())
 }

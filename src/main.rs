@@ -72,6 +72,28 @@ fn main() {
         "(bw r (>> (bw v (+ (bw s (<< (bw p a) (bw u c))) (bw t b))) (bw u c)))",
     );
 
+    let _ = check_equivalence(
+        Some("condition_test"),
+        &[],
+        "(bw r (<< 
+                (bw p (+ 
+                    (* (bw 1 c) (bw p a)) 
+                    (* (bw 1 (- 1 c)) (bw p b))
+                )) 
+                (bw q d)
+            ))",
+        "(bw r (bw p (+ 
+                (* 
+                    (bw 1 c) 
+                    (<< (bw p a) (bw q d))
+                ) 
+                (* 
+                    (bw 1 (- 1 c)) 
+                    (<< (bw p b) (bw q d))
+                )
+              )))",
+    );
+
     // let _ = check_equivalence(
     //     Some("assoc-2"),
     //     &["(< p q)", "(< s q)"],

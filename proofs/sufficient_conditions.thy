@@ -7,9 +7,6 @@ value "bw 3 (-23)"
 lemma bw_max_val:
 "bw p a \<le> 2^p - 1"
 using bw_def by simp
-(*
-using bw_def by (smt (verit, ccfv_threshold) dbl_simps(3) dbl_simps(5) int_nat_eq int_ops(2) numerals(1) of_nat_diff of_nat_le_iff of_nat_numeral of_nat_power one_le_power pos_mod_bound)
-*)
 
 (* Bitvector Arithmetic Identities *)
 
@@ -136,5 +133,6 @@ if "t > max q s" and "u \<ge> r"*)
 lemma div_gte:
 "bw p ((bw q a) div (bw r b)) = bw q a div (bw r b)"
 if "p \<ge> q"
-using bw_def bw_max_val try
+using bw_def bw_max_val
 by (smt (verit, ccfv_SIG) div_by_1 mod_div_trivial pos_imp_zdiv_nonneg_iff pos_mod_sign reduce_mod that zdiv_mono2 zero_less_power zmod_trivial_iff)
+
