@@ -29,7 +29,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
 
         // rewrite!("sub-canon"; "(- ?a ?b)" => "(+ ?a (* -1 ?b))"),
         // rewrite!("canon-sub"; "(+ ?a (* -1 ?b))" => "(- ?a ?b)"),
-        // rewrite!("cancel-sub"; "(- ?a ?a)" => "0"),
+        rewrite!("cancel-sub"; "(- ?a ?a)" => "0"),
 
         // rewrite!("minus1-distrib"; "(- ?a ?b)" => "(* -1 (- ?b ?a))"),
 
@@ -69,7 +69,9 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mod-reduce-1"; "(bw ?q (bw ?p ?a))" => "(bw ?p a)" if precondition(&["(>= ?q ?p)"])),
         // rewrite!("mod-reduce-2"; "(bw ?q (bw ?p ?a))" => "(bw ?q a)" if precondition(&["(< ?q ?p)"])),
 
-        rewrite!("pow-bw"; "(^ 2 (bw ?p ?a))" => "(bw (- (^ 2 ?p) 1) (^ 2 (bw ?p ?a))))"),
+        // rewrite!("pow-bw"; "(^ 2 (bw ?p ?a))" => "(bw (- (^ 2 ?p) 1) (^ 2 (bw ?p ?a))))"),
+        rewrite!("mul-pow2"; "(bw ?s (* (bw ?p ?a) (^ 2 (bw ?q ?b))))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))" if precondition(&["(>= ?s (+ ?p (- (^ 2 ?q) 1)))"])),
+        // rewrite!("pow-bw"; "(^ 2 (bw ?p ?a))" => "(bw (^ 2 ?p) (^ 2 (bw ?p ?a))))"),
 
         // sign related
         rewrite!("signed";
