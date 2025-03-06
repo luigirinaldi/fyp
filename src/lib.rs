@@ -1,4 +1,5 @@
 use egg::*;
+use num::PrimInt;
 use std::fs::File;
 use std::io::{Error, Write};
 use std::str::FromStr;
@@ -103,11 +104,6 @@ fn recursive_node_clone(
     root_id: &Id,
     new_expr: &mut RecExpr<ModIR>,
 ) -> Id {
-    // let recurse = |a: &Id, b: &Id| -> [Id; 2] {
-    //     let id_a = recursive_node_clone(egraph, a, new_expr);
-    //     let id_b = recursive_node_clone(egraph, b, new_expr);
-    //     [id_a, id_b]
-    // };
     let root_node = egraph.id_to_node(*root_id);
     match root_node {
         ModIR::Var(s) => new_expr.add(ModIR::Var(*s)),
@@ -211,9 +207,6 @@ fn apply_subst(
     match root_node {
         ModIR::Var(s) => {
             let var = Var::from_str(s.as_str()).unwrap();
-            // let new_node = egraph.id_to_node(*subst.get(var).unwrap());
-            // print!("{:#?} ,", new_node);
-            // new_expr.add(new_node.clone());
             recursive_node_clone(egraph, subst.get(var).unwrap(), new_expr)
         }
         ModIR::Div([a, b]) => {
@@ -444,6 +437,8 @@ pub fn check_equivalence(
 
         runner = runner.with_explanation_length_optimization();
         let mut explained_short = runner.explain_matches(&lhs_expr, &rhs_pattern.ast, &subst);
+        println!("{:#?}", explained_short.explanation_trees);
+
         explained_short.get_string_with_let();
         for s in explained_short.get_flat_strings() {
             println!("    {:#}", s);
