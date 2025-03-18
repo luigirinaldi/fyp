@@ -1,4 +1,4 @@
-theory simp_rewrite_lemmas
+theory rewrite_lemmas
     imports Main 
 begin
 

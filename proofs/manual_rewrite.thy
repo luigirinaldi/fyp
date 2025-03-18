@@ -1,5 +1,5 @@
 theory manual_rewrite
-    imports simp_rewrite_lemmas 
+    imports rewrite_lemmas 
 begin
 
 (* Bitvector Arithmetic Identities *)

@@ -1,4 +1,4 @@
 session Test = HOL + 
 theories
-  simp_rewrite_lemmas
+  rewrite_lemmas
   manual_rewrite
