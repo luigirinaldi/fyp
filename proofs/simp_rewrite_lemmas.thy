@@ -12,7 +12,7 @@ lemma bw_max_val:
 using bw_def by simp
 
 lemma mul_full_prec:
-"bw p (bw q a * bw r b) = (bw q a + bw r b)"
+"bw p (bw q a * bw r b) = (bw q a * bw r b)"
 if "q + r \<le> p"
 proof -
 have "bw q a * bw r b \<le> (2^q - 1) * (2^r - 1)" using bw_def bw_max_val by (simp add: mult_mono)

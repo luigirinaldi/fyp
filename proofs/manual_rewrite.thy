@@ -126,7 +126,7 @@ bw r (
 proof - 
 have "?lhs = bw r ((bw p a) + (bw q ((bw t b) div 2^nat(bw u c))))" using shr_def by simp
 moreover have "... =  bw r (((bw p a) * 2^nat(bw u c)) div 2^nat(bw u c)  + (bw q ((bw t b) div 2^nat(bw u c))))" by simp
-(* found by simp after introducing the above step of multiplying and dividing by the same number *) 
+(* found by simp after introducing the step of multiplying and dividing by the same number *) 
 moreover have "... = ?rhs" by (smt (verit, del_insts) add_full_prec calculation(2) div_gte div_mult_self1 max.strict_boundedE mul_pow2 power_eq_0_iff shl_def shr_def that(1) that(2) that(3))
 ultimately show ?thesis by argo
 qed
