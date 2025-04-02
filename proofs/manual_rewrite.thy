@@ -130,6 +130,31 @@ moreover have "... =  bw r (((bw p a) * 2^nat(bw u c)) div 2^nat(bw u c)  + (bw 
 moreover have "... = ?rhs" by (smt (verit, del_insts) add_full_prec calculation(2) div_gte div_mult_self1 max.strict_boundedE mul_pow2 power_eq_0_iff shl_def shr_def that(1) that(2) that(3))
 ultimately show ?thesis by argo
 qed
+
+
+lemma remove_ext:
+"bw r (ext r (bw q ( ext q (bw p b) + ext q (bw p c)))) = bw r (ext r (bw p b) + ext r (bw p c))"
+if "p < q" and "q < r"
+ proof -
+   have f1: "\<forall>i. (i::int) mod 2 ^ q = i mod 2 ^ q mod 2 ^ r"
+   by (metis (no_types) add_full_prec bw_def comm_monoid_add_class.add_0 mod_0 that(2))
+   have "\<forall>i. (i::int) mod 2 ^ p mod 2 ^ q = i mod 2 ^ p"
+   by (metis (no_types) add_full_prec bw_def comm_monoid_add_class.add_0 mod_0 that(1))
+   then show ?thesis
+   using f1 by (metis (no_types) add_diff_cancel_left' add_full_prec bw_def ext_def mult_2 that(1) that(2))
+qed
+
+theorem assoc_sign_extend:  
+"bw r ( ext r (bw p a) + (ext r (bw q ( ext q (bw p b) + ext q (bw p c))))) =
+ (bw r ( ext r (bw q ( ext q (bw p a) + ext q (bw p b)))  + ext r (bw p c)))" 
+ if "p < q" and "q < r" (*
+ by (smt (verit) add.left_commute add_diff_cancel_left' add_full_prec bw_def ext_def less_or_eq_imp_le mod_add_left_eq mult_2 order_trans reduce_mod that(1) that(2))
+ *)
+ proof - 
+ have *: "bw r (ext r (bw q ( ext q (bw p b) + ext q (bw p c)))) = bw r (ext r (bw p b) + ext r (bw p c))" using remove_ext that(1) that(2) by blast
+ moreover have **:  "bw r (ext r (bw q ( ext q (bw p a) + ext q (bw p b)))) = bw r (ext r (bw p a) + ext r (bw p b))" using remove_ext that(1) that(2) by blast
+ ultimately show ?thesis by (metis ab_semigroup_add_class.add_ac(1) add.commute bw_def mod_add_left_eq)
+ qed
 end
 
 

@@ -7,6 +7,9 @@ definition "bw (p::nat) (a::int) = a mod 2^p"
 definition "shl (a::int) (b::int) = a * 2^(nat(b))"
 definition "shr (a::int) (b::int) = a div 2^(nat(b))"
 
+(* Signed Extension *)
+definition "ext (p::nat) (a::int) = ((2 * a) mod 2^p) - (a mod 2^p)"
+
 lemma bw_max_val:
 "bw p a \<le> 2^p - 1"
 using bw_def by simp
