@@ -155,6 +155,67 @@ theorem assoc_sign_extend:
  moreover have **:  "bw r (ext r (bw q ( ext q (bw p a) + ext q (bw p b)))) = bw r (ext r (bw p a) + ext r (bw p b))" using remove_ext that(1) that(2) by blast
  ultimately show ?thesis by (metis ab_semigroup_add_class.add_ac(1) add.commute bw_def mod_add_left_eq)
  qed
+
+lemma add_bw: "bw a (b + c) = bw a ( (bw a b) + bw a c)"  using bw_def by presburger
+lemma ext_equiv: "bw r (ext q (bw p b)) = bw r (ext r (bw p b))" if "q \<ge> r" and "p \<ge> r" 
+proof -
+have f1: "\<forall>i ia ib. (ib::int) + (i + (ia + - ib)) = i + ia"
+by fastforce
+have f2: "\<forall>i ia ib. (ib::int) + i = ia + (ib + (- ia + i))"
+by force
+then have f3: "\<forall>i ia ib ic. ((i::int) + ia) mod ic = (ib + (i + (- (ib mod ic) + ia))) mod ic"
+by (metis (no_types) mod_add_left_eq)
+have f4: "\<forall>i ia ib. ((ib::int) + - ia) mod i = (ib + - (ia mod i)) mod i"
+using f2 f1 by (metis (no_types) mod_add_left_eq)
+have "(2 * (b mod 2 ^ p) + - (b mod 2 ^ p)) mod 2 ^ r = (2 * (b mod 2 ^ p) + - (b mod 2 ^ p mod 2 ^ q)) mod 2 ^ r"
+using f3 f1 by (metis (full_types) add_remove_prec bw_def that(1))
+then show ?thesis
+using f4 by (metis (full_types) add_remove_prec add_uminus_conv_diff bw_def ext_def mod_add_left_eq that(1))
+qed
+
+
+theorem assoc_sign_extend_2:
+"bw r ( ext r (bw p a) + (ext r (bw q ( ext q (bw p b) + ext q (bw p c))))) =
+ (bw r ( ext r (bw q ( ext q (bw p a) + ext q (bw p b)))  + ext r (bw p c)))" 
+ if "q \<ge> r" and "p \<ge> r" 
+ proof -
+ (*have *: "bw r (ext r (bw p a)) = bw r (ext p (bw p a))" by (smt (verit, best) add_remove_prec add_uminus_conv_diff bw_def ext_def mod_diff_right_eq nle_le reduce_mod that(2)) 
+ moreover have **: "bw r (ext r (bw q d)) = bw r (ext q (bw q d))" by (smt (verit) add_remove_prec add_uminus_conv_diff bw_def ext_def le_refl mod_diff_right_eq reduce_mod that(1))
+*)
+have "bw r ( ext r (bw p a) + (ext r (bw q ( (ext q (bw p b)) + ext q (bw p c) ))) ) =
+      bw r ((bw r (ext r (bw p a))) + bw r (ext r (bw q ( (ext q (bw p b)) + ext q (bw p c)))))" using bw_def add_bw by simp
+moreover have "... = 
+     bw r ((bw r (ext r (bw p a))) + bw r (ext r (bw r (bw q ( (ext q (bw p b)) + ext q (bw p c))))))" using ext_def bw_def by (metis mod_mod_trivial mod_mult_eq)
+moreover have "... = 
+     bw r ((bw r (ext r (bw p a))) + bw r (ext r (bw r ( (ext q (bw p b)) + ext q (bw p c)))))" using ext_def bw_def that(1)  by (metis le_imp_power_dvd mod_mod_cancel)
+ moreover have "... = 
+     bw r ((bw r (ext r (bw p a))) + bw r (ext r (bw r ( bw r (ext q (bw p b)) + bw r (ext q (bw p c))))))" using add_bw by presburger
+ moreover have "... = 
+     bw r ((bw r (ext r (bw p a))) + bw r (ext r (bw r ( bw r (ext r (bw p b)) + bw r (ext r (bw p c))))))" using bw_def ext_def ext_equiv that by presburger
+ moreover have "... = bw r (ext r (bw p a) + (ext r (bw p b)) + (ext r (bw p c)))" 
+     proof -
+     have "\<And>n i. ext n i mod 2 ^ n = i mod 2 ^ n"
+     by (metis (no_types) add_diff_cancel_right' add_uminus_conv_diff ext_def mod_add_left_eq mod_diff_right_eq mult_2)
+     then show ?thesis
+     by (metis add.commute add.left_commute bw_def mod_add_right_eq)
+     qed
+
+have "bw r ( ext r (bw q ( ext q (bw p a) + ext q (bw p b)))  + ext r (bw p c)) =
+      bw r ( bw r (ext r (bw q ( ext q (bw p a) + ext q (bw p b))))  + bw r (ext r (bw p c)))" using bw_def add_bw by simp
+moreover have "... = 
+      bw r ( bw r (ext r (bw r ( ext q (bw p a) + ext q (bw p b))))  + bw r (ext r (bw p c)))" using ext_def bw_def by (smt (verit, best) le_imp_power_dvd mod_add_cong mod_mod_cancel mod_mod_trivial mult_2 that(1))
+      moreover have "... = 
+      bw r ( bw r (ext r (bw r ( ext r (bw p a) + ext r (bw p b))))  + bw r (ext r (bw p c)))" using ext_def add_bw ext_equiv that by metis
+      moreover have "... = bw r (  ext r (bw p a) + ext r (bw p b)  + (ext r (bw p c)))" 
+      proof -
+       have "\<And>n i. ext n i mod 2 ^ n = i mod 2 ^ n"
+       by (metis (no_types) add_diff_cancel_right' add_uminus_conv_diff ext_def mod_add_left_eq mod_diff_right_eq mult_2)
+       then show ?thesis
+       by (metis add.commute add.left_commute bw_def mod_add_right_eq)
+       qed
+
+       ultimately show ?thesis using \<open>bw r (bw r (ext r (bw p a)) + bw r (ext r (bw r (bw r (ext r (bw p b)) + bw r (ext r (bw p c)))))) = bw r (ext r (bw p a) + ext r (bw p b) + ext r (bw p c))\<close> by argo
+qed
 end
 
 
