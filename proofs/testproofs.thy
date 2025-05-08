@@ -58,12 +58,16 @@ have "?lhs = bw t (((bw r b) + (bw s c)) + (bw p a))"
     moreover have "... = bw t (((bw r b) + (bw s c)) + (bw p a))" by (simp only: add.commute)
     ultimately show ?thesis by argo
     qed
-moreover have "?rhs = bw t (((bw r b) + (bw s c)) + (bw p a))" 
-    proof -
+moreover have "?rhs = bw t (((bw r b) + (bw s c)) + (bw p a))"
+    apply (subst add.commute)
+    using that(1) apply (simp only: add_remove_prec)
+    done    
+    (* proof -
     have "?rhs = bw t (bw q ((bw r b) + (bw s c)) + (bw p a))" by (simp only: add.commute)
-    moreover have "... = bw t (((bw r b) + (bw s c)) + (bw p a))" using that(1) by (simp only: add_remove_prec)
-    ultimately show ?thesis by argo
-    qed
+    then show ?thesis using that(1) by (simp only: add_remove_prec) *)
+    (* moreover have "... = bw t (((bw r b) + (bw s c)) + (bw p a))" using that(1) by (simp only: add_remove_prec) *)
+    (* ultimately show ?thesis by argo *)
+    (* qed *)
 finally show ?thesis by argo 
 qed
 
