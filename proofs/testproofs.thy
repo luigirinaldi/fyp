@@ -48,12 +48,23 @@ Tool explanation out:
 "
 theorem add_assoc_1:
 "bw t ((bw u ((bw p a) + (bw r b))) + (bw s c)) = 
- bw t ((bw p a) + (bw u ((bw r b) + (bw s c))))" (is "?lhs = ?rhs")
+ bw t ((bw p a) + (bw q ((bw r b) + (bw s c))))" (is "?lhs = ?rhs")
 if "q >= t" and "u >= t"
 proof -
-have "?lhs = bw t (((bw r b) + (bw s c)) + (bw p a))" sorry
-moreover have "?rhs = bw t (((bw r b) + (bw s c)) + (bw p a))" sorry
+have "?lhs = bw t (((bw r b) + (bw s c)) + (bw p a))" 
+    proof - 
+    have "?lhs = bw t (((bw p a) + (bw r b)) + (bw s c))" using that(2) by (simp only: add_remove_prec)
+    moreover have "... = bw t ((bw p a) + ((bw r b) + (bw s c)))" by (simp only: add.assoc)
+    moreover have "... = bw t (((bw r b) + (bw s c)) + (bw p a))" by (simp only: add.commute)
+    ultimately show ?thesis by argo
+    qed
+moreover have "?rhs = bw t (((bw r b) + (bw s c)) + (bw p a))" 
+    proof -
+    have "?rhs = bw t (bw q ((bw r b) + (bw s c)) + (bw p a))" by (simp only: add.commute)
+    moreover have "... = bw t (((bw r b) + (bw s c)) + (bw p a))" using that(1) by (simp only: add_remove_prec)
+    ultimately show ?thesis by argo
+    qed
 finally show ?thesis by argo 
-
+qed
 
 
