@@ -1,3 +1,4 @@
+use crate::Symbol;
 use egg::*;
 use num::PrimInt;
 use std::fs::File;
@@ -326,6 +327,34 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
     }
 }
 
+trait GetRewrite<L: Language> {
+    fn get_rewrite(&self) -> (Option<Symbol>, Option<Symbol>);
+}
+
+impl<L: Language> GetRewrite<L> for FlatTerm<L> {
+    fn get_rewrite(&self) -> (Option<Symbol>, Option<Symbol>) {
+        if self.backward_rule.is_some() || self.forward_rule.is_some() {
+            return (self.backward_rule, self.forward_rule);
+        }
+        let mut rewrites = self
+            .children
+            .iter()
+            .map(|child| child.get_rewrite())
+            .filter(|(back, front)| back.is_some() || front.is_some());
+
+        let ret_val = rewrites.next();
+
+        if let Some(next_rw) = rewrites.next() {
+            println!(
+                "Values left in rewrites {:#?} {:#?}",
+                next_rw,
+                rewrites.collect::<Vec<_>>()
+            );
+        }
+        ret_val.unwrap_or((None, None))
+    }
+}
+
 // preconditions encoded as a list of conjunctions
 pub fn check_equivalence(
     name_str: Option<&str>,
@@ -437,7 +466,18 @@ pub fn check_equivalence(
 
         runner = runner.with_explanation_length_optimization();
         let mut explained_short = runner.explain_matches(&lhs_expr, &rhs_pattern.ast, &subst);
-        println!("{:#?}", explained_short.explanation_trees);
+
+        for (i, term) in explained_short.make_flat_explanation().iter().enumerate() {
+            println!(
+                "{} {:#?} {:#?} {} {:#?}",
+                i,
+                // term.to_string(),
+                term.remove_rewrites().to_string(),
+                term.has_rewrite_forward(),
+                term.has_rewrite_backward(),
+                term.get_rewrite(),
+            );
+        }
 
         explained_short.get_string_with_let();
         for s in explained_short.get_flat_strings() {

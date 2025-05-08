@@ -9,11 +9,18 @@ fn main() {
     // );
 
     let _ = check_equivalence(
-        Some("mul_by_two"),
-        &[],
-        "(bw r (* (bw p a) 2))",
-        "(bw r (<< (bw p a) 1))",
+        Some("add_assoc_1"),
+        &["(>= q t)", "(>= u t)"],
+        "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
+        "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
+
+    // let _ = check_equivalence(
+    //     Some("mul_by_two"),
+    //     &[],
+    //     "(bw r (* (bw p a) 2))",
+    //     "(bw r (<< (bw p a) 1))",
+    // );
 
     // let _ = check_equivalence(
     //     Some("left_shift_add_1"),
