@@ -1,4 +1,5 @@
-session Test = HOL + 
+session ProofCheck = HOL + 
 theories
   rewrite_lemmas
   manual_rewrite
+  testproofs

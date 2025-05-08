@@ -65,5 +65,5 @@ moreover have "?rhs = bw t (((bw r b) + (bw s c)) + (bw p a))"
     qed
 finally show ?thesis by argo 
 qed
-
+end
 

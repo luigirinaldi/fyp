@@ -1,2 +1,2 @@
 #!/bin/sh
-isabelle build -D ./proofs/
+isabelle build -v -d ./proofs/ -c ProofCheck
