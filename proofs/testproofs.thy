@@ -21,7 +21,6 @@ text "Proof produced by the tool:
     (bw r (Rewrite<= left-shift (<< (bw p a) 1)))
     (bw r (<< (bw p a) 1))
 "
-
 theorem mul_two:
 "(bw r ((bw p a) * 2)) = (bw r (shl (bw p a) 1))" (is "?lhs = ?rhs")
 proof - 
@@ -32,3 +31,29 @@ have "?rhs = ?lhs"
     done
 then show ?thesis by simp
 qed
+
+text "
+Tool explanation out:
+    lhs:(bw t (+ (bw u (+ (bw p a) (bw r b))) (bw s c)))
+    rhs:(bw t (+ (bw p a) (bw q (+ (bw r b) (bw s c)))))
+    conditions:['(>= q t)', '(>= u t)']
+
+    (bw t (+ (bw u (+ (bw p a) (bw r b))) (bw s c)))
+    (Rewrite=> mod-sum (bw t (+ (+ (bw p a) (bw r b)) (bw s c))))
+    (bw t (Rewrite=> add-assoc (+ (bw p a) (+ (bw r b) (bw s c)))))
+    (bw t (Rewrite=> add-comm (+ (+ (bw r b) (bw s c)) (bw p a))))
+    (Rewrite<= mod-sum (bw t (+ (bw q (+ (bw r b) (bw s c))) (bw p a))))
+    (bw t (Rewrite<= add-comm (+ (bw p a) (bw q (+ (bw r b) (bw s c))))))
+    (bw t (+ (bw p a) (bw q (+ (bw r b) (bw s c)))))
+"
+theorem add_assoc_1:
+"bw t ((bw u ((bw p a) + (bw r b))) + (bw s c)) = 
+ bw t ((bw p a) + (bw u ((bw r b) + (bw s c))))" (is "?lhs = ?rhs")
+if "q >= t" and "u >= t"
+proof -
+have "?lhs = bw t (((bw r b) + (bw s c)) + (bw p a))" sorry
+moreover have "?rhs = bw t (((bw r b) + (bw s c)) + (bw p a))" sorry
+finally show ?thesis by argo 
+
+
+
