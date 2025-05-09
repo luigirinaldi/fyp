@@ -20,8 +20,8 @@ use std::path::Path;
 fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     let mut rules = vec![
         // normal arithmetic
-        rewrite!("add-comm";    "(+ ?a ?b)" => "(+ ?b ?a)"),
-        rewrite!("add-assoc";   "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
+        rewrite!("add.commute";    "(+ ?a ?b)" => "(+ ?b ?a)"),
+        rewrite!("add.assoc";   "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
         rewrite!("mul-comm";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mul-assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
         rewrite!("pow_sum";     "(* (^ ?a ?b) (^ ?a ?c))" => "(^ ?a (+ ?b ?c))"),
@@ -47,7 +47,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
         rewrite!("mod-1"; "(bw ?p 1)" => "1"),
         rewrite!("mod-0"; "(bw ?p 0)" => "0"),
-        rewrite!("mod-sum";
+        rewrite!("add_remove_prec";
             "(bw ?p (+ (bw ?q ?a) ?b))" => "(bw ?p (+ ?a ?b))"
             if precondition(&["(>= ?q ?p)"])),
         // rewrite!("mod-diff";
@@ -57,7 +57,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         //     "(bw ?p (- ?a (bw ?q ?b)))" => "(bw ?p (- ?a ?b))"
         //     if precondition(&["(>= ?q ?p)"])),
         // mod sum rewrite preserving full precision
-        rewrite!("mod-sum-1";
+        rewrite!("add_full_prec";
             "(bw ?p (+ (bw ?q ?a) (bw ?r ?b)))" => "(+ (bw ?q ?a) (bw ?r ?b))"
             if precondition(&["(< ?q ?p)","(< ?r ?p)"])),
         // precision preserving transform
@@ -437,7 +437,7 @@ pub fn check_equivalence(
 
     let equiv = !runner.egraph.equivs(&lhs_expr, &rhs_expr).is_empty();
 
-    let output_file_path = output_dir + &String::from("/explanation.txt");
+    let output_file_path = output_dir.clone() + &String::from("/explanation.txt");
     let mut file = File::create(output_file_path)?;
 
     let output_str = format!(
@@ -466,18 +466,69 @@ pub fn check_equivalence(
 
         runner = runner.with_explanation_length_optimization();
         let mut explained_short = runner.explain_matches(&lhs_expr, &rhs_pattern.ast, &subst);
+        explained_short.check_proof(rewrite_rules);
 
-        for (i, term) in explained_short.make_flat_explanation().iter().enumerate() {
+        let mut flat_terms = explained_short.make_flat_explanation().iter();
+
+        let proof_file_path = output_dir.clone() + &String::from("/proof.thy");
+        let mut proof_file = File::create(proof_file_path)?;
+
+        proof_file.write(
+            format!(
+                "theorem {th_name}:
+            \"{lhs}={rhs}\" (is \"?lhs = ?rhs\")
+            if {preconditions}
+            proof -\n",
+                th_name = name,
+                lhs = lhs_expr.to_string(),
+                rhs = rhs_expr.to_string(),
+                preconditions = preconditions.join(" and "),
+            )
+            .as_bytes(),
+        )?;
+
+        let mut prev_term = flat_terms.next().unwrap().remove_rewrites();
+        for (i, term) in flat_terms.enumerate() {
+            // println!(
+            //     "{} {:#?} {:#?} {} {:#?}",
+            //     i,
+            //     // term.to_string(),
+            //     term.remove_rewrites().to_string(),
+            //     term.has_rewrite_forward(),
+            //     term.has_rewrite_backward(),
+            //     term.get_rewrite(),
+            // );
+
+            let (bw, fw) = term.get_rewrite();
+            let rw = if bw.is_some() {
+                bw.unwrap()
+            } else {
+                fw.unwrap()
+            };
+            // assuming if one isn't defined the other one is
+            let rw_dir = fw.is_some();
             println!(
-                "{} {:#?} {:#?} {} {:#?}",
+                "{}: {} {} {} using {}",
                 i,
-                // term.to_string(),
+                prev_term.to_string(),
+                if rw_dir { "->" } else { "<-" },
                 term.remove_rewrites().to_string(),
-                term.has_rewrite_forward(),
-                term.has_rewrite_backward(),
-                term.get_rewrite(),
+                rw
             );
+            proof_file.write(
+                format!(
+                    "{prefix}have \"{lhs} = {term}\" using that by (simp only: {rw_rule})\n",
+                    prefix = if i == 0 { "" } else { "moreover " },
+                    lhs = if i == 0 { "?lhs" } else { "..." },
+                    term = term.remove_rewrites().to_string(),
+                    rw_rule = rw.to_string()
+                )
+                .as_bytes(),
+            )?;
+            prev_term = term.remove_rewrites();
         }
+
+        proof_file.write("ultimately show ?thesis by argo\nqed".as_bytes())?;
 
         explained_short.get_string_with_let();
         for s in explained_short.get_flat_strings() {
@@ -493,7 +544,6 @@ pub fn check_equivalence(
             .as_bytes(),
         )?;
 
-        explained_short.check_proof(rewrite_rules);
         Ok(())
     } else {
         let cost_func = EGraphCostFn::new(&runner.egraph, &lhs_expr, &rhs_expr);
