@@ -46,7 +46,7 @@ Tool explanation out:
     (bw t (Rewrite<= add-comm (+ (bw p a) (bw q (+ (bw r b) (bw s c))))))
     (bw t (+ (bw p a) (bw q (+ (bw r b) (bw s c)))))
 "
-theorem add_assoc_1:
+(* theorem add_assoc_1:
 "bw t ((bw u ((bw p a) + (bw r b))) + (bw s c)) = 
  bw t ((bw p a) + (bw q ((bw r b) + (bw s c))))" (is "?lhs = ?rhs")
 if "q >= t" and "u >= t"
@@ -57,6 +57,29 @@ proof -
     moreover have "... = bw t (bw q ((bw r b) + (bw s c)) + (bw p a))"  using that(1) by (simp only: add_remove_prec)
     moreover have "... = ?rhs" by (simp only: add.commute)
     ultimately show ?thesis by argo 
+qed *)
+
+syntax
+    "_plus_prefix" :: "nat => nat => nat" ("+ _ _")
+    "_geq_prefix" :: "nat => nat => nat" (">= _ _")
+    "_leq_prefix" :: "nat => nat => nat" ("<= _ _")
+
+translations
+    "+ a b" \<rightleftharpoons> "a + b"
+    ">= a b" \<rightleftharpoons> "a >= b"
+    "<= a b" \<rightleftharpoons> "a <= b"
+
+theorem add_assoc_1:
+            "(bw t (+ (bw u (+ (bw p a) (bw r b))) (bw s c)))=(bw t (+ (bw p a) (bw q (+ (bw r b) (bw s c)))))" (is "?lhs = ?rhs")
+            if "(>= q t)" and "(>= u t)"
+            proof -
+have          "?lhs = (bw t (+ (+ (bw p a) (bw r b)) (bw s c)))" using that by (simp only: add_remove_prec)
+moreover have "... = (bw t (+ (bw p a) (+ (bw r b) (bw s c))))" using that by (simp only: add.assoc)
+moreover have "... = (bw t (+ (+ (bw r b) (bw s c)) (bw p a)))" using that by (simp only: add.commute)
+moreover have "... = (bw t (+ (bw q (+ (bw r b) (bw s c))) (bw p a)))" using that by (simp only: add_remove_prec)
+moreover have "... = (bw t (+ (bw p a) (bw q (+ (bw r b) (bw s c)))))" using that by (simp only: add.commute)
+ultimately show ?thesis by argo
 qed
+
 end
 

@@ -482,7 +482,11 @@ pub fn check_equivalence(
                 th_name = name,
                 lhs = lhs_expr.to_string(),
                 rhs = rhs_expr.to_string(),
-                preconditions = preconditions.join(" and "),
+                preconditions = preconditions
+                    .iter()
+                    .map(|p| format!("\"{}\"", p))
+                    .collect::<Vec<_>>()
+                    .join(" and "),
             )
             .as_bytes(),
         )?;
@@ -498,6 +502,7 @@ pub fn check_equivalence(
             //     term.has_rewrite_backward(),
             //     term.get_rewrite(),
             // );
+            println!("{:#?}", term);
 
             let (bw, fw) = term.get_rewrite();
             let rw = if bw.is_some() {
