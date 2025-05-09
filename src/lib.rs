@@ -469,17 +469,21 @@ pub fn check_equivalence(
         explained_short.check_proof(rewrite_rules);
 
         let mut flat_terms = explained_short.make_flat_explanation().iter();
-
-        let proof_file_path = output_dir.clone() + &String::from("/proof.thy");
+        // sanitize the name of the test to remove chars isabelle doesn't like
+        let proof_name = name.replace("/", "_").replace(".rs", "");
+        let proof_file_path = output_dir.clone() + &format!("/{}.thy", proof_name);
         let mut proof_file = File::create(proof_file_path)?;
 
         proof_file.write(
             format!(
-                "theorem {th_name}:
-            \"{lhs}={rhs}\" (is \"?lhs = ?rhs\")
-            if {preconditions}
-            proof -\n",
-                th_name = name,
+                "theory {th_name}
+    imports rewrite_lemmas
+begin
+theorem {th_name}_th:
+\"{lhs}={rhs}\" (is \"?lhs = ?rhs\")
+if {preconditions}
+proof -\n",
+                th_name = proof_name,
                 lhs = lhs_expr.to_string(),
                 rhs = rhs_expr.to_string(),
                 preconditions = preconditions
@@ -522,7 +526,7 @@ pub fn check_equivalence(
             );
             proof_file.write(
                 format!(
-                    "{prefix}have \"{lhs} = {term}\" using that by (simp only: {rw_rule})\n",
+                    "   {prefix}have \"{lhs} = {term}\" using that by (simp only: {rw_rule})\n",
                     prefix = if i == 0 { "" } else { "moreover " },
                     lhs = if i == 0 { "?lhs" } else { "..." },
                     term = term.remove_rewrites().to_string(),
