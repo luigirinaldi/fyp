@@ -83,6 +83,8 @@ syntax
     "_ge_prefix" :: "nat => nat => nat" ("> _ _")
     "_leq_prefix" :: "nat => nat => nat" ("<= _ _")
     "_le_prefix" :: "nat => nat => nat" ("< _ _")
+    (* The function is defined above *)
+    "shl" :: "int => int => int" ("<< _ _")
 
 translations
     "+ a b" \<rightleftharpoons> "a + b"
