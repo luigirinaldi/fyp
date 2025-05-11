@@ -42,4 +42,10 @@ echo "Done. All .thy files copied to '$DEST_DIR'."
 echo "File names listed in '$LIST_FILE'."
 
 
-isabelle build -v -d "$DEST_DIR" -c ProofCheck
+
+if isabelle build -v -d "$DEST_DIR" -c ProofCheck; then
+    echo "Proofs verified by isabelle"
+else
+    echo "Some proofs failed"
+    isabelle build_log -H Error ProofCheck
+fi

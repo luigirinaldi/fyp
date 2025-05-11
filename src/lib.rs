@@ -537,7 +537,7 @@ proof -\n",
             prev_term = term.remove_rewrites();
         }
 
-        proof_file.write("ultimately show ?thesis by argo\nqed".as_bytes())?;
+        proof_file.write("ultimately show ?thesis by argo\nqed\nend".as_bytes())?;
 
         explained_short.get_string_with_let();
         for s in explained_short.get_flat_strings() {
