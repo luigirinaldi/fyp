@@ -38,7 +38,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // identities
         rewrite!("add2-mul"; "(+ ?a ?a)" => "(* 2 ?a)"),
         rewrite!("mul-add2"; "(* 2 ?a)"  => "(+ ?a ?a)"),
-        rewrite!("add_0"; "(+ ?a 0)" => "?a"),
+        rewrite!("add_0"; "(+ 0 ?a)" => "?a"),
         rewrite!("mult_0"; "(* 0 ?a)" => "0"),
         rewrite!("mult_1";  "(* 1 ?a)" => "?a"),
         rewrite!("div-same"; "(÷ ?a ?a)" => "1"),
