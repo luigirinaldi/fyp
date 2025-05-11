@@ -22,8 +22,8 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // normal arithmetic
         rewrite!("add.commute";    "(+ ?a ?b)" => "(+ ?b ?a)"),
         rewrite!("add.assoc";   "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
-        rewrite!("mul-comm";    "(* ?a ?b)" => "(* ?b ?a)"),
-        rewrite!("mul-assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
+        rewrite!("mult.commute";    "(* ?a ?b)" => "(* ?b ?a)"),
+        rewrite!("mult.assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
         rewrite!("pow_sum";     "(* (^ ?a ?b) (^ ?a ?c))" => "(^ ?a (+ ?b ?c))"),
         rewrite!("div-add";     "(÷ (+ ?a ?b) ?c)" => "(+ (÷ ?a ?c) (÷ ?b ?c))"),
         rewrite!("div-mul";     "(÷ (* ?a ?b) ?c)" => "(* (÷ ?a ?c) ?b)"),
@@ -50,29 +50,29 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("add_remove_prec";
             "(bw ?p (+ (bw ?q ?a) ?b))" => "(bw ?p (+ ?a ?b))"
             if precondition(&["(>= ?q ?p)"])),
+        // mod sum rewrite preserving full precision
+        rewrite!("add_full_prec";
+            "(bw ?p (+ (bw ?q ?a) (bw ?r ?b)))" => "(+ (bw ?q ?a) (bw ?r ?b))"
+            if precondition(&["(< ?q ?p)","(< ?r ?p)"])),
+        // precision preserving transform
+        rewrite!("mul_full_prec";
+        "(bw ?r (* (bw ?q ?a) (bw ?p ?b)))" => "(* (bw ?q ?a) (bw ?p ?b))"
+            if precondition(&["(>= ?r (+ ?p ?q))"])),
+        // precision loss due to smaller outer mod
+        rewrite!("mul_remove_prec";
+            "(bw ?q (* (bw ?p ?a) ?b))" => "(bw ?q (* ?a ?b))"
+            if precondition(&["(>= ?p ?q)"])),
+        rewrite!("div-simp"; "(bw ?p (÷ (bw ?q ?a) ?b))" => "(÷ (bw ?q ?a) ?b)" if precondition(&["(>= ?p ?q)"])),
+        
+        rewrite!("mod-reduce-1"; "(bw ?q (bw ?p ?a))" => "(bw ?p a)" if precondition(&["(>= ?q ?p)"])),
+        // rewrite!("mod-reduce-2"; "(bw ?q (bw ?p ?a))" => "(bw ?q a)" if precondition(&["(< ?q ?p)"])),
+        
         // rewrite!("mod-diff";
         //     "(bw ?p (- (bw ?q ?a) ?b))" => "(bw ?p (- ?a ?b))"
         //     if precondition(&["(>= ?q ?p)"])),
         // rewrite!("mod-diff-2";
         //     "(bw ?p (- ?a (bw ?q ?b)))" => "(bw ?p (- ?a ?b))"
         //     if precondition(&["(>= ?q ?p)"])),
-        // mod sum rewrite preserving full precision
-        rewrite!("add_full_prec";
-            "(bw ?p (+ (bw ?q ?a) (bw ?r ?b)))" => "(+ (bw ?q ?a) (bw ?r ?b))"
-            if precondition(&["(< ?q ?p)","(< ?r ?p)"])),
-        // precision preserving transform
-        rewrite!("mod-mul-simp1";
-            "(bw ?r (* (bw ?q ?a) (bw ?p ?b)))" => "(* (bw ?q ?a) (bw ?p ?b))"
-            if precondition(&["(>= ?r (+ ?p ?q))"])),
-        // precision loss due to smaller outer mod
-        rewrite!("mod-mul-simp2";
-            "(bw ?q (* (bw ?p ?a) ?b))" => "(bw ?q (* ?a ?b))"
-            if precondition(&["(>= ?p ?q)"])),
-        rewrite!("div-simp"; "(bw ?p (÷ (bw ?q ?a) ?b))" => "(÷ (bw ?q ?a) ?b)" if precondition(&["(>= ?p ?q)"])),
-
-        rewrite!("mod-reduce-1"; "(bw ?q (bw ?p ?a))" => "(bw ?p a)" if precondition(&["(>= ?q ?p)"])),
-        // rewrite!("mod-reduce-2"; "(bw ?q (bw ?p ?a))" => "(bw ?q a)" if precondition(&["(< ?q ?p)"])),
-
         // rewrite!("pow-bw"; "(^ 2 (bw ?p ?a))" => "(bw (- (^ 2 ?p) 1) (^ 2 (bw ?p ?a))))"),
         rewrite!("mul-pow2"; "(bw ?s (* (bw ?p ?a) (^ 2 (bw ?q ?b))))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))" if precondition(&["(>= ?s (+ ?p (- (^ 2 ?q) 1)))"])),
         // rewrite!("pow-bw"; "(^ 2 (bw ?p ?a))" => "(bw (^ 2 ?p) (^ 2 (bw ?p ?a))))"),

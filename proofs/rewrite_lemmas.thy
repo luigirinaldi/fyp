@@ -70,6 +70,24 @@ moreover have "... \<le> 2^s" using that(1) by simp
 ultimately show ?thesis by (smt (verit) bw_def mod_pos_pos_trivial mult_nonneg_nonneg one_le_power pos_mod_sign)
 qed
 
+
+(* Transaltions required to parse the prefix notation output of egg *)
+syntax
+    "_plus_prefix" :: "nat => nat => nat" ("+ _ _")
+    "_minus_prefix" :: "nat => nat => nat" ("- _ _")
+    "_times_prefix" :: "nat => nat => nat" ("* _ _")
+    "_geq_prefix" :: "nat => nat => nat" (">= _ _")
+    "_ge_prefix" :: "nat => nat => nat" ("> _ _")
+    "_leq_prefix" :: "nat => nat => nat" ("<= _ _")
+    "_le_prefix" :: "nat => nat => nat" ("< _ _")
+
+translations
+    "+ a b" \<rightleftharpoons> "a + b"
+    (* "- a b" \<rightleftharpoons> "a - b" *)
+    "* a b" \<rightleftharpoons> "a * b"
+    ">= a b" \<rightleftharpoons> "a >= b"
+    "> a b" \<rightleftharpoons> "a > b"
+    "<= a b" \<rightleftharpoons> "a <= b"
+    "< a b" \<rightleftharpoons> "a < b"
+
 end
-
-
