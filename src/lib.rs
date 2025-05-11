@@ -1,6 +1,6 @@
 use crate::Symbol;
 use egg::*;
-use num::PrimInt;
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::{Error, Write};
 use std::str::FromStr;
@@ -13,8 +13,8 @@ use crate::extractor::EGraphCostFn;
 use crate::language::ModAnalysis;
 use crate::language::ModIR;
 
-use std::fs;
 use std::path::Path;
+use std::{default, fs};
 
 #[rustfmt::skip]
 fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
@@ -39,8 +39,8 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("add2-mul"; "(+ ?a ?a)" => "(* 2 ?a)"),
         rewrite!("mul-add2"; "(* 2 ?a)"  => "(+ ?a ?a)"),
         rewrite!("add_0"; "(+ ?a 0)" => "?a"),
-        rewrite!("mult_0"; "(* ?a 0)" => "0"),
-        rewrite!("mult_1";  "(* ?a 1)" => "?a"),
+        rewrite!("mult_0"; "(* 0 ?a)" => "0"),
+        rewrite!("mult_1";  "(* 1 ?a)" => "?a"),
         rewrite!("div-same"; "(÷ ?a ?a)" => "1"),
 
         // mod related
@@ -355,6 +355,22 @@ impl<L: Language> GetRewrite<L> for FlatTerm<L> {
     }
 }
 
+fn get_bw_vars(expr: &RecExpr<ModIR>) -> Vec<RecExpr<ModIR>> {
+    let mut worklist = Vec::from([expr.root()]);
+    let mut bw_vars: Vec<RecExpr<ModIR>> = [].to_vec();
+
+    while !worklist.is_empty() {
+        match &expr[worklist.pop().unwrap()] {
+            ModIR::Mod([a, b]) => {
+                bw_vars.push(expr[*a].build_recexpr(|id| expr[id].clone()));
+                worklist.extend(expr[*b].children())
+            }
+            other => worklist.extend(other.children()),
+        }
+    }
+    return bw_vars;
+}
+
 // preconditions encoded as a list of conjunctions
 pub fn check_equivalence(
     name_str: Option<&str>,
@@ -376,17 +392,58 @@ pub fn check_equivalence(
         println!("! {:?}", why.kind());
     });
 
-    let precond_exprs: Vec<RecExpr<ModIR>> =
-        preconditions.iter().map(|&p| p.parse().unwrap()).collect();
-
     let lhs_expr: RecExpr<ModIR> = lhs.parse().unwrap();
     let rhs_expr: RecExpr<ModIR> = rhs.parse().unwrap();
 
+    let unique_bitwidth_vars: HashSet<_> = get_bw_vars(&lhs_expr)
+        .iter()
+        .chain(&get_bw_vars(&rhs_expr))
+        .cloned()
+        .collect();
+
     println!(
-        "Checking \n{}\n =?\n{}\n given the following conditions: {:?}",
+        "bitwidth vars: {:?}",
+        unique_bitwidth_vars
+            .iter()
+            .map(|e| e.to_string())
+            .collect::<Vec<_>>()
+    );
+    // Default conditions on the fact that all bitwidth variables must be strictly greater than 0
+    let extra_preconditions = unique_bitwidth_vars.iter().map(|e_old| {
+        let mut e = e_old.clone();
+        let root = e.root();
+        let zero_id = e.add(ModIR::Num(0));
+        // transform expr -> expr > 0
+        e.add(ModIR::GT([root, zero_id]));
+        e
+    });
+
+    println!(
+        "extra preconditions: {:#?}",
+        extra_preconditions
+            .clone()
+            .map(|e| e.to_string())
+            .collect::<Vec<_>>()
+    );
+
+    let precond_exprs: Vec<RecExpr<ModIR>> = preconditions
+        .iter()
+        .map(|&p| p.parse().unwrap())
+        .chain(extra_preconditions)
+        .collect::<Vec<_>>();
+
+    let precond_string = precond_exprs
+        .clone()
+        .iter()
+        .map(|e| format!("\"{}\"", e.to_string()))
+        .collect::<Vec<_>>()
+        .join(" and ");
+
+    println!(
+        "Checking \n{}\n =?\n{}\n given the following conditions: {:}",
         lhs_expr.to_string(),
         rhs_expr.to_string(),
-        preconditions
+        precond_string
     );
 
     let _lhs_pattern = Pattern::from(&lhs_expr);
@@ -448,11 +505,11 @@ pub fn check_equivalence(
 
     file.write(
         format!(
-            "{}\nlhs:{}\nrhs:{}\nconditions:{:?}\n\n",
+            "{}\nlhs:{}\nrhs:{}\nconditions:{}\n\n",
             output_str,
             lhs_expr.to_string(),
             rhs_expr.to_string(),
-            preconditions
+            precond_string
         )
         .as_bytes(),
     )?;
@@ -486,28 +543,13 @@ proof -\n",
                 th_name = proof_name,
                 lhs = lhs_expr.to_string(),
                 rhs = rhs_expr.to_string(),
-                preconditions = preconditions
-                    .iter()
-                    .map(|p| format!("\"{}\"", p))
-                    .collect::<Vec<_>>()
-                    .join(" and "),
+                preconditions = precond_string
             )
             .as_bytes(),
         )?;
 
         let mut prev_term = flat_terms.next().unwrap().remove_rewrites();
         for (i, term) in flat_terms.enumerate() {
-            // println!(
-            //     "{} {:#?} {:#?} {} {:#?}",
-            //     i,
-            //     // term.to_string(),
-            //     term.remove_rewrites().to_string(),
-            //     term.has_rewrite_forward(),
-            //     term.has_rewrite_backward(),
-            //     term.get_rewrite(),
-            // );
-            println!("{:#?}", term);
-
             let (bw, fw) = term.get_rewrite();
             let rw = if bw.is_some() {
                 bw.unwrap()
