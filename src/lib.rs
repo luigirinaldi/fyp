@@ -1,6 +1,7 @@
 use crate::Symbol;
 use egg::*;
 use std::collections::HashSet;
+use std::fmt::format;
 use std::fs::File;
 use std::io::{Error, Write};
 use std::str::FromStr;
@@ -13,8 +14,8 @@ use crate::extractor::EGraphCostFn;
 use crate::language::ModAnalysis;
 use crate::language::ModIR;
 
+use std::fs;
 use std::path::Path;
-use std::{default, fs};
 
 #[rustfmt::skip]
 fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
@@ -29,11 +30,9 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("div-mul";     "(÷ (* ?a ?b) ?c)" => "(* (÷ ?a ?c) ?b)"),
         rewrite!("div-mul2";    "(÷ (÷ ?a ?b) ?c)" => "(÷ ?a (* ?b ?c))"),
 
-        // rewrite!("sub-canon"; "(- ?a ?b)" => "(+ ?a (* -1 ?b))"),
-        // rewrite!("canon-sub"; "(+ ?a (* -1 ?b))" => "(- ?a ?b)"),
+        
         rewrite!("cancel-sub"; "(- ?a ?a)" => "0"),
 
-        // rewrite!("minus1-distrib"; "(- ?a ?b)" => "(* -1 (- ?b ?a))"),
 
         // identities
         rewrite!("add2-mul"; "(+ ?a ?a)" => "(* 2 ?a)"),
@@ -43,7 +42,10 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mult_1";  "(* 1 ?a)" => "?a"),
         rewrite!("div-same"; "(÷ ?a ?a)" => "1"),
 
-        // mod related
+        /////////////////////////
+        //      MOD RELATED    //
+        /////////////////////////
+
         // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
         rewrite!("bw_1"; "(bw ?p 1)" => "1"),
         rewrite!("bw_0"; "(bw ?p 0)" => "0"),
@@ -89,8 +91,8 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // multi_rewrite!("trans"; "?p = (> ?a ?b) = true, ?q = (> b c) = true" => "?r = (> a c) = true")
     ];
     rules.extend(rewrite!("int_distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
-    rules.extend(rewrite!("sub-add"; "(- ?a ?b)" <=> "(+ ?a (- ?b))"));
-    // rules.extend(rewrite!("sub-neg"; "(- ?b)" <=> "(* -1 ?b)"));
+    rules.extend(rewrite!("Num.ring_1_class.mult_minus1"; "(- ?b)" <=> "(* -1 ?b)"));
+    rules.extend(rewrite!("sub_to_neg"; "(- ?a ?b)" <=> "(+ ?a (* -1 ?b))"));
     // multliplication across the mod (this works because mod b implies mod 2^b)
     // c * (a mod b) = (c * a mod b * c)
     // rules.extend(rewrite!("mod-mul"; "(* (^ 2 ?e) (bw ?b ?c))" <=> "(bw (+ ?e ?b) (* (^ 2 ?e) ?c))"));
@@ -371,6 +373,41 @@ fn get_bw_vars(expr: &RecExpr<ModIR>) -> Vec<RecExpr<ModIR>> {
     return bw_vars;
 }
 
+fn print_infix(expr: &RecExpr<ModIR>) -> String {
+    fn get_child_str(e: &RecExpr<ModIR>, id: &Id) -> String {
+        print_infix(&e[*id].build_recexpr(|i| e[i].clone()))
+    }
+
+    match &expr[expr.root()] {
+        val @ ModIR::Mod([a, b]) => {
+            format!(
+                "({} {} {})",
+                val.to_string(),
+                get_child_str(expr, a),
+                get_child_str(expr, b)
+            )
+        }
+        other => {
+            if other.children().len() == 2 {
+                format!(
+                    "({} {} {})",
+                    get_child_str(expr, &other.children()[0]),
+                    other.to_string(),
+                    get_child_str(expr, &other.children()[1])
+                )
+            } else if other.children().len() == 1 {
+                format!(
+                    "({} {})",
+                    other.to_string(),
+                    get_child_str(expr, &other.children()[0])
+                )
+            } else {
+                other.to_string()
+            }
+        }
+    }
+}
+
 // preconditions encoded as a list of conjunctions
 pub fn check_equivalence(
     name_str: Option<&str>,
@@ -435,7 +472,7 @@ pub fn check_equivalence(
     let precond_string = precond_exprs
         .clone()
         .iter()
-        .map(|e| format!("\"{}\"", e.to_string()))
+        .map(|e| format!("\"{}\"", print_infix(e)))
         .collect::<Vec<_>>()
         .join(" and ");
 
@@ -525,7 +562,7 @@ pub fn check_equivalence(
         let mut explained_short = runner.explain_matches(&lhs_expr, &rhs_pattern.ast, &subst);
         explained_short.check_proof(rewrite_rules);
 
-        let mut flat_terms = explained_short.make_flat_explanation();
+        let flat_terms = explained_short.make_flat_explanation();
         // sanitize the name of the test to remove chars isabelle doesn't like
         let proof_name = name.replace("/", "_").replace(".rs", "");
         let proof_file_path = output_dir.clone() + &format!("/{}.thy", proof_name);
@@ -540,8 +577,8 @@ theorem {th_name}_th:
 \"{lhs}={rhs}\" (is \"?lhs = ?rhs\")
 if {preconditions}\n",
                 th_name = proof_name,
-                lhs = lhs_expr.to_string(),
-                rhs = rhs_expr.to_string(),
+                lhs = print_infix(&lhs_expr),
+                rhs = print_infix(&rhs_expr),
                 preconditions = precond_string
             )
             .as_bytes(),
@@ -561,12 +598,13 @@ if {preconditions}\n",
                 };
                 // assuming if one isn't defined the other one is
                 let rw_dir = fw.is_some();
+                let next_term_str = print_infix(&term.remove_rewrites().get_recexpr());
                 println!(
                     "{}: {} {} {} using {}",
                     i,
-                    prev_term.to_string(),
+                    print_infix(&prev_term.get_recexpr()),
                     if rw_dir { "->" } else { "<-" },
-                    term.remove_rewrites().to_string(),
+                    next_term_str,
                     rw
                 );
                 proof_file.write(
@@ -574,7 +612,7 @@ if {preconditions}\n",
                         "   {prefix}have \"{lhs} = {term}\" using that by (simp only: {rw_rule})\n",
                         prefix = if i == 0 { "" } else { "moreover " },
                         lhs = if i == 0 { "?lhs" } else { "..." },
-                        term = term.remove_rewrites().to_string(),
+                        term = next_term_str,
                         rw_rule = rw.to_string()
                     )
                     .as_bytes(),

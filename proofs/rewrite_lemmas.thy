@@ -6,6 +6,11 @@ definition "bw (p::nat) (a::int) = a mod 2^p"
 (* assuming b can always be cast to a nat *)
 definition "shl (a::int) (b::int) = a * 2^(nat(b))"
 definition "shr (a::int) (b::int) = a div 2^(nat(b))"
+syntax
+    (* The function is defined above *)
+    "shl" :: "int => int => int" ("_ << _")
+    "shr" :: "int => int => int" ("_ >> _")
+
 
 lemma bw_max_val:
 "bw p a \<le> 2^p - 1"
@@ -73,26 +78,7 @@ qed
 lemma bw_1: "bw q 1 = 1" if "q > 0" using bw_def that by simp
 lemma bw_0: "bw q 0 = 0" using bw_def by simp
 
+lemma sub_to_neg: "(a::int) - b = a + -1 * b" by simp
 
-(* Transaltions required to parse the prefix notation output of egg *)
-syntax
-    "_plus_prefix" :: "nat => nat => nat" ("+ _ _")
-    "_minus_prefix" :: "nat => nat => nat" ("- _ _")
-    "_times_prefix" :: "nat => nat => nat" ("* _ _")
-    "_geq_prefix" :: "nat => nat => nat" (">= _ _")
-    "_ge_prefix" :: "nat => nat => nat" ("> _ _")
-    "_leq_prefix" :: "nat => nat => nat" ("<= _ _")
-    "_le_prefix" :: "nat => nat => nat" ("< _ _")
-    (* The function is defined above *)
-    "shl" :: "int => int => int" ("<< _ _")
-
-translations
-    "+ a b" \<rightleftharpoons> "a + b"
-    (* "- a b" \<rightleftharpoons> "a - b" *)
-    "* a b" \<rightleftharpoons> "a * b"
-    ">= a b" \<rightleftharpoons> "a >= b"
-    "> a b" \<rightleftharpoons> "a > b"
-    "<= a b" \<rightleftharpoons> "a <= b"
-    "< a b" \<rightleftharpoons> "a < b"
 
 end
