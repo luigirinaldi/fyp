@@ -525,7 +525,7 @@ pub fn check_equivalence(
         let mut explained_short = runner.explain_matches(&lhs_expr, &rhs_pattern.ast, &subst);
         explained_short.check_proof(rewrite_rules);
 
-        let mut flat_terms = explained_short.make_flat_explanation().iter();
+        let mut flat_terms = explained_short.make_flat_explanation();
         // sanitize the name of the test to remove chars isabelle doesn't like
         let proof_name = name.replace("/", "_").replace(".rs", "");
         let proof_file_path = output_dir.clone() + &format!("/{}.thy", proof_name);
@@ -538,8 +538,7 @@ pub fn check_equivalence(
 begin
 theorem {th_name}_th:
 \"{lhs}={rhs}\" (is \"?lhs = ?rhs\")
-if {preconditions}
-proof -\n",
+if {preconditions}\n",
                 th_name = proof_name,
                 lhs = lhs_expr.to_string(),
                 rhs = rhs_expr.to_string(),
@@ -548,38 +547,53 @@ proof -\n",
             .as_bytes(),
         )?;
 
-        let mut prev_term = flat_terms.next().unwrap().remove_rewrites();
-        for (i, term) in flat_terms.enumerate() {
-            let (bw, fw) = term.get_rewrite();
+        let mut prev_term = flat_terms[0].remove_rewrites();
+
+        if flat_terms.len() > 2 {
+            proof_file.write("proof -\n".as_bytes())?;
+
+            for (i, term) in flat_terms.iter().skip(1).enumerate() {
+                let (bw, fw) = term.get_rewrite();
+                let rw = if bw.is_some() {
+                    bw.unwrap()
+                } else {
+                    fw.unwrap()
+                };
+                // assuming if one isn't defined the other one is
+                let rw_dir = fw.is_some();
+                println!(
+                    "{}: {} {} {} using {}",
+                    i,
+                    prev_term.to_string(),
+                    if rw_dir { "->" } else { "<-" },
+                    term.remove_rewrites().to_string(),
+                    rw
+                );
+                proof_file.write(
+                    format!(
+                        "   {prefix}have \"{lhs} = {term}\" using that by (simp only: {rw_rule})\n",
+                        prefix = if i == 0 { "" } else { "moreover " },
+                        lhs = if i == 0 { "?lhs" } else { "..." },
+                        term = term.remove_rewrites().to_string(),
+                        rw_rule = rw.to_string()
+                    )
+                    .as_bytes(),
+                )?;
+                prev_term = term.remove_rewrites();
+            }
+            proof_file.write("ultimately show ?thesis by argo\nqed\n".as_bytes())?;
+        } else {
+            let (bw, fw) = flat_terms[1].get_rewrite();
             let rw = if bw.is_some() {
                 bw.unwrap()
             } else {
                 fw.unwrap()
             };
-            // assuming if one isn't defined the other one is
-            let rw_dir = fw.is_some();
-            println!(
-                "{}: {} {} {} using {}",
-                i,
-                prev_term.to_string(),
-                if rw_dir { "->" } else { "<-" },
-                term.remove_rewrites().to_string(),
-                rw
-            );
             proof_file.write(
-                format!(
-                    "   {prefix}have \"{lhs} = {term}\" using that by (simp only: {rw_rule})\n",
-                    prefix = if i == 0 { "" } else { "moreover " },
-                    lhs = if i == 0 { "?lhs" } else { "..." },
-                    term = term.remove_rewrites().to_string(),
-                    rw_rule = rw.to_string()
-                )
-                .as_bytes(),
+                format!("using that by (simp only: {rw_rule})\n", rw_rule = rw).as_bytes(),
             )?;
-            prev_term = term.remove_rewrites();
         }
-
-        proof_file.write("ultimately show ?thesis by argo\nqed\nend".as_bytes())?;
+        proof_file.write("end\n".as_bytes())?;
 
         explained_short.get_string_with_let();
         for s in explained_short.get_flat_strings() {
