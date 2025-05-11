@@ -38,15 +38,15 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // identities
         rewrite!("add2-mul"; "(+ ?a ?a)" => "(* 2 ?a)"),
         rewrite!("mul-add2"; "(* 2 ?a)"  => "(+ ?a ?a)"),
-        rewrite!("zero-add"; "(+ ?a 0)" => "?a"),
-        rewrite!("zero-mul"; "(* ?a 0)" => "0"),
-        rewrite!("one-mul";  "(* ?a 1)" => "?a"),
+        rewrite!("add_0"; "(+ ?a 0)" => "?a"),
+        rewrite!("mult_0"; "(* ?a 0)" => "0"),
+        rewrite!("mult_1";  "(* ?a 1)" => "?a"),
         rewrite!("div-same"; "(÷ ?a ?a)" => "1"),
 
         // mod related
         // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
-        rewrite!("mod-1"; "(bw ?p 1)" => "1"),
-        rewrite!("mod-0"; "(bw ?p 0)" => "0"),
+        rewrite!("bw_1"; "(bw ?p 1)" => "1"),
+        rewrite!("bw_0"; "(bw ?p 0)" => "0"),
         rewrite!("add_remove_prec";
             "(bw ?p (+ (bw ?q ?a) ?b))" => "(bw ?p (+ ?a ?b))"
             if precondition(&["(>= ?q ?p)"])),
@@ -88,7 +88,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("right-shift"; "(>> ?a ?b)" => "(÷ ?a (^ 2 ?b))"),
         // multi_rewrite!("trans"; "?p = (> ?a ?b) = true, ?q = (> b c) = true" => "?r = (> a c) = true")
     ];
-    rules.extend(rewrite!("add-distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
+    rules.extend(rewrite!("int_distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     rules.extend(rewrite!("sub-add"; "(- ?a ?b)" <=> "(+ ?a (- ?b))"));
     // rules.extend(rewrite!("sub-neg"; "(- ?b)" <=> "(* -1 ?b)"));
     // multliplication across the mod (this works because mod b implies mod 2^b)

@@ -70,6 +70,9 @@ moreover have "... \<le> 2^s" using that(1) by simp
 ultimately show ?thesis by (smt (verit) bw_def mod_pos_pos_trivial mult_nonneg_nonneg one_le_power pos_mod_sign)
 qed
 
+lemma bw_1: "bw q 1 = 1" if "q > 0" using bw_def that by simp
+lemma bw_0: "bw q 0 = 0" using bw_def by simp
+
 
 (* Transaltions required to parse the prefix notation output of egg *)
 syntax
