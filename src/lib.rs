@@ -1,7 +1,6 @@
 use crate::Symbol;
 use egg::*;
 use std::collections::HashSet;
-use std::fmt::format;
 use std::fs::File;
 use std::io::{Error, Write};
 use std::str::FromStr;
@@ -102,191 +101,6 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     rules
 }
 
-fn recursive_node_clone(
-    egraph: &EGraph<ModIR, ModAnalysis>,
-    root_id: &Id,
-    new_expr: &mut RecExpr<ModIR>,
-) -> Id {
-    let root_node = egraph.id_to_node(*root_id);
-    match root_node {
-        ModIR::Var(s) => new_expr.add(ModIR::Var(*s)),
-        ModIR::Mod([a, b]) => {
-            let id_a = recursive_node_clone(egraph, a, new_expr);
-            let id_b = recursive_node_clone(egraph, b, new_expr);
-
-            new_expr.add(ModIR::Mod([id_a, id_b]))
-        }
-        ModIR::Div([a, b]) => {
-            let id_a = recursive_node_clone(egraph, a, new_expr);
-            let id_b = recursive_node_clone(egraph, b, new_expr);
-
-            new_expr.add(ModIR::Div([id_a, id_b]))
-        }
-        ModIR::Pow([a, b]) => {
-            let id_a = recursive_node_clone(egraph, a, new_expr);
-            let id_b = recursive_node_clone(egraph, b, new_expr);
-
-            new_expr.add(ModIR::Pow([id_a, id_b]))
-        }
-        ModIR::Sign([a, b]) => {
-            let id_a = recursive_node_clone(egraph, a, new_expr);
-            let id_b = recursive_node_clone(egraph, b, new_expr);
-
-            new_expr.add(ModIR::Sign([id_a, id_b]))
-        }
-        ModIR::Add([a, b]) => {
-            let id_a = recursive_node_clone(egraph, a, new_expr);
-            let id_b = recursive_node_clone(egraph, b, new_expr);
-
-            new_expr.add(ModIR::Add([id_a, id_b]))
-        }
-        ModIR::Sub([a, b]) => {
-            let id_a = recursive_node_clone(egraph, a, new_expr);
-            let id_b = recursive_node_clone(egraph, b, new_expr);
-
-            new_expr.add(ModIR::Sub([id_a, id_b]))
-        }
-        ModIR::Mul([a, b]) => {
-            let id_a = recursive_node_clone(egraph, a, new_expr);
-            let id_b = recursive_node_clone(egraph, b, new_expr);
-
-            new_expr.add(ModIR::Mul([id_a, id_b]))
-        }
-        ModIR::ShiftR([a, b]) => {
-            let id_a = recursive_node_clone(egraph, a, new_expr);
-            let id_b = recursive_node_clone(egraph, b, new_expr);
-
-            new_expr.add(ModIR::ShiftR([id_a, id_b]))
-        }
-        ModIR::ShiftL([a, b]) => {
-            let id_a = recursive_node_clone(egraph, a, new_expr);
-            let id_b = recursive_node_clone(egraph, b, new_expr);
-
-            new_expr.add(ModIR::ShiftL([id_a, id_b]))
-        }
-        ModIR::GT([a, b]) => {
-            let id_a = recursive_node_clone(egraph, a, new_expr);
-            let id_b = recursive_node_clone(egraph, b, new_expr);
-
-            new_expr.add(ModIR::GT([id_a, id_b]))
-        }
-        ModIR::GTE([a, b]) => {
-            let id_a = recursive_node_clone(egraph, a, new_expr);
-            let id_b = recursive_node_clone(egraph, b, new_expr);
-
-            new_expr.add(ModIR::GTE([id_a, id_b]))
-        }
-        ModIR::LT([a, b]) => {
-            let id_a = recursive_node_clone(egraph, a, new_expr);
-            let id_b = recursive_node_clone(egraph, b, new_expr);
-
-            new_expr.add(ModIR::LT([id_a, id_b]))
-        }
-        ModIR::LTE([a, b]) => {
-            let id_a = recursive_node_clone(egraph, a, new_expr);
-            let id_b = recursive_node_clone(egraph, b, new_expr);
-
-            new_expr.add(ModIR::LTE([id_a, id_b]))
-        }
-        ModIR::Bool(_bool) => new_expr.add(root_node.clone()),
-        ModIR::Num(_num) => new_expr.add(root_node.clone()),
-        ModIR::Neg(a) => {
-            let id_a = recursive_node_clone(egraph, a, new_expr);
-
-            new_expr.add(ModIR::Neg(id_a))
-        }
-    }
-}
-
-fn apply_subst(
-    egraph: &EGraph<ModIR, ModAnalysis>,
-    subst: &Subst,
-    base_expr: &RecExpr<ModIR>,
-    root_id: Id,
-    new_expr: &mut RecExpr<ModIR>,
-) -> Id {
-    // disgusting
-    let root_node = base_expr[root_id].clone();
-    match root_node {
-        ModIR::Var(s) => {
-            let var = Var::from_str(s.as_str()).unwrap();
-            recursive_node_clone(egraph, subst.get(var).unwrap(), new_expr)
-        }
-        ModIR::Div([a, b]) => {
-            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
-            let id_b = apply_subst(egraph, subst, base_expr, b, new_expr);
-            new_expr.add(ModIR::Div([id_a, id_b]))
-        }
-        ModIR::Pow([a, b]) => {
-            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
-            let id_b = apply_subst(egraph, subst, base_expr, b, new_expr);
-            new_expr.add(ModIR::Pow([id_a, id_b]))
-        }
-        ModIR::Mod([a, b]) => {
-            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
-            let id_b = apply_subst(egraph, subst, base_expr, b, new_expr);
-            new_expr.add(ModIR::Mod([id_a, id_b]))
-        }
-        ModIR::Sign([a, b]) => {
-            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
-            let id_b = apply_subst(egraph, subst, base_expr, b, new_expr);
-            new_expr.add(ModIR::Sign([id_a, id_b]))
-        }
-        ModIR::Neg(a) => {
-            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
-
-            new_expr.add(ModIR::Neg(id_a))
-        }
-        ModIR::Add([a, b]) => {
-            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
-            let id_b = apply_subst(egraph, subst, base_expr, b, new_expr);
-            new_expr.add(ModIR::Add([id_a, id_b]))
-        }
-        ModIR::Sub([a, b]) => {
-            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
-            let id_b = apply_subst(egraph, subst, base_expr, b, new_expr);
-            new_expr.add(ModIR::Sub([id_a, id_b]))
-        }
-        ModIR::Mul([a, b]) => {
-            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
-            let id_b = apply_subst(egraph, subst, base_expr, b, new_expr);
-            new_expr.add(ModIR::Mul([id_a, id_b]))
-        }
-        ModIR::ShiftR([a, b]) => {
-            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
-            let id_b = apply_subst(egraph, subst, base_expr, b, new_expr);
-            new_expr.add(ModIR::ShiftR([id_a, id_b]))
-        }
-        ModIR::ShiftL([a, b]) => {
-            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
-            let id_b = apply_subst(egraph, subst, base_expr, b, new_expr);
-            new_expr.add(ModIR::ShiftL([id_a, id_b]))
-        }
-        ModIR::GT([a, b]) => {
-            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
-            let id_b = apply_subst(egraph, subst, base_expr, b, new_expr);
-            new_expr.add(ModIR::GT([id_a, id_b]))
-        }
-        ModIR::GTE([a, b]) => {
-            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
-            let id_b = apply_subst(egraph, subst, base_expr, b, new_expr);
-            new_expr.add(ModIR::GTE([id_a, id_b]))
-        }
-        ModIR::LT([a, b]) => {
-            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
-            let id_b = apply_subst(egraph, subst, base_expr, b, new_expr);
-            new_expr.add(ModIR::LT([id_a, id_b]))
-        }
-        ModIR::LTE([a, b]) => {
-            let id_a = apply_subst(egraph, subst, base_expr, a, new_expr);
-            let id_b = apply_subst(egraph, subst, base_expr, b, new_expr);
-            new_expr.add(ModIR::LTE([id_a, id_b]))
-        }
-        ModIR::Bool(_bool) => new_expr.add(root_node.clone()),
-        ModIR::Num(num) => new_expr.add(ModIR::Num(num)),
-    }
-}
-
 // given a list of preconditions, returns a function that checks that they are all satisfied
 // TODO reimplement this using multipatterns https://github.com/luigirinaldi/fyp/issues/1
 fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
@@ -294,17 +108,36 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
     // look up the expr in the egraph then check that they are in the same eclass as the truth node
     move |egraph, _root, subst| {
         let mut res = true;
-        let mut log = String::default();
         for expr in &cond_exprs {
-            let mut cond_subst: RecExpr<ModIR> = RecExpr::default();
+            fn copy_expr(
+                expr: &RecExpr<ModIR>,
+                subst: &Subst,
+                egraph: &EGraph<ModIR, ModAnalysis>,
+            ) -> RecExpr<ModIR> {
+                match &expr[expr.root()] {
+                    ModIR::Var(s) => {
+                        return egraph
+                            .id_to_expr(*subst.get(Var::from_str(s.as_str()).unwrap()).unwrap());
+                    }
+                    other => {
+                        // traverse through each node and return another recexpr
+                        return other.join_recexprs(|id| {
+                            copy_expr(
+                                &expr[id].build_recexpr(|id1| expr[id1].clone()),
+                                subst,
+                                egraph,
+                            )
+                        });
+                    }
+                }
+            }
 
-            apply_subst(egraph, subst, expr, expr.root(), &mut cond_subst);
+            let cond_subst: RecExpr<ModIR> = copy_expr(expr, subst, egraph);
 
             // println!(
             //     "{:#?} => {:#?}",
             //     expr.to_string(),
             //     cond_subst.to_string(),
-            //     // cond_subst
             // );
             res &= egraph
                 .lookup_expr_ids(&cond_subst)
@@ -314,17 +147,7 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
                         .and_then(|truth| Some(ids.iter().any(|&id| id == truth)))
                 })
                 .unwrap_or(false);
-            log.push_str(
-                format!(
-                    "{} => {}: {}\n&",
-                    expr.to_string(),
-                    cond_subst.to_string(),
-                    res
-                )
-                .as_str(),
-            );
         }
-        // print!("{}", log);
         res
     }
 }
