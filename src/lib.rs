@@ -16,7 +16,6 @@ use crate::language::ModIR;
 use std::fs;
 use std::path::Path;
 
-#[rustfmt::skip]
 fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     let mut rules = vec![
         // normal arithmetic
@@ -28,19 +27,12 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("div-add";     "(÷ (+ ?a ?b) ?c)" => "(+ (÷ ?a ?c) (÷ ?b ?c))"),
         rewrite!("div-mul";     "(÷ (* ?a ?b) ?c)" => "(* (÷ ?a ?c) ?b)"),
         rewrite!("div-mul2";    "(÷ (÷ ?a ?b) ?c)" => "(÷ ?a (* ?b ?c))"),
-
-        
         rewrite!("cancel-sub"; "(- ?a ?a)" => "0"),
-
-
         // identities
-        rewrite!("add2-mul"; "(+ ?a ?a)" => "(* 2 ?a)"),
-        rewrite!("mul-add2"; "(* 2 ?a)"  => "(+ ?a ?a)"),
         rewrite!("add_0"; "(+ 0 ?a)" => "?a"),
         rewrite!("mult_0"; "(* 0 ?a)" => "0"),
         rewrite!("mult_1";  "(* 1 ?a)" => "?a"),
         rewrite!("div-same"; "(÷ ?a ?a)" => "1"),
-
         /////////////////////////
         //      MOD RELATED    //
         /////////////////////////
@@ -64,10 +56,9 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
             "(bw ?q (* (bw ?p ?a) ?b))" => "(bw ?q (* ?a ?b))"
             if precondition(&["(>= ?p ?q)"])),
         rewrite!("div-simp"; "(bw ?p (÷ (bw ?q ?a) ?b))" => "(÷ (bw ?q ?a) ?b)" if precondition(&["(>= ?p ?q)"])),
-        
         rewrite!("mod-reduce-1"; "(bw ?q (bw ?p ?a))" => "(bw ?p a)" if precondition(&["(>= ?q ?p)"])),
         // rewrite!("mod-reduce-2"; "(bw ?q (bw ?p ?a))" => "(bw ?q a)" if precondition(&["(< ?q ?p)"])),
-        
+
         // rewrite!("mod-diff";
         //     "(bw ?p (- (bw ?q ?a) ?b))" => "(bw ?p (- ?a ?b))"
         //     if precondition(&["(>= ?q ?p)"])),
@@ -83,12 +74,12 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
             "(@ ?s (bw ?bw ?a))" => "(- (* 2 (bw (- ?bw 1) ?a)) (bw ?bw ?a))"
             if precondition(&["(?s)"])
         ),
-
         // shift operations
         rewrite!("left-shift"; "(<< ?a ?b)" => "(* ?a (^ 2 ?b))"),
         rewrite!("right-shift"; "(>> ?a ?b)" => "(÷ ?a (^ 2 ?b))"),
         // multi_rewrite!("trans"; "?p = (> ?a ?b) = true, ?q = (> b c) = true" => "?r = (> a c) = true")
     ];
+    rules.extend(rewrite!("mult_2"; "(+ ?a ?a)" <=> "(* 2 ?a)"));
     rules.extend(rewrite!("int_distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     rules.extend(rewrite!("Num.ring_1_class.mult_minus1"; "(- ?b)" <=> "(* -1 ?b)"));
     rules.extend(rewrite!("sub_to_neg"; "(- ?a ?b)" <=> "(+ ?a (* -1 ?b))"));
@@ -381,7 +372,7 @@ pub fn check_equivalence(
         let matches = rhs_pattern.search_eclass(&runner.egraph, id).unwrap();
         let subst = matches.substs[0].clone();
 
-        runner = runner.with_explanation_length_optimization();
+        // runner = runner.with_explanation_length_optimization();
         let mut explained_short = runner.explain_matches(&lhs_expr, &rhs_pattern.ast, &subst);
         explained_short.check_proof(rewrite_rules);
 
