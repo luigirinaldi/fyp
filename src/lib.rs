@@ -421,13 +421,17 @@ if {preconditions}\n",
                     next_term_str,
                     rw
                 );
+                let proof_tactic = match rw.to_string().as_str() {
+                    "constant_prop" => String::from("by (simp add: bw_def)"),
+                    other => format!("using that by (simp only: {})", other),
+                };
                 proof_file.write(
                     format!(
-                        "   {prefix}have \"{lhs} = {term}\" using that by (simp only: {rw_rule})\n",
+                        "   {prefix}have \"{lhs} = {term}\" {proof}\n",
                         prefix = if i == 0 { "" } else { "moreover " },
                         lhs = if i == 0 { "?lhs" } else { "..." },
                         term = next_term_str,
-                        rw_rule = rw.to_string()
+                        proof = proof_tactic
                     )
                     .as_bytes(),
                 )?;

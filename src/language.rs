@@ -106,7 +106,7 @@ impl Analysis<ModIR> for ModAnalysis {
         if let Some(n) = egraph[id].data.clone() {
             // add a num node
             let id2 = egraph.add(ModIR::Num(n));
-            egraph.union(id, id2);
+            egraph.union_trusted(id, id2, "constant_prop");
             // // add a mod node (only really works for positive n)
             // let min_width = (n as u32).next_power_of_two().ilog2() + 1;
             // println!("adding {} of bw {}", n, min_width as i32);
