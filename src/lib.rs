@@ -3,6 +3,7 @@ use egg::*;
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::{Error, Write};
+use std::process::{Command, Stdio};
 use std::str::FromStr;
 use std::time::Duration;
 
@@ -465,7 +466,61 @@ if {preconditions}\n",
             .as_bytes(),
         )?;
 
-        Ok(())
+        // 1. Copy rewrite lemma file
+        if let Err(e) = fs::copy(
+            "./proofs/rewrite_lemmas.thy",
+            output_dir.clone() + "/rewrite_lemmas.thy",
+        ) {
+            eprintln!("Failed to copy file: {}", e);
+            std::process::exit(1);
+        }
+
+        // 2. Create ROOT file in the destination directory
+        let root_path = output_dir.clone() + "/ROOT";
+
+        let mut file = match File::create(&root_path) {
+            Ok(f) => f,
+            Err(e) => {
+                eprintln!("Failed to create ROOT file: {}", e);
+                std::process::exit(1);
+            }
+        };
+
+        let session_name = proof_name.clone() + "_proof";
+
+        if let Err(e) = write!(
+            file,
+            "session {session_name} = HOL + theories\n  rewrite_lemmas\n  {proof_name}",
+        ) {
+            eprintln!("Failed to write to ROOT file: {}", e);
+            std::process::exit(1);
+        }
+
+        // 3. Run bash command inside the destination directory
+        println!("Checking proof with Isabelle");
+        let output = Command::new("bash")
+            .arg("-c")
+            .arg(format!("isabelle build -v -d ./ -c {session_name}"))
+            .current_dir(output_dir.clone())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output();
+
+        match output {
+            Ok(o) => {
+                if !o.status.success() {
+                    eprintln!("Bash command exited with an error.");
+                    Err(Error::other("proof couldn't be verified with isabelle"))
+                } else {
+                    println!("Proof verified by Isabelle!");
+                    Ok(())
+                }
+            }
+            Err(e) => {
+                eprintln!("Failed to run bash command: {}", e);
+                Err(e)
+            }
+        }
     } else {
         let cost_func = EGraphCostFn::new(&runner.egraph, &lhs_expr, &rhs_expr);
         // try to extract simplified representations
