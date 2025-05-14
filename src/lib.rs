@@ -25,15 +25,15 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mult.commute";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mult.assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
         rewrite!("pow_sum";     "(* (^ ?a ?b) (^ ?a ?c))" => "(^ ?a (+ ?b ?c))"),
-        rewrite!("div-add";     "(÷ (+ ?a ?b) ?c)" => "(+ (÷ ?a ?c) (÷ ?b ?c))"),
-        rewrite!("div-mul";     "(÷ (* ?a ?b) ?c)" => "(* (÷ ?a ?c) ?b)"),
-        rewrite!("div-mul2";    "(÷ (÷ ?a ?b) ?c)" => "(÷ ?a (* ?b ?c))"),
+        rewrite!("div-add";     "(div (+ ?a ?b) ?c)" => "(+ (div ?a ?c) (div ?b ?c))"),
+        rewrite!("div-mul";     "(div (* ?a ?b) ?c)" => "(* (div ?a ?c) ?b)"),
+        rewrite!("div-mul2";    "(div (div ?a ?b) ?c)" => "(div ?a (* ?b ?c))"),
         rewrite!("cancel-sub"; "(- ?a ?a)" => "0"),
         // identities
         rewrite!("add_0"; "(+ 0 ?a)" => "?a"),
         rewrite!("mult_0"; "(* 0 ?a)" => "0"),
         rewrite!("mult_1";  "(* 1 ?a)" => "?a"),
-        rewrite!("div-same"; "(÷ ?a ?a)" => "1"),
+        rewrite!("div-same"; "(div ?a ?a)" => "1"),
         /////////////////////////
         //      MOD RELATED    //
         /////////////////////////
@@ -56,7 +56,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mul_remove_prec";
             "(bw ?q (* (bw ?p ?a) ?b))" => "(bw ?q (* ?a ?b))"
             if precondition(&["(>= ?p ?q)"])),
-        rewrite!("div-simp"; "(bw ?p (÷ (bw ?q ?a) ?b))" => "(÷ (bw ?q ?a) ?b)" if precondition(&["(>= ?p ?q)"])),
+        rewrite!("div-simp"; "(bw ?p (div (bw ?q ?a) ?b))" => "(div (bw ?q ?a) ?b)" if precondition(&["(>= ?p ?q)"])),
         rewrite!("mod-reduce-1"; "(bw ?q (bw ?p ?a))" => "(bw ?p a)" if precondition(&["(>= ?q ?p)"])),
         // rewrite!("mod-reduce-2"; "(bw ?q (bw ?p ?a))" => "(bw ?q a)" if precondition(&["(< ?q ?p)"])),
 
@@ -76,8 +76,8 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
             if precondition(&["(?s)"])
         ),
         // shift operations
-        rewrite!("left-shift"; "(<< ?a ?b)" => "(* ?a (^ 2 ?b))"),
-        rewrite!("right-shift"; "(>> ?a ?b)" => "(÷ ?a (^ 2 ?b))"),
+        rewrite!("shl_def"; "(<< ?a ?b)" => "(* ?a (^ 2 ?b))"),
+        rewrite!("shr_def"; "(>> ?a ?b)" => "(div ?a (^ 2 ?b))"),
         // multi_rewrite!("trans"; "?p = (> ?a ?b) = true, ?q = (> b c) = true" => "?r = (> a c) = true")
     ];
     rules.extend(rewrite!("mult_2"; "(+ ?a ?a)" <=> "(* 2 ?a)"));

@@ -12,7 +12,7 @@ define_language! {
         "-" = Sub([Id; 2]),
         "-" = Neg(Id),
         "*" = Mul([Id; 2]),
-        "÷" = Div([Id; 2]),
+        "div" = Div([Id; 2]),
         "^" = Pow([Id;2]),
         // bitvector operators
         ">>" = ShiftR([Id;2]),
