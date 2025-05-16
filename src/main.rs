@@ -13,6 +13,7 @@ fn main() {
         &["(>= q t)", "(>= u t)"],
         "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
+        None,
     );
 
     // let _ = check_equivalence(

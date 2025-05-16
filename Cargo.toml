@@ -6,3 +6,6 @@ edition = "2021"
 [dependencies]
 num = "*"
 egg = "0.10.0"
+
+[features]
+skip_isabelle = []

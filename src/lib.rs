@@ -238,6 +238,7 @@ pub fn check_equivalence(
     preconditions: &[&str],
     lhs: &str,
     rhs: &str,
+    skip_isabelle_check: Option<bool>,
 ) -> std::io::Result<()> {
     let name = name_str.unwrap_or("no-name-equivalence");
     let output_dir = String::from("target/") + name;
@@ -513,29 +514,33 @@ if {preconditions}\n",
         }
 
         // 3. Run bash command inside the destination directory
-        println!("Checking proof with Isabelle");
-        let output = Command::new("bash")
-            .arg("-c")
-            .arg(format!("isabelle build -v -d ./ -c {session_name}"))
-            .current_dir(output_dir.clone())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .output();
+        if !skip_isabelle_check.unwrap_or(false) {
+            println!("Checking proof with Isabelle");
+            let output = Command::new("bash")
+                .arg("-c")
+                .arg(format!("isabelle build -v -d ./ -c {session_name}"))
+                .current_dir(output_dir.clone())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .output();
 
-        match output {
-            Ok(o) => {
-                if !o.status.success() {
-                    eprintln!("Bash command exited with an error.");
-                    Err(Error::other("proof couldn't be verified with isabelle"))
-                } else {
-                    println!("Proof verified by Isabelle!");
-                    Ok(())
+            match output {
+                Ok(o) => {
+                    if !o.status.success() {
+                        eprintln!("Bash command exited with an error.");
+                        Err(Error::other("proof couldn't be verified with isabelle"))
+                    } else {
+                        println!("Proof verified by Isabelle!");
+                        Ok(())
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to run bash command: {}", e);
+                    Err(e)
                 }
             }
-            Err(e) => {
-                eprintln!("Failed to run bash command: {}", e);
-                Err(e)
-            }
+        } else {
+            Ok(())
         }
     } else {
         let cost_func = EGraphCostFn::new(&runner.egraph, &lhs_expr, &rhs_expr);
