@@ -90,4 +90,9 @@ if "c >= 0"
 for a b c :: int
 using that zdiv_zmult2_eq by presburger
 
+lemma div_same: "a div a = 1" 
+if "a > 0" 
+for a::int
+using that by auto
+
 end

@@ -29,12 +29,12 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("div-add";     "(div (+ ?a ?b) ?c)" => "(+ (div ?a ?c) (div ?b ?c))"),
         rewrite!("div-mul";     "(div (* ?a ?b) ?c)" => "(* (div ?a ?c) ?b)"),
         rewrite!("div_pow_join";    "(div (div ?a ?b) ?c)" => "(div ?a (* ?b ?c))"),
-        rewrite!("cancel-sub"; "(- ?a ?a)" => "0"),
         // identities
+        rewrite!("diff_cancel"; "(- ?a ?a)" => "0"),
         rewrite!("add_0"; "(+ 0 ?a)" => "?a"),
         rewrite!("mult_0"; "(* 0 ?a)" => "0"),
         rewrite!("mult_1";  "(* 1 ?a)" => "?a"),
-        rewrite!("div-same"; "(div ?a ?a)" => "1"),
+        rewrite!("div_same"; "(div ?a ?a)" => "1"), // a should be greater than 0, this is implicitly assumed, show be made explicit
         /////////////////////////
         //      MOD RELATED    //
         /////////////////////////
