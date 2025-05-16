@@ -24,10 +24,11 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("add.assoc";   "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
         rewrite!("mult.commute";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mult.assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
-        rewrite!("pow_sum";     "(* (^ ?a ?b) (^ ?a ?c))" => "(^ ?a (+ ?b ?c))"),
+        // rewrite!("div_exp_eq"; "(div (div ?a (^ 2 ?n)) (^ 2 ?m))" => "(div ?a (^ 2 (+ ?n ?m)))"),
+        rewrite!("bw_pow_sum";     "(* (^ ?a (bw ?p ?b)) (^ ?a (bw ?q ?c)))" => "(^ ?a (+ (bw ?p ?b) (bw ?q ?c)))"),
         rewrite!("div-add";     "(div (+ ?a ?b) ?c)" => "(+ (div ?a ?c) (div ?b ?c))"),
         rewrite!("div-mul";     "(div (* ?a ?b) ?c)" => "(* (div ?a ?c) ?b)"),
-        rewrite!("div-mul2";    "(div (div ?a ?b) ?c)" => "(div ?a (* ?b ?c))"),
+        rewrite!("div_pow_join";    "(div (div ?a ?b) ?c)" => "(div ?a (* ?b ?c))"),
         rewrite!("cancel-sub"; "(- ?a ?a)" => "0"),
         // identities
         rewrite!("add_0"; "(+ 0 ?a)" => "?a"),
@@ -441,6 +442,7 @@ if {preconditions}\n",
                     // use add instead of only to convert between nat type and int
                     "shl_def" => String::from("by (simp add: shl_def)"),
                     "shr_def" => String::from("by (simp add: shr_def)"),
+                    "div_pow_join" => String::from("using that zdiv_zmult2_eq by auto"),
                     other => format!("using that by (simp only: {})", other),
                 };
                 proof_file.write(

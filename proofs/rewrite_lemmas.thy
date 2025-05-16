@@ -78,5 +78,16 @@ lemma bw_0: "bw q 0 = 0" using bw_def by simp
 
 lemma sub_to_neg: "(a::int) - b = a + -1 * b" by simp
 
+lemma div_div_simp: "((a::int) div b) div c = a div (b * c)" if "a > 0" and "b > 0" and "c >0"
+by (metis nless_le that(3) zdiv_zmult2_eq)
+
+lemma bw_pow_sum: "a ^ nat (bw p b) * a ^ nat (bw q c) = a ^ nat (bw p b + bw q c)"
+for a b c :: int and p q :: nat 
+by (simp add: bw_def nat_add_distrib power_add) 
+
+lemma div_pow_join: "(a div b) div c = a div (b * c)"
+if "c >= 0"
+for a b c :: int
+using that zdiv_zmult2_eq by presburger
 
 end
