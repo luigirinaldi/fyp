@@ -422,8 +422,15 @@ if {preconditions}\n",
                     next_term_str,
                     rw
                 );
+                // Proof tactic based on the rewrite, by default use "simp only"
+                // to show that the single step in the equational reasoning
+                // is thanks to that rewrite
                 let proof_tactic = match rw.to_string().as_str() {
+                    // Using add to allow for simplication of constants
                     "constant_prop" => String::from("by (simp add: bw_def)"),
+                    // use add instead of only to convert between nat type and int
+                    "shl_def" => String::from("by (simp add: shl_def)"),
+                    "shr_def" => String::from("by (simp add: shr_def)"),
                     other => format!("using that by (simp only: {})", other),
                 };
                 proof_file.write(
