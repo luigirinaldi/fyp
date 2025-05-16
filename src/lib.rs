@@ -202,6 +202,14 @@ fn print_infix(expr: &RecExpr<ModIR>) -> String {
                 get_child_str(expr, b)
             )
         }
+        val @ ModIR::Pow([a, b]) => {
+            format!(
+                "({} {} nat ({}))",
+                get_child_str(expr, a),
+                val.to_string(),
+                get_child_str(expr, b)
+            )
+        }
         other => {
             if other.children().len() == 2 {
                 format!(
