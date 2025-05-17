@@ -172,9 +172,35 @@ fn get_bw_vars(expr: &RecExpr<ModIR>) -> Vec<RecExpr<ModIR>> {
     return bw_vars;
 }
 
-fn print_infix(expr: &RecExpr<ModIR>) -> String {
-    fn get_child_str(e: &RecExpr<ModIR>, id: &Id) -> String {
-        print_infix(&e[*id].build_recexpr(|i| e[i].clone()))
+fn get_vars(expr: &RecExpr<ModIR>) -> HashSet<Symbol> {
+    expr.iter()
+        .fold(HashSet::<Symbol>::from([]), |mut acc, child| {
+            let _whatever = match child {
+                ModIR::Var(s) => Some(acc.insert(s.clone())),
+                _ => None,
+            };
+            acc
+        })
+}
+
+fn print_infix(expr: &RecExpr<ModIR>, nat_vars: &Vec<Symbol>) -> String {
+    fn get_child_str(e: &RecExpr<ModIR>, id: &Id, nvar: &Vec<Symbol>) -> String {
+        print_infix(&e[*id].build_recexpr(|i| e[i].clone()), nvar)
+    }
+
+    fn is_nat_var(expr: &RecExpr<ModIR>, id: &Id, nat_vars: &Vec<Symbol>) -> bool {
+        match &expr[*id] {
+            ModIR::Var(symbol) => {
+                let res = nat_vars.contains(&symbol);
+                println!("Test");
+                println!("{} is in nat? {}", symbol, res);
+                res
+            }
+            a => {
+                println!("{a:#?} false");
+                false
+            }
+        }
     }
 
     match &expr[expr.root()] {
@@ -182,31 +208,31 @@ fn print_infix(expr: &RecExpr<ModIR>) -> String {
             format!(
                 "({} {} {})",
                 val.to_string(),
-                get_child_str(expr, a),
-                get_child_str(expr, b)
+                get_child_str(expr, a, nat_vars),
+                get_child_str(expr, b, nat_vars)
             )
         }
-        val @ ModIR::Pow([a, b]) => {
+        val @ ModIR::Pow([a, b]) if !is_nat_var(expr, b, nat_vars) => {
             format!(
                 "({} {} nat ({}))",
-                get_child_str(expr, a),
+                get_child_str(expr, a, nat_vars),
                 val.to_string(),
-                get_child_str(expr, b)
+                get_child_str(expr, b, nat_vars)
             )
         }
         other => {
             if other.children().len() == 2 {
                 format!(
                     "({} {} {})",
-                    get_child_str(expr, &other.children()[0]),
+                    get_child_str(expr, &other.children()[0], nat_vars),
                     other.to_string(),
-                    get_child_str(expr, &other.children()[1])
+                    get_child_str(expr, &other.children()[1], nat_vars)
                 )
             } else if other.children().len() == 1 {
                 format!(
                     "({} {})",
                     other.to_string(),
-                    get_child_str(expr, &other.children()[0])
+                    get_child_str(expr, &other.children()[0], nat_vars)
                 )
             } else {
                 other.to_string()
@@ -246,6 +272,29 @@ pub fn check_equivalence(
         .cloned()
         .collect();
 
+    let all_vars = get_vars(&lhs_expr)
+        .union(&get_vars(&rhs_expr))
+        .cloned()
+        .collect::<HashSet<_>>();
+
+    let all_bw_vars = unique_bitwidth_vars
+        .iter()
+        .fold(HashSet::<_>::from([]), |mut vars, expr| {
+            vars.extend(get_vars(expr));
+            vars
+        });
+
+    let non_bw_vars = all_vars
+        .iter()
+        .filter(|item| !all_bw_vars.contains(item))
+        .cloned()
+        .collect::<HashSet<_>>();
+
+    println!(
+        "all_vars: {:#?}\nbw_vars: {:#?}\nnon_bw_vars: {:#?}",
+        &all_vars, &all_bw_vars, non_bw_vars
+    );
+
     println!(
         "bitwidth vars: {:?}",
         unique_bitwidth_vars
@@ -277,10 +326,12 @@ pub fn check_equivalence(
         .chain(extra_preconditions)
         .collect::<Vec<_>>();
 
+    let bw_vars_opt = all_bw_vars.iter().cloned().collect::<Vec<_>>();
+
     let precond_string = precond_exprs
         .clone()
         .iter()
-        .map(|e| format!("\"{}\"", print_infix(e)))
+        .map(|e| format!("\"{}\"", print_infix(e, &bw_vars_opt)))
         .collect::<Vec<_>>()
         .join(" and ");
 
@@ -376,6 +427,17 @@ pub fn check_equivalence(
         let proof_file_path = output_dir.clone() + &format!("/{}.thy", proof_name);
         let mut proof_file = File::create(proof_file_path)?;
 
+        let nat_string = all_bw_vars
+            .iter()
+            .map(|i| i.to_string())
+            .collect::<Vec<_>>()
+            .join(" ");
+        let int_string = non_bw_vars
+            .iter()
+            .map(|i| i.to_string())
+            .collect::<Vec<_>>()
+            .join(" ");
+
         proof_file.write(
             format!(
                 "theory {th_name}
@@ -383,10 +445,11 @@ pub fn check_equivalence(
 begin
 theorem {th_name}_th:
 \"{lhs}={rhs}\" (is \"?lhs = ?rhs\")
-if {preconditions}\n",
+if {preconditions}
+for {nat_string} :: nat and {int_string} :: int\n",
                 th_name = proof_name,
-                lhs = print_infix(&lhs_expr),
-                rhs = print_infix(&rhs_expr),
+                lhs = print_infix(&lhs_expr, &bw_vars_opt),
+                rhs = print_infix(&rhs_expr, &bw_vars_opt),
                 preconditions = precond_string
             )
             .as_bytes(),
@@ -406,11 +469,12 @@ if {preconditions}\n",
                 };
                 // assuming if one isn't defined the other one is
                 let rw_dir = fw.is_some();
-                let next_term_str = print_infix(&term.remove_rewrites().get_recexpr());
+                let next_term_str =
+                    print_infix(&term.remove_rewrites().get_recexpr(), &bw_vars_opt);
                 println!(
                     "{}: {} {} {} using {}",
                     i,
-                    print_infix(&prev_term.get_recexpr()),
+                    print_infix(&prev_term.get_recexpr(), &bw_vars_opt),
                     if rw_dir { "->" } else { "<-" },
                     next_term_str,
                     rw
@@ -431,7 +495,7 @@ if {preconditions}\n",
                 };
                 proof_file.write(
                     format!(
-                        "   {prefix}have \"{lhs} = {term}\" {proof}\n",
+                        "    {prefix}have \"{lhs} = {term}\" {proof}\n",
                         prefix = if i == 0 { "" } else { "moreover " },
                         lhs = if i == 0 { "?lhs" } else { "..." },
                         term = next_term_str,
