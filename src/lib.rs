@@ -20,21 +20,21 @@ use std::path::Path;
 fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     let mut rules = vec![
         // normal arithmetic
-        rewrite!("add.commute";    "(+ ?a ?b)" => "(+ ?b ?a)"),
-        rewrite!("add.assoc";   "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
+        rewrite!("add.commute";     "(+ ?a ?b)" => "(+ ?b ?a)"),
+        rewrite!("add.assoc";       "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
         rewrite!("mult.commute";    "(* ?a ?b)" => "(* ?b ?a)"),
-        rewrite!("mult.assoc";   "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
-        // rewrite!("div_exp_eq"; "(div (div ?a (^ 2 ?n)) (^ 2 ?m))" => "(div ?a (^ 2 (+ ?n ?m)))"),
-        rewrite!("bw_pow_sum";     "(* (^ ?a (bw ?p ?b)) (^ ?a (bw ?q ?c)))" => "(^ ?a (+ (bw ?p ?b) (bw ?q ?c)))"),
-        rewrite!("div-add";     "(div (+ ?a ?b) ?c)" => "(+ (div ?a ?c) (div ?b ?c))"),
-        rewrite!("div-mul";     "(div (* ?a ?b) ?c)" => "(* (div ?a ?c) ?b)"),
+        rewrite!("mult.assoc";      "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
+        rewrite!("bw_pow_sum";      "(* (^ ?a (bw ?p ?b)) (^ ?a (bw ?q ?c)))" => "(^ ?a (+ (bw ?p ?b) (bw ?q ?c)))"),
+        // this is basically the entirety of the add right shift rewrite
+        rewrite!("div_mult_self";   "(div (+ ?a (* ?b ?c)) ?b)" => "(+ (div ?a ?b) ?c)"), // if b != 0
+        rewrite!("div_same";        "(div (* ?a ?b) ?a)" => "?b"), // only if a > 0
         rewrite!("div_pow_join";    "(div (div ?a ?b) ?c)" => "(div ?a (* ?b ?c))"),
         // identities
         rewrite!("diff_cancel"; "(- ?a ?a)" => "0"),
         rewrite!("add_0"; "(+ 0 ?a)" => "?a"),
         rewrite!("mult_0"; "(* 0 ?a)" => "0"),
         rewrite!("mult_1";  "(* 1 ?a)" => "?a"),
-        rewrite!("div_same"; "(div ?a ?a)" => "1"), // a should be greater than 0, this is implicitly assumed, show be made explicit
+        // rewrite!("div_same"; "(div ?a ?a)" => "1"), // a should be greater than 0, this is implicitly assumed, show be made explicit
         /////////////////////////
         //      MOD RELATED    //
         /////////////////////////
@@ -59,28 +59,10 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
             if precondition(&["(>= ?p ?q)"])),
         rewrite!("div_gte"; "(bw ?p (div (bw ?q ?a) ?b))" => "(div (bw ?q ?a) ?b)" if precondition(&["(>= ?p ?q)"])),
         rewrite!("reduce_mod"; "(bw ?q (bw ?p ?a))" => "(bw ?p a)" if precondition(&["(>= ?q ?p)"])),
-        // rewrite!("mod-reduce-2"; "(bw ?q (bw ?p ?a))" => "(bw ?q a)" if precondition(&["(< ?q ?p)"])),
-
-        // rewrite!("mod-diff";
-        //     "(bw ?p (- (bw ?q ?a) ?b))" => "(bw ?p (- ?a ?b))"
-        //     if precondition(&["(>= ?q ?p)"])),
-        // rewrite!("mod-diff-2";
-        //     "(bw ?p (- ?a (bw ?q ?b)))" => "(bw ?p (- ?a ?b))"
-        //     if precondition(&["(>= ?q ?p)"])),
-        // rewrite!("pow-bw"; "(^ 2 (bw ?p ?a))" => "(bw (- (^ 2 ?p) 1) (^ 2 (bw ?p ?a))))"),
         rewrite!("mul_pow2"; "(bw ?s (* (bw ?p ?a) (^ 2 (bw ?q ?b))))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))" if precondition(&["(>= ?s (+ ?p (- (^ 2 ?q) 1)))"])),
-        // rewrite!("pow-bw"; "(^ 2 (bw ?p ?a))" => "(bw (^ 2 ?p) (^ 2 (bw ?p ?a))))"),
-
-        // sign related
-        // rewrite!("signed";
-        //     "(@ ?s (bw ?bw ?a))" => "(- (* 2 (bw (- ?bw 1) ?a)) (bw ?bw ?a))"
-        //     if precondition(&["(?s)"])
-        // ),
-
         // shift operations
         rewrite!("shl_def"; "(<< ?a ?b)" => "(* ?a (^ 2 ?b))"),
         rewrite!("shr_def"; "(>> ?a ?b)" => "(div ?a (^ 2 ?b))"),
-        // multi_rewrite!("trans"; "?p = (> ?a ?b) = true, ?q = (> b c) = true" => "?r = (> a c) = true")
     ];
     rules.extend(rewrite!("mult_2"; "(+ ?a ?a)" <=> "(* 2 ?a)"));
     rules.extend(rewrite!("int_distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
