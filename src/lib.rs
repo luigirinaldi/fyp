@@ -415,10 +415,12 @@ if {preconditions}\n",
                     next_term_str,
                     rw
                 );
+                // Remove any '-rev' rewrites introduced by the double sided rewrite macro
+                let rewrite_str = rw.to_string().replace("-rev", "");
                 // Proof tactic based on the rewrite, by default use "simp only"
                 // to show that the single step in the equational reasoning
                 // is thanks to that rewrite
-                let proof_tactic = match rw.to_string().as_str() {
+                let proof_tactic = match rewrite_str.as_str() {
                     // Using add to allow for simplication of constants
                     "constant_prop" => String::from("by (simp add: bw_def)"),
                     // use add instead of only to convert between nat type and int
