@@ -32,8 +32,8 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // ring identities?
         rewrite!("bw_pow_sum";      "(* (^ ?a (bw ?p ?b)) 
                                         (^ ?a (bw ?q ?c)))"     => "(^ ?a (+ (bw ?p ?b) (bw ?q ?c)))"),
-        rewrite!("div_pow_join";    "(div (div ?a ?b) ?c)"      => "(div ?a (* ?b ?c))"),
         // conditional ring identities
+        rewrite!("div_pow_join";    "(div (div ?a ?b) ?c)"      => "(div ?a (* ?b ?c))" if precondition(&["(> ?c 0)"])),
         rewrite!("div_mult_self";   "(div (+ ?a (* ?b ?c)) ?b)" => "(+ (div ?a ?b) ?c)" if precondition(&["(> ?b 0)"])),
         rewrite!("div_same";        "(div (* ?a ?b) ?a)"        => "?b"                 if precondition(&["(> ?a 0)"])),
         /////////////////////////
@@ -548,7 +548,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
                     // use add instead of only to convert between nat type and int
                     "shl_def" => String::from("by (simp add: shl_def)"),
                     "shr_def" => String::from("by (simp add: shr_def)"),
-                    val @ ("div_pow_join" | "div_mult_self") => {
+                    val @ ("div_pow_join" | "div_mult_self" | "div_same") => {
                         format!("using that inferred_facts by (simp only: {val})")
                     }
                     other => format!("using that by (simp only: {})", other),

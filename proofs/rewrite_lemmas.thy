@@ -86,16 +86,15 @@ for a b c :: int and p q :: nat
 by (simp add: bw_def nat_add_distrib power_add) 
 
 lemma div_pow_join: "(a div b) div c = a div (b * c)"
-if "c >= 0"
+if "c > 0"
 for a b c :: int
-using that zdiv_zmult2_eq by presburger
+using that zdiv_zmult2_eq by simp
 
 lemma div_same: "a * b div a = b" 
 if "a > 0" 
 for a::int 
 using that by force 
 
-(* lemma div_add: "(a + b) div c = a div c + b div c" for a b c ::int *)
 lemma div_mult_self: "(a + b * c) div b = a div b + c" if "b \<noteq> 0" for a::int 
 using that by simp 
 
