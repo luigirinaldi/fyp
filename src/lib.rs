@@ -156,7 +156,7 @@ impl<L: Language> GetRewrite<L> for FlatTerm<L> {
     }
 }
 
-fn get_bw_vars(expr: &RecExpr<ModIR>) -> Vec<RecExpr<ModIR>> {
+fn get_bitwidth_exprs(expr: &RecExpr<ModIR>) -> Vec<RecExpr<ModIR>> {
     let mut worklist = Vec::from([expr.root()]);
     let mut bw_vars: Vec<RecExpr<ModIR>> = [].to_vec();
 
@@ -174,13 +174,14 @@ fn get_bw_vars(expr: &RecExpr<ModIR>) -> Vec<RecExpr<ModIR>> {
 
 fn get_vars(expr: &RecExpr<ModIR>) -> HashSet<Symbol> {
     expr.iter()
-        .fold(HashSet::<Symbol>::from([]), |mut acc, child| {
-            let _whatever = match child {
-                ModIR::Var(s) => Some(acc.insert(s.clone())),
-                _ => None,
-            };
-            acc
+        .filter_map(|node| {
+            if let ModIR::Var(s) = node {
+                Some(s.clone())
+            } else {
+                None
+            }
         })
+        .collect()
 }
 
 fn print_infix(expr: &RecExpr<ModIR>, nat_vars: &Vec<Symbol>) -> String {
@@ -190,16 +191,8 @@ fn print_infix(expr: &RecExpr<ModIR>, nat_vars: &Vec<Symbol>) -> String {
 
     fn is_nat_var(expr: &RecExpr<ModIR>, id: &Id, nat_vars: &Vec<Symbol>) -> bool {
         match &expr[*id] {
-            ModIR::Var(symbol) => {
-                let res = nat_vars.contains(&symbol);
-                println!("Test");
-                println!("{} is in nat? {}", symbol, res);
-                res
-            }
-            a => {
-                println!("{a:#?} false");
-                false
-            }
+            ModIR::Var(symbol) => nat_vars.contains(&symbol),
+            _ => false,
         }
     }
 
@@ -266,9 +259,9 @@ pub fn check_equivalence(
     let lhs_expr: RecExpr<ModIR> = lhs.parse().unwrap();
     let rhs_expr: RecExpr<ModIR> = rhs.parse().unwrap();
 
-    let unique_bitwidth_vars: HashSet<_> = get_bw_vars(&lhs_expr)
+    let unique_bitwidth_vars: HashSet<_> = get_bitwidth_exprs(&lhs_expr)
         .iter()
-        .chain(&get_bw_vars(&rhs_expr))
+        .chain(&get_bitwidth_exprs(&rhs_expr))
         .cloned()
         .collect();
 
@@ -290,18 +283,6 @@ pub fn check_equivalence(
         .cloned()
         .collect::<HashSet<_>>();
 
-    println!(
-        "all_vars: {:#?}\nbw_vars: {:#?}\nnon_bw_vars: {:#?}",
-        &all_vars, &all_bw_vars, non_bw_vars
-    );
-
-    println!(
-        "bitwidth vars: {:?}",
-        unique_bitwidth_vars
-            .iter()
-            .map(|e| e.to_string())
-            .collect::<Vec<_>>()
-    );
     // Default conditions on the fact that all bitwidth variables must be strictly greater than 0
     let extra_preconditions = unique_bitwidth_vars.iter().map(|e_old| {
         let mut e = e_old.clone();
@@ -342,7 +323,6 @@ pub fn check_equivalence(
         precond_string
     );
 
-    let _lhs_pattern = Pattern::from(&lhs_expr);
     let rhs_pattern = Pattern::from(&rhs_expr);
 
     let lhs_clone = lhs_expr.clone();
