@@ -133,7 +133,7 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
 
 // Given some condition that needs to be true, set it to be true based on some known truths
 fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAnalysis>) {
-    println!("trying to infer truth for {}", condition.to_string());
+    // println!("trying to infer truth for {}", condition.to_string());
     let truth_reason = match &condition[condition.root()] {
         ModIR::GT([a, b]) => match (&condition[*a], &condition[*b]) {
             (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"), // any expression of the form  (> (^ _ _) 0) is true, by simp
@@ -153,6 +153,33 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
         let union_reason = String::from("inferred_") + &String::from(just);
         egraph.union_trusted(truth_id, cond_id, union_reason);
     }
+}
+
+fn get_inferred_truths(egraph: &EGraph<ModIR, ModAnalysis>) -> Vec<(&str, egg::RecExpr<ModIR>)> {
+    let truth_id = egraph.lookup(ModIR::Bool(true)).unwrap();
+
+    egraph
+        .get_union_equalities()
+        .iter()
+        .cloned()
+        .filter_map(move |(id1, id2, reason)| {
+            let id = if id1 == truth_id {
+                Some(id2)
+            } else if id2 == truth_id {
+                Some(id1)
+            } else {
+                None
+            }?;
+
+            if let Some(just) = reason.as_str().strip_prefix("inferred_") {
+                let expr = egraph.id_to_expr(id);
+                println!("found {id:?} with reason {}:\n{}", reason, expr);
+                Some((just, expr))
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>()
 }
 
 trait GetRewrite<L: Language> {
@@ -211,10 +238,14 @@ fn get_vars(expr: &RecExpr<ModIR>) -> HashSet<Symbol> {
         .collect()
 }
 
-fn print_infix(expr: &RecExpr<ModIR>, nat_vars: &Vec<Symbol>) -> String {
-    fn get_child_str(e: &RecExpr<ModIR>, id: &Id, nvar: &Vec<Symbol>) -> String {
-        print_infix(&e[*id].build_recexpr(|i| e[i].clone()), nvar)
-    }
+fn print_infix(expr: &RecExpr<ModIR>, nat_vars: &Vec<Symbol>, add_type_hint: bool) -> String {
+    let get_child_str = |e: &RecExpr<ModIR>, id: &Id| -> String {
+        print_infix(
+            &e[*id].build_recexpr(|i| e[i].clone()),
+            nat_vars,
+            add_type_hint,
+        )
+    };
 
     fn is_nat_var(expr: &RecExpr<ModIR>, id: &Id, nat_vars: &Vec<Symbol>) -> bool {
         match &expr[*id] {
@@ -228,31 +259,32 @@ fn print_infix(expr: &RecExpr<ModIR>, nat_vars: &Vec<Symbol>) -> String {
             format!(
                 "({} {} {})",
                 val.to_string(),
-                get_child_str(expr, a, nat_vars),
-                get_child_str(expr, b, nat_vars)
+                get_child_str(expr, a),
+                get_child_str(expr, b)
             )
         }
         val @ ModIR::Pow([a, b]) if !is_nat_var(expr, b, nat_vars) => {
             format!(
                 "({} {} nat ({}))",
-                get_child_str(expr, a, nat_vars),
+                get_child_str(expr, a),
                 val.to_string(),
-                get_child_str(expr, b, nat_vars)
+                get_child_str(expr, b)
             )
         }
+        ModIR::Num(num) if add_type_hint => format!("({num}::int)"),
         other => {
             if other.children().len() == 2 {
                 format!(
                     "({} {} {})",
-                    get_child_str(expr, &other.children()[0], nat_vars),
+                    get_child_str(expr, &other.children()[0]),
                     other.to_string(),
-                    get_child_str(expr, &other.children()[1], nat_vars)
+                    get_child_str(expr, &other.children()[1])
                 )
             } else if other.children().len() == 1 {
                 format!(
                     "({} {})",
                     other.to_string(),
-                    get_child_str(expr, &other.children()[0], nat_vars)
+                    get_child_str(expr, &other.children()[0])
                 )
             } else {
                 other.to_string()
@@ -339,7 +371,7 @@ pub fn check_equivalence(
     let precond_string = precond_exprs
         .clone()
         .iter()
-        .map(|e| format!("\"{}\"", print_infix(e, &bw_vars_opt)))
+        .map(|e| format!("\"{}\"", print_infix(e, &bw_vars_opt, false)))
         .collect::<Vec<_>>()
         .join(" and ");
 
@@ -445,6 +477,25 @@ pub fn check_equivalence(
             .collect::<Vec<_>>()
             .join(" ");
 
+        let inf_t: Vec<(&str, RecExpr<ModIR>)> = get_inferred_truths(&runner.egraph);
+        let extra_facts = if inf_t.len() > 0 {
+            let (facts, note) = inf_t.iter().enumerate().fold(
+                (String::from(""), String::from("note inferred_facts =")),
+                |(acc, end), (i, (reason, expr))| {
+                    (
+                        acc + &format!(
+                            "have fact_{i}: \"{}\" by {reason}\n",
+                            print_infix(expr, &bw_vars_opt, true)
+                        ),
+                        end + &format!("fact_{i} "),
+                    )
+                },
+            );
+            facts + &note + "\n"
+        } else {
+            String::from("")
+        };
+
         proof_file.write(
             format!(
                 "theory {th_name}
@@ -455,8 +506,8 @@ theorem {th_name}_th:
 if {preconditions}
 for {nat_string} :: nat and {int_string} :: int\n",
                 th_name = proof_name,
-                lhs = print_infix(&lhs_expr, &bw_vars_opt),
-                rhs = print_infix(&rhs_expr, &bw_vars_opt),
+                lhs = print_infix(&lhs_expr, &bw_vars_opt, false),
+                rhs = print_infix(&rhs_expr, &bw_vars_opt, false),
                 preconditions = precond_string
             )
             .as_bytes(),
@@ -465,7 +516,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
         let mut prev_term = flat_terms[0].remove_rewrites();
 
         if flat_terms.len() > 2 {
-            proof_file.write("proof -\n".as_bytes())?;
+            proof_file.write(format!("proof -\n{extra_facts}").as_bytes())?;
 
             for (i, term) in flat_terms.iter().skip(1).enumerate() {
                 let (bw, fw) = term.get_rewrite();
@@ -477,11 +528,11 @@ for {nat_string} :: nat and {int_string} :: int\n",
                 // assuming if one isn't defined the other one is
                 let rw_dir = fw.is_some();
                 let next_term_str =
-                    print_infix(&term.remove_rewrites().get_recexpr(), &bw_vars_opt);
+                    print_infix(&term.remove_rewrites().get_recexpr(), &bw_vars_opt, false);
                 println!(
                     "{}: {} {} {} using {}",
                     i,
-                    print_infix(&prev_term.get_recexpr(), &bw_vars_opt),
+                    print_infix(&prev_term.get_recexpr(), &bw_vars_opt, false),
                     if rw_dir { "->" } else { "<-" },
                     next_term_str,
                     rw
@@ -497,7 +548,9 @@ for {nat_string} :: nat and {int_string} :: int\n",
                     // use add instead of only to convert between nat type and int
                     "shl_def" => String::from("by (simp add: shl_def)"),
                     "shr_def" => String::from("by (simp add: shr_def)"),
-                    "div_pow_join" => String::from("using that zdiv_zmult2_eq by auto"),
+                    val @ ("div_pow_join" | "div_mult_self") => {
+                        format!("using that inferred_facts by (simp only: {val})")
+                    }
                     other => format!("using that by (simp only: {})", other),
                 };
                 proof_file.write(
