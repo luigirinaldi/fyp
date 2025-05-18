@@ -24,17 +24,18 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("add.assoc";       "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
         rewrite!("mult.commute";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mult.assoc";      "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
-        rewrite!("bw_pow_sum";      "(* (^ ?a (bw ?p ?b)) (^ ?a (bw ?q ?c)))" => "(^ ?a (+ (bw ?p ?b) (bw ?q ?c)))"),
-        // this is basically the entirety of the add right shift rewrite
-        rewrite!("div_mult_self";   "(div (+ ?a (* ?b ?c)) ?b)" => "(+ (div ?a ?b) ?c)"), // if b != 0
-        rewrite!("div_same";        "(div (* ?a ?b) ?a)" => "?b"), // only if a > 0
-        rewrite!("div_pow_join";    "(div (div ?a ?b) ?c)" => "(div ?a (* ?b ?c))"),
         // identities
         rewrite!("diff_cancel"; "(- ?a ?a)" => "0"),
         rewrite!("add_0"; "(+ 0 ?a)" => "?a"),
         rewrite!("mult_0"; "(* 0 ?a)" => "0"),
         rewrite!("mult_1";  "(* 1 ?a)" => "?a"),
-        // rewrite!("div_same"; "(div ?a ?a)" => "1"), // a should be greater than 0, this is implicitly assumed, show be made explicit
+        // ring identities?
+        rewrite!("bw_pow_sum";      "(* (^ ?a (bw ?p ?b)) 
+                                        (^ ?a (bw ?q ?c)))"     => "(^ ?a (+ (bw ?p ?b) (bw ?q ?c)))"),
+        rewrite!("div_pow_join";    "(div (div ?a ?b) ?c)"      => "(div ?a (* ?b ?c))"),
+        // conditional ring identities
+        rewrite!("div_mult_self";   "(div (+ ?a (* ?b ?c)) ?b)" => "(+ (div ?a ?b) ?c)" if precondition(&["(> ?b 0)"])),
+        rewrite!("div_same";        "(div (* ?a ?b) ?a)"        => "?b"                 if precondition(&["(> ?a 0)"])),
         /////////////////////////
         //      MOD RELATED    //
         /////////////////////////
@@ -110,6 +111,8 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
 
             let cond_subst: RecExpr<ModIR> = copy_expr(expr, subst, egraph);
 
+            infer_conditions(&cond_subst, egraph);
+
             // println!(
             //     "{:#?} => {:#?}",
             //     expr.to_string(),
@@ -125,6 +128,30 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
                 .unwrap_or(false);
         }
         res
+    }
+}
+
+// Given some condition that needs to be true, set it to be true based on some known truths
+fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAnalysis>) {
+    println!("trying to infer truth for {}", condition.to_string());
+    let truth_reason = match &condition[condition.root()] {
+        ModIR::GT([a, b]) => match (&condition[*a], &condition[*b]) {
+            (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"), // any expression of the form  (> (^ _ _) 0) is true, by simp
+            _ => None,
+        },
+        _ => None,
+    };
+
+    // add to the egraph in case the inference is successful
+    if let Some(just) = truth_reason {
+        println!("found new truth {} because {just}", condition.to_string());
+        let cond_id = egraph.add_expr(condition);
+        // get the truth id, it should exist within the egraph at this point
+        let truth_id = egraph.lookup(ModIR::Bool(true)).unwrap();
+        // quite hacky way to label where this truth value comes from
+        // necessary for producing a theorem and justifying the inferred preconditions
+        let union_reason = String::from("inferred_") + &String::from(just);
+        egraph.union_trusted(truth_id, cond_id, union_reason);
     }
 }
 
@@ -361,7 +388,7 @@ pub fn check_equivalence(
     let truth_id = runner.egraph.add(ModIR::Bool(true));
     for precond in &precond_exprs {
         let p_id = runner.egraph.add_expr(precond);
-        runner.egraph.union(truth_id, p_id);
+        runner.egraph.union_trusted(truth_id, p_id, "preconditions");
     }
 
     let rewrite_rules = &rules();
