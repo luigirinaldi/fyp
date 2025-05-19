@@ -3,7 +3,7 @@ EGraph visualization with [GraphViz]
 
 Custom Dot implementatation to display common nodes between two potentially equivalent expressions
 */
-
+use std::any::Any;
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fmt::{self, Debug, Display, Formatter};
@@ -30,7 +30,10 @@ where
 {
     /// Writes the `Dot` to a .dot file with the given filename.
     /// Does _not_ require a `dot` binary.
-    pub fn to_dot(&self, filename: impl AsRef<Path>) -> Result<()> {
+    pub fn to_dot(&self, filename: impl AsRef<Path>) -> Result<()>
+    where
+        <N as egg::Analysis<L>>::Data: 'static,
+    {
         let mut file = std::fs::File::create(filename)?;
         write!(file, "{}", self)
     }
@@ -50,7 +53,10 @@ where
 
     /// Renders the `Dot` to a .png file with the given filename.
     /// Requires a `dot` binary to be on your `$PATH`.
-    pub fn to_png(&self, filename: impl AsRef<Path>) -> Result<()> {
+    pub fn to_png(&self, filename: impl AsRef<Path>) -> Result<()>
+    where
+        <N as egg::Analysis<L>>::Data: 'static,
+    {
         self.run_dot(&[
             "-Tpng".as_ref(),
             "-o".as_ref(),
@@ -61,7 +67,10 @@ where
 
     /// Renders the `Dot` to a .svg file with the given filename.
     /// Requires a `dot` binary to be on your `$PATH`.
-    pub fn to_svg(&self, filename: impl AsRef<Path>) -> Result<()> {
+    pub fn to_svg(&self, filename: impl AsRef<Path>) -> Result<()>
+    where
+        <N as egg::Analysis<L>>::Data: 'static,
+    {
         self.run_dot(&[
             "-Tsvg".as_ref(),
             "-o".as_ref(),
@@ -72,7 +81,10 @@ where
 
     /// Renders the `Dot` to a .pdf file with the given filename.
     /// Requires a `dot` binary to be on your `$PATH`.
-    pub fn to_pdf(&self, filename: impl AsRef<Path>) -> Result<()> {
+    pub fn to_pdf(&self, filename: impl AsRef<Path>) -> Result<()>
+    where
+        <N as egg::Analysis<L>>::Data: 'static,
+    {
         self.run_dot(&[
             "-Tpdf".as_ref(),
             "-o".as_ref(),
@@ -87,6 +99,7 @@ where
     where
         S: AsRef<OsStr>,
         I: IntoIterator<Item = S>,
+        <N as egg::Analysis<L>>::Data: 'static,
     {
         self.run("dot", args)
     }
@@ -108,6 +121,7 @@ where
         S1: AsRef<OsStr>,
         S2: AsRef<OsStr>,
         I: IntoIterator<Item = S2>,
+        <N as egg::Analysis<L>>::Data: 'static,
     {
         use std::process::{Command, Stdio};
         let mut child = Command::new(program)
@@ -192,6 +206,7 @@ impl<'a, L, N> Display for DotEquiv<'a, L, N>
 where
     L: Language + Display,
     N: Analysis<L>,
+    N::Data: Any + 'static,
 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         writeln!(f, "digraph egraph {{")?;
@@ -213,6 +228,18 @@ where
         // define all the nodes, clustered by eclass
         for class in self.egraph.classes() {
             writeln!(f, "  subgraph cluster_{} {{", class.id)?;
+
+            if let Some(opt_i32) = (&class.data as &dyn Any).downcast_ref::<Option<i32>>() {
+                writeln!(
+                    f,
+                    "    label=\"{}\"",
+                    match opt_i32 {
+                        Some(val) => val.clone().to_string(),
+                        None => String::from("None"),
+                    }
+                )?;
+            }
+
             writeln!(f, "    style=dotted")?;
 
             let colour = match (lhs_map.get(&class.id), rhs_map.get(&class.id)) {

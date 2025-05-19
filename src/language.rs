@@ -6,7 +6,7 @@ type Num = i32;
 define_language! {
     pub enum ModIR {
         "bw" = Mod([Id; 2]), // mod operator to capture the bitwidth of a given sub-expression
-        "@" = Sign([Id; 2]),
+        "sext" = SignExtend([Id; 3]),
         // Arithmetic operators
         "+" = Add([Id; 2]),
         "-" = Sub([Id; 2]),
@@ -16,6 +16,7 @@ define_language! {
         "^" = Pow([Id;2]),
         // bitvector operators
         ">>" = ShiftR([Id;2]),
+        ">>>" = AShiftR([Id;2]),
         "<<" = ShiftL([Id;2]),
         // Operators to handle preconditions
         ">"  = GT([Id; 2]),
@@ -40,7 +41,6 @@ impl Analysis<ModIR> for ModAnalysis {
     fn make(egraph: &mut EGraph<ModIR, Self>, enode: &ModIR) -> Self::Data {
         // first, we make a getter function that grabs the data for a given e-class id
         let get = |id: &Id| egraph[*id].data.as_ref();
-
         match enode {
             ModIR::Num(n) => Some(n.clone()),
             ModIR::Neg(a) => Some(-(get(a)?.clone())),
@@ -68,9 +68,10 @@ impl Analysis<ModIR> for ModAnalysis {
             ModIR::Mod([a, b]) => {
                 // implement euclidean mod
                 let a = get(a)?;
-                let b = *get(b)?;
-                let bexp = 2_i32.pow(b.to_u32()?);
-                Some(a.rem_euclid(bexp))
+                let b = get(b)?;
+                assert!(*a > 0);
+                let bexp = 2_i32.pow(a.to_u32()?);
+                Some(b.rem_euclid(bexp))
             }
             ModIR::Var(_) => None,
             _ => None,

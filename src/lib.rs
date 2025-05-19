@@ -61,9 +61,18 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("div_gte"; "(bw ?p (div (bw ?q ?a) ?b))" => "(div (bw ?q ?a) ?b)" if precondition(&["(>= ?p ?q)"])),
         rewrite!("reduce_mod"; "(bw ?q (bw ?p ?a))" => "(bw ?p a)" if precondition(&["(>= ?q ?p)"])),
         rewrite!("mul_pow2"; "(bw ?s (* (bw ?p ?a) (^ 2 (bw ?q ?b))))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))" if precondition(&["(>= ?s (+ ?p (- (^ 2 ?q) 1)))"])),
+        /////////////////////////
+        //     Definitions     //
+        /////////////////////////
+
+        // sign extension (interpret values with two's complement and the mod to obtain natural number again)
+        // sign extend a from p-bits to q-bits
+        // Interpret a as a p-bit two's complement variable (a in [-2^p-1; 2^p-1 - 1]) and then put it in q bits
+        rewrite!("sext_def"; "(sext ?p ?q ?a)" => "(bw ?q (- (bw ?p (* 2 ?a)) (bw ?p ?a)))"),
         // shift operations
-        rewrite!("shl_def"; "(<< ?a ?b)" => "(* ?a (^ 2 ?b))"),
-        rewrite!("shr_def"; "(>> ?a ?b)" => "(div ?a (^ 2 ?b))"),
+        rewrite!("shl_def";  "(<< ?a ?b)" => "(* ?a (^ 2 ?b))"),
+        rewrite!("shr_def";  "(>> ?a ?b)" => "(div ?a (^ 2 ?b))"),
+        rewrite!("ashr_def"; "(>>> (bw ?p ?a) ?b)" => "(sext (- ?p ?b) (?p) (>> (bw ?p ?a) ?b))"),
     ];
     rules.extend(rewrite!("mult_2"; "(+ ?a ?a)" <=> "(* 2 ?a)"));
     rules.extend(rewrite!("int_distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
@@ -393,15 +402,15 @@ pub fn check_equivalence(
         .with_time_limit(Duration::from_secs(20))
         .with_hook(move |runner| {
             dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
-                .to_pdf(format!(
-                    "{}/iter_{}.pdf",
+                .to_dot(format!(
+                    "{}/iter_{}.dot",
                     output_dir_for_graphs,
                     runner.iterations.len()
                 ))
                 .unwrap();
             dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
-                .to_svg(format!(
-                    "{}/iter_{}.svg",
+                .to_pdf(format!(
+                    "{}/iter_{}.pdf",
                     output_dir_for_graphs,
                     runner.iterations.len()
                 ))
