@@ -1,7 +1,8 @@
 section "Examples of word operations"
 
 theory WordExamples
-  imports "HOL-Library.Word" rewrite_lemmas manual_rewrite
+  imports "HOL-Library.Word" 
+          rewrite_lemmas manual_rewrite
 begin
 
 type_synonym word32 = "32 word"
@@ -28,11 +29,13 @@ by (smt (verit) and.commute and.left_commute and.right_neutral and_eq_not_not_or
 lemma xor_as_or_and: "xor (bw p a) (bw p b) = (or (bw p a) (bw p b)) - (and (bw p a) (bw p b))" 
 by (smt (verit, ccfv_SIG) add_as_xor_and plus_and_or)
 
-(*
-lemma "(scast (scast (a :: 'p::len word) :: 'q::len word) :: 'r::len word) = ((scast a) :: 'r::len word)" 
-*)
 
-lemma "if a then b else c"
+lemma "(scast (scast (a :: 'p::len word) :: 'q::len word) :: 'r::len word) = ((scast a) :: 'r::len word)" 
+
+
+(* lemma "if a then b else c" *)
+
+value "signed_drop_bit 1 (-6 :: 8 word)"
 
 
 text \<open>trunc(C | zext(x)) \<Rightarrow> x | trunc(C)\<close>
