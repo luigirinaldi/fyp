@@ -12,7 +12,7 @@ check_equiv_test!(
             (bw 1 (>> (bw k x) (- k 1)))
         )
     )",
-    "(>>> (bw k x) (- k 1))"
+    "(>>> k (bw k x) (- k 1))"
 );
 
 check_equiv_test!(
@@ -53,7 +53,7 @@ check_equiv_test!(
     add_sub_1599,
     &["(>= 1 1)"],
     "(bw k (- 0 (>> (bw k x) (- k 1) )))",
-    "(>>> (bw k x) (- k 1))"
+    "(>>> k (bw k x) (- k 1))"
 );
 
 // check_equiv_test!(test_sign_extend, &[], "(sext 3 5 (-1))", "31");

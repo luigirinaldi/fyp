@@ -39,12 +39,7 @@ by (smt (verit, ccfv_SIG) add_as_xor_and plus_and_or)
 
 value "uint (scast (-1 :: 4 word) :: 8 word)"
 
-lemma "sint (word_of_int a :: 'p::len word) = (bw LENGTH('p) (2 * a)) - (bw LENGTH('p) a)" for a::int
-(* apply (simp add: sint_uint)
-apply (simp add: uint_word_of_int)
-apply (simp add: bw_def)
-apply (simp add: signed_take_bit_def)
-apply (simp add: take_bit_eq_mod) *)
+theorem sign_extend_eq: "sint (word_of_int a :: 'p::len word) = (bw LENGTH('p) (2 * a)) - (bw LENGTH('p) a)" for a::int
 using sint_uint uint_word_of_int bw_def signed_take_bit_def take_bit_eq_mod 
 by (smt (verit) One_nat_def Suc_pred bit_take_bit_iff int_word_sint len_gt_0 minus_exp_eq_not_mask 
 minus_mod_self2 mod_add_eq mod_pos_pos_trivial mult_cancel_right1 mult_of_int_commute of_bool_eq(2) 
@@ -52,16 +47,26 @@ of_int_1 pos_mod_bound power_strict_increasing_iff signed_0 signed_take_bit_decr
 signed_take_bit_eq_if_positive signed_take_bit_eq_take_bit_add sint_sbintrunc' take_bit_int_eq_self_iff unsigned_0)
 
 
-(* proving that the sign extension is correct *)
-lemma "uint ((scast a) :: 'q::len word) = sext LENGTH('p) LENGTH('q) (uint a)" for a :: \<open>'p::len word\<close> 
-apply (simp only: scast_eq)
-apply (simp only: uint_word_of_int)
-apply (simp only: sint_uint)
-apply (simp only: sext_def)
+(* proving that the sign extension function is correct *)
+theorem sext_eq_scast: "uint ((scast (word_of_int a :: 'p::len word)) :: 'q::len word) = sext LENGTH('p) LENGTH('q) a" for a :: int
+apply (simp only: scast_eq uint_word_of_int sext_def bw_def)
+apply (simp only: sign_extend_eq)
+apply (simp add: bw_def)
+done
 
+
+value "uint (signed_drop_bit 1 (word_of_int (-1) :: 1 word))"
+value "ashr 1 (-1) 1"
 
 (* proving that the definition of ashrl is correct *)
-(* lemma "uint (signed_drop_bit n a) = ashr LENGTH('p) (uint a) (int n)" for a :: \<open>'p::len word\<close>  *)
+theorem ashr_eq_signed_drop: 
+"uint (signed_drop_bit n (word_of_int a :: 'p::len word)) = ashr LENGTH('p) a (int n)" if "LENGTH('p) > 0" for a :: int
+using sext_eq_scast bw_def try
+
+
+
+(* apply (simp add: signed_drop_bit_def) *)
+(* apply (simp add: signed_take_bit_def) *)
 
 (* text \<open>trunc(C | zext(x)) \<Rightarrow> x | trunc(C)\<close>
 lemma hydra_pg21: "bw p (or (bw q C) (bw p x)) = or (bw p x) (bw p (bw q C))"

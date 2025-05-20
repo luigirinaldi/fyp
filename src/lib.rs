@@ -79,7 +79,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // shift operations
         rewrite!("shl_def";  "(<< ?a ?b)" => "(* ?a (^ 2 ?b))"),
         rewrite!("shr_def";  "(>> ?a ?b)" => "(div ?a (^ 2 ?b))"),
-        rewrite!("ashr_def"; "(>>> (bw ?p ?a) ?b)" => "(sext (- ?p ?b) (?p) (>> (bw ?p ?a) ?b))"),
+        rewrite!("ashr_def"; "(>>> ?p ?a ?b)" => "(sext (- ?p ?b) (?p) (>> (bw ?p ?a) ?b))"),
     ];
     rules.extend(rewrite!("mult_2"; "(+ ?a ?a)" <=> "(* 2 ?a)"));
     rules.extend(rewrite!("int_distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
@@ -415,13 +415,13 @@ pub fn check_equivalence(
                     runner.iterations.len()
                 ))
                 .unwrap();
-            dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
-                .to_pdf(format!(
-                    "{}/iter_{}.pdf",
-                    output_dir_for_graphs,
-                    runner.iterations.len()
-                ))
-                .unwrap();
+            // dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
+            //     .to_pdf(format!(
+            //         "{}/iter_{}.pdf",
+            //         output_dir_for_graphs,
+            //         runner.iterations.len()
+            //     ))
+            //     .unwrap();
 
             if !runner.egraph.equivs(&lhs_clone, &rhs_clone).is_empty() {
                 Err("Found equivalence".into())
