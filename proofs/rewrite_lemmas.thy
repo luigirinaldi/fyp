@@ -3,9 +3,15 @@ theory rewrite_lemmas
 begin
 
 definition "bw (p::nat) (a::int) = a mod 2^p"
+text "sign extension by interpreting as two's compl and then casting"
+definition "sext (p::nat) (q::nat) (a::int) = bw q (bw p (2 * a) - bw p a)"
+
 (* assuming b can always be cast to a nat *)
 definition "shl (a::int) (b::int) = a * 2^(nat(b))"
 definition "shr (a::int) (b::int) = a div 2^(nat(b))"
+definition ashr :: "int => int => int"
+where "ashr (bw p a) b = sext (p - nat b) p (shr (bw p a) b)"
+
 syntax
     "shl" :: "int => int => int" ("_ << _")
     "shr" :: "int => int => int" ("_ >> _")
@@ -75,6 +81,7 @@ qed
 
 lemma bw_1: "bw q 1 = 1" if "q > 0" using bw_def that by simp
 lemma bw_0: "bw q 0 = 0" using bw_def by simp
+lemma bw_p_0: "bw 0 p = 0" using bw_def by simp
 
 lemma sub_to_neg: "(a::int) - b = a + -1 * b" by simp
 
@@ -96,6 +103,18 @@ for a::int
 using that by force 
 
 lemma div_mult_self: "(a + b * c) div b = a div b + c" if "b \<noteq> 0" for a::int 
-using that by simp 
+using that by simp
+
+lemma move_pow2_mod: "((2 ^ p) * a) mod 2 ^ q = 2 ^ p * (a mod 2 ^ (q -p))" if "q >= p" for a::int and p q :: nat
+by (simp add: mult.commute mult_exp_mod_exp_eq that)
+
+lemma div_remove_mod: "((bw p a) div 2 ^ q) mod 2 ^ (p - q) = ((bw p a) div 2 ^ q)" if "p >= q"
+by (simp add: bw_def div_exp_mod_exp_eq that)
+
+lemma "bw k ((int k) -1) = (int k) - 1" if "k > 0" for k :: nat
+proof - 
+have "(int k - 1) >= 0" using that by simp
+then show ?thesis using bw_def by (smt (verit, ccfv_SIG) dbl_simps(3) dbl_simps(5) dual_order.refl int_ops(2) mod_pos_pos_trivial numerals(1) of_nat_numeral of_nat_power_le_of_nat_cancel_iff self_le_ge2_pow)
+qed
 
 end

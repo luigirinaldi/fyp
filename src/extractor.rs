@@ -50,6 +50,8 @@ impl<'a> CostFunction<ModIR> for EGraphCostFn<'a> {
             // favour pure integer arithmetic expressions
             ModIR::ShiftL(_) => 200,
             ModIR::ShiftR(_) => 200,
+            ModIR::AShiftR(_) => 400,
+            ModIR::SignExtend(_) => 200,
             _ => {
                 if *self
                     .shared_classes
@@ -59,7 +61,7 @@ impl<'a> CostFunction<ModIR> for EGraphCostFn<'a> {
                     // println!("shared enode!");
                     1
                 } else {
-                    50
+                    100
                 }
             }
         };

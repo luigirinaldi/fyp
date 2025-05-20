@@ -36,13 +36,20 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("div_pow_join";    "(div (div ?a ?b) ?c)"      => "(div ?a (* ?b ?c))" if precondition(&["(> ?c 0)"])),
         rewrite!("div_mult_self";   "(div (+ ?a (* ?b ?c)) ?b)" => "(+ (div ?a ?b) ?c)" if precondition(&["(> ?b 0)"])),
         rewrite!("div_same";        "(div (* ?a ?b) ?a)"        => "?b"                 if precondition(&["(> ?a 0)"])),
+        // conditional mod and pow2
+        rewrite!("move_pow2_mod";   "(bw ?q (* ?a (^ 2 ?p)))" => "(* (^ 2 ?p) (bw (- ?q ?p) ?a))"
+            // if precondition(&["(>= q p)"])
+        ),
+        rewrite!("div_remove_mod";  "(bw (- ?p ?q) (div (bw ?p ?a) (^ 2 ?q)))" => "(div (bw ?p ?a) (^ 2 ?q))"
+            // if precondition(&["(>= q p)"])
+        ),
         /////////////////////////
         //      MOD RELATED    //
         /////////////////////////
-
-        // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
         rewrite!("bw_1"; "(bw ?p 1)" => "1"),
         rewrite!("bw_0"; "(bw ?p 0)" => "0"),
+        rewrite!("bw_p_0"; "(bw 0 ?p)" => "0"),
+        // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
         rewrite!("add_remove_prec";
             "(bw ?p (+ (bw ?q ?a) ?b))" => "(bw ?p (+ ?a ?b))"
             if precondition(&["(>= ?q ?p)"])),
@@ -83,7 +90,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     // rules.extend(rewrite!("mod-mul"; "(* (^ 2 ?e) (bw ?b ?c))" <=> "(bw (+ ?e ?b) (* (^ 2 ?e) ?c))"));
     rules.extend(rewrite!("gt-lt"; "(> ?a ?b)" <=> "(< ?b ?a)"));
     rules.extend(rewrite!("gte-lte"; "(>= ?a ?b)" <=> "(<= ?b ?a)"));
-    // rules.extend();
+    rules.extend(rewrite!("two_as_pow"; "(2)" <=> "(^ 2 1)"));
     rules
 }
 
@@ -399,7 +406,7 @@ pub fn check_equivalence(
     let mut runner = Runner::default()
         .with_explanations_enabled()
         // .with_iter_limit(50)
-        .with_time_limit(Duration::from_secs(20))
+        .with_time_limit(Duration::from_secs(5))
         .with_hook(move |runner| {
             dot_equiv::make_dot(&runner.egraph, &lhs_clone, &rhs_clone)
                 .to_dot(format!(
@@ -465,7 +472,7 @@ pub fn check_equivalence(
         let matches = rhs_pattern.search_eclass(&runner.egraph, id).unwrap();
         let subst = matches.substs[0].clone();
 
-        // runner = runner.with_explanation_length_optimization();
+        runner = runner.with_explanation_length_optimization();
         let mut explained_short = runner.explain_matches(&lhs_expr, &rhs_pattern.ast, &subst);
         explained_short.check_proof(rewrite_rules);
 
