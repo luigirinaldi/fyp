@@ -11,8 +11,10 @@ definition "sext (p::nat) (q::nat) (a::int) = bw q (bw p (2 * a) - bw p a)"
 (* assuming b can always be cast to a nat *)
 definition "shl (a::int) (b::int) = a * 2^(nat(b))"
 definition "shr (a::int) (b::int) = a div 2^(nat(b))"
-definition ashr :: "int => int => int"
-where "ashr (bw p a) b = sext (p - nat b) p (shr (bw p a) b)"
+definition ashr :: "nat => int => int => int"
+where "ashr p a b = sext (p - nat b) p (shr (bw p a) b)"
+
+value "ashr 5 (-10) 2"
 
 syntax
     "shl" :: "int => int => int" ("_ << _")

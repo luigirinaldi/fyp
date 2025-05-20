@@ -30,15 +30,40 @@ lemma xor_as_or_and: "xor (bw p a) (bw p b) = (or (bw p a) (bw p b)) - (and (bw 
 by (smt (verit, ccfv_SIG) add_as_xor_and plus_and_or)
 
 
-lemma "(scast (scast (a :: 'p::len word) :: 'q::len word) :: 'r::len word) = ((scast a) :: 'r::len word)" 
+(* lemma "(scast (scast (a :: 'p::len word) :: 'q::len word) :: 'r::len word) = ((scast a) :: 'r::len word)"  *)
 
 
 (* lemma "if a then b else c" *)
 
-value "signed_drop_bit 1 (-6 :: 8 word)"
+(* value "signed_drop_bit 1 (-6 :: 8 word)" *)
+
+value "uint (scast (-1 :: 4 word) :: 8 word)"
+
+lemma "sint (word_of_int a :: 'p::len word) = (bw LENGTH('p) (2 * a)) - (bw LENGTH('p) a)" for a::int
+(* apply (simp add: sint_uint)
+apply (simp add: uint_word_of_int)
+apply (simp add: bw_def)
+apply (simp add: signed_take_bit_def)
+apply (simp add: take_bit_eq_mod) *)
+using sint_uint uint_word_of_int bw_def signed_take_bit_def take_bit_eq_mod 
+by (smt (verit) One_nat_def Suc_pred bit_take_bit_iff int_word_sint len_gt_0 minus_exp_eq_not_mask 
+minus_mod_self2 mod_add_eq mod_pos_pos_trivial mult_cancel_right1 mult_of_int_commute of_bool_eq(2) 
+of_int_1 pos_mod_bound power_strict_increasing_iff signed_0 signed_take_bit_decr_length_iff 
+signed_take_bit_eq_if_positive signed_take_bit_eq_take_bit_add sint_sbintrunc' take_bit_int_eq_self_iff unsigned_0)
 
 
-text \<open>trunc(C | zext(x)) \<Rightarrow> x | trunc(C)\<close>
+(* proving that the sign extension is correct *)
+lemma "uint ((scast a) :: 'q::len word) = sext LENGTH('p) LENGTH('q) (uint a)" for a :: \<open>'p::len word\<close> 
+apply (simp only: scast_eq)
+apply (simp only: uint_word_of_int)
+apply (simp only: sint_uint)
+apply (simp only: sext_def)
+
+
+(* proving that the definition of ashrl is correct *)
+(* lemma "uint (signed_drop_bit n a) = ashr LENGTH('p) (uint a) (int n)" for a :: \<open>'p::len word\<close>  *)
+
+(* text \<open>trunc(C | zext(x)) \<Rightarrow> x | trunc(C)\<close>
 lemma hydra_pg21: "bw p (or (bw q C) (bw p x)) = or (bw p x) (bw p (bw q C))"
 text \<open>quickly found with try\<close>
 by (metis bw_def mod_mod_trivial or.commute take_bit_eq_mod take_bit_or)
@@ -52,7 +77,7 @@ value "or (1 :: 4 word) (ucast (2 :: 3 word))"
 
 lemma "((ucast ((ucast a) + (ucast b) :: 'd::len word) + ucast c) :: 'f::len word) = (ucast a + ucast ((ucast b + ucast c) :: 'e::len word))" 
 for a :: \<open>'a::len word\<close> and b :: \<open>'b::len word\<close> and c :: \<open>'c::len word\<close> 
-using add_assoc bw_def bw_is_word 
+using add_assoc bw_def bw_is_word  *)
 
 text "modulus"
 
