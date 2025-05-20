@@ -1,6 +1,8 @@
 theory rewrite_lemmas
-    imports Main 
+    imports Main
 begin
+
+
 
 definition "bw (p::nat) (a::int) = a mod 2^p"
 text "sign extension by interpreting as two's compl and then casting"
