@@ -1,6 +1,8 @@
 theory rewrite_lemmas
-    imports Main 
+    imports Main
 begin
+
+
 
 definition "bw (p::nat) (a::int) = a mod 2^p"
 (* assuming b can always be cast to a nat *)
