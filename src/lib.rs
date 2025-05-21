@@ -66,7 +66,8 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
             "(bw ?q (* (bw ?p ?a) ?b))" => "(bw ?q (* ?a ?b))"
             if precondition(&["(>= ?p ?q)"])),
         rewrite!("div_gte"; "(bw ?p (div (bw ?q ?a) ?b))" => "(div (bw ?q ?a) ?b)" if precondition(&["(>= ?p ?q)"])),
-        rewrite!("reduce_mod"; "(bw ?q (bw ?p ?a))" => "(bw ?p a)" if precondition(&["(>= ?q ?p)"])),
+        rewrite!("reduce_mod"; "(bw ?q (bw ?p ?a))" => "(bw ?p ?a)" if precondition(&["(>= ?q ?p)"])),
+        rewrite!("reduce_mod"; "(bw ?p (bw ?p ?a))" => "(bw ?p ?a)"),
         rewrite!("mul_pow2"; "(bw ?s (* (bw ?p ?a) (^ 2 (bw ?q ?b))))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))" if precondition(&["(>= ?s (+ ?p (- (^ 2 ?q) 1)))"])),
         /////////////////////////
         //     Definitions     //
@@ -79,7 +80,7 @@ fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // shift operations
         rewrite!("shl_def";  "(<< ?a ?b)" => "(* ?a (^ 2 ?b))"),
         rewrite!("shr_def";  "(>> ?a ?b)" => "(div ?a (^ 2 ?b))"),
-        rewrite!("ashr_def"; "(>>> ?p ?a ?b)" => "(sext (- ?p ?b) (?p) (>> (bw ?p ?a) ?b))"),
+        rewrite!("ashr_def"; "(ashr ?p ?a ?b)" => "(sext (- ?p ?b) (?p) (>> (bw ?p ?a) ?b))"),
     ];
     rules.extend(rewrite!("mult_2"; "(+ ?a ?a)" <=> "(* 2 ?a)"));
     rules.extend(rewrite!("int_distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
@@ -152,9 +153,16 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
     // println!("trying to infer truth for {}", condition.to_string());
     let truth_reason = match &condition[condition.root()] {
         ModIR::GT([a, b]) => match (&condition[*a], &condition[*b]) {
-            (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"), // any expression of the form  (> (^ _ _) 0) is true, by simp
+            // any expression of the form  (> (^ _ _) 0) is true, by simp
+            (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"),
             _ => None,
         },
+        // ?a >= ?a or ?a <= ?a is always true
+        ModIR::GTE([a, b]) if a == b => {
+            println!("{} is true", condition.to_string());
+            Some("simp")
+        }
+        ModIR::LTE([a, b]) if a == b => Some("simp"),
         _ => None,
     };
 
@@ -171,26 +179,26 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
     }
 }
 
-fn get_inferred_truths(egraph: &EGraph<ModIR, ModAnalysis>) -> Vec<(&str, egg::RecExpr<ModIR>)> {
+fn get_inferred_truths(egraph: &EGraph<ModIR, ModAnalysis>) -> Vec<(String, egg::RecExpr<ModIR>)> {
     let truth_id = egraph.lookup(ModIR::Bool(true)).unwrap();
 
     egraph
         .get_union_equalities()
+        .clone()
         .iter()
-        .cloned()
         .filter_map(move |(id1, id2, reason)| {
-            let id = if id1 == truth_id {
+            let id = if *id1 == truth_id {
                 Some(id2)
-            } else if id2 == truth_id {
+            } else if *id2 == truth_id {
                 Some(id1)
             } else {
                 None
             }?;
 
             if let Some(just) = reason.as_str().strip_prefix("inferred_") {
-                let expr = egraph.id_to_expr(id);
+                let expr = egraph.id_to_expr(*id);
                 println!("found {id:?} with reason {}:\n{}", reason, expr);
-                Some((just, expr))
+                Some((String::from(just), expr))
             } else {
                 None
             }
@@ -301,6 +309,14 @@ fn print_infix(expr: &RecExpr<ModIR>, nat_vars: &Vec<Symbol>, add_type_hint: boo
                     "({} {})",
                     other.to_string(),
                     get_child_str(expr, &other.children()[0])
+                )
+            } else if other.children().len() == 3 {
+                format!(
+                    "({} {} {} {})",
+                    other.to_string(),
+                    get_child_str(expr, &other.children()[0]),
+                    get_child_str(expr, &other.children()[1]),
+                    get_child_str(expr, &other.children()[2]),
                 )
             } else {
                 other.to_string()
@@ -466,13 +482,21 @@ pub fn check_equivalence(
     )?;
     print!("{}", output_str);
 
+    let inf_t: Vec<(String, RecExpr<ModIR>)> = get_inferred_truths(&runner.egraph);
+
+    print!("Inferred the following conditions: ");
+    for (_reason, expr) in &inf_t {
+        print!("{} ", expr.to_string());
+    }
+    print!("\n");
+
     let id = runner.egraph.find(*runner.roots.first().unwrap());
 
     if equiv {
         let matches = rhs_pattern.search_eclass(&runner.egraph, id).unwrap();
         let subst = matches.substs[0].clone();
 
-        runner = runner.with_explanation_length_optimization();
+        // runner = runner.with_explanation_length_optimization();
         let mut explained_short = runner.explain_matches(&lhs_expr, &rhs_pattern.ast, &subst);
         explained_short.check_proof(rewrite_rules);
 
@@ -493,7 +517,6 @@ pub fn check_equivalence(
             .collect::<Vec<_>>()
             .join(" ");
 
-        let inf_t: Vec<(&str, RecExpr<ModIR>)> = get_inferred_truths(&runner.egraph);
         let extra_facts = if inf_t.len() > 0 {
             let (facts, note) = inf_t.iter().enumerate().fold(
                 (String::from(""), String::from("note inferred_facts =")),

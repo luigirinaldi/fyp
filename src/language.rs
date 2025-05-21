@@ -16,8 +16,8 @@ define_language! {
         "^" = Pow([Id;2]),
         // bitvector operators
         ">>" = ShiftR([Id;2]),
-        ">>>" = AShiftR([Id;3]),
         "<<" = ShiftL([Id;2]),
+        "ashr" = AShiftR([Id;3]),
         // Operators to handle preconditions
         ">"  = GT([Id; 2]),
         ">=" = GTE([Id; 2]),
