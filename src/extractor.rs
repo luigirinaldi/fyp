@@ -1,8 +1,4 @@
 use std::collections::HashMap;
-use std::ffi::OsStr;
-use std::fmt::{self, Debug, Display, Formatter};
-use std::io::{Error, ErrorKind, Result, Write};
-use std::path::Path;
 
 use crate::dot_equiv::get_classes_from_root;
 use crate::language::ModAnalysis;

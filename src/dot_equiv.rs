@@ -1,4 +1,4 @@
-/*!
+/*
 EGraph visualization with [GraphViz]
 
 Custom Dot implementatation to display common nodes between two potentially equivalent expressions
@@ -30,6 +30,7 @@ where
 {
     /// Writes the `Dot` to a .dot file with the given filename.
     /// Does _not_ require a `dot` binary.
+    #[allow(dead_code)]
     pub fn to_dot(&self, filename: impl AsRef<Path>) -> Result<()> {
         let mut file = std::fs::File::create(filename)?;
         write!(file, "{}", self)
@@ -37,12 +38,14 @@ where
 
     /// Adds a line to the dot output.
     /// Indentation and a newline will be added automatically.
+    #[allow(dead_code)]
     pub fn with_config_line(mut self, line: impl Into<String>) -> Self {
         self.config.push(line.into());
         self
     }
 
     /// Set whether or not to anchor the edges in the output.
+    #[allow(dead_code)]
     pub fn with_anchors(mut self, use_anchors: bool) -> Self {
         self.use_anchors = use_anchors;
         self
@@ -50,6 +53,7 @@ where
 
     /// Renders the `Dot` to a .png file with the given filename.
     /// Requires a `dot` binary to be on your `$PATH`.
+    #[allow(dead_code)]
     pub fn to_png(&self, filename: impl AsRef<Path>) -> Result<()> {
         self.run_dot(&[
             "-Tpng".as_ref(),
@@ -61,6 +65,7 @@ where
 
     /// Renders the `Dot` to a .svg file with the given filename.
     /// Requires a `dot` binary to be on your `$PATH`.
+    #[allow(dead_code)]
     pub fn to_svg(&self, filename: impl AsRef<Path>) -> Result<()> {
         self.run_dot(&[
             "-Tsvg".as_ref(),
@@ -72,6 +77,7 @@ where
 
     /// Renders the `Dot` to a .pdf file with the given filename.
     /// Requires a `dot` binary to be on your `$PATH`.
+    #[allow(dead_code)]
     pub fn to_pdf(&self, filename: impl AsRef<Path>) -> Result<()> {
         self.run_dot(&[
             "-Tpdf".as_ref(),
@@ -83,6 +89,7 @@ where
 
     /// Invokes `dot` with the given arguments, piping this formatted
     /// `Dot` into stdin.
+    #[allow(dead_code)]
     pub fn run_dot<S, I>(&self, args: I) -> Result<()>
     where
         S: AsRef<OsStr>,
