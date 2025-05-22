@@ -1,5 +1,6 @@
 use crate::Symbol;
 use egg::*;
+use language::ModAnalysis;
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::{Error, Write};
@@ -17,7 +18,161 @@ use crate::rewrite_rules::rules;
 use crate::utils::*;
 
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+pub struct Equivalence {
+    name: String,
+    preconditions: Vec<RecExpr<ModIR>>,
+    lhs: RecExpr<ModIR>,
+    rhs: RecExpr<ModIR>,
+    bw_vars: HashSet<Symbol>,
+    non_bw_vars: HashSet<Symbol>,
+}
+
+impl Equivalence {
+    pub fn new(name: &str, preconditions: &[&str], lhs: &str, rhs: &str) -> Self {
+        // construct an equivalence struct
+        // infer extra pre-conditions, mainly around which values need to be greater than 0
+        let lhs_expr: RecExpr<ModIR> = lhs.parse().unwrap();
+        let rhs_expr: RecExpr<ModIR> = rhs.parse().unwrap();
+
+        let unique_bitwidth_vars: HashSet<_> = get_bitwidth_exprs(&lhs_expr)
+            .iter()
+            .chain(&get_bitwidth_exprs(&rhs_expr))
+            .cloned()
+            .collect();
+
+        let all_vars = get_vars(&lhs_expr)
+            .union(&get_vars(&rhs_expr))
+            .cloned()
+            .collect::<HashSet<_>>();
+
+        let all_bw_vars: HashSet<Symbol> =
+            unique_bitwidth_vars
+                .iter()
+                .fold(HashSet::<_>::from([]), |mut vars, expr| {
+                    vars.extend(get_vars(expr));
+                    vars
+                });
+
+        let non_bw_vars = all_vars
+            .iter()
+            .filter(|item| !all_bw_vars.contains(item))
+            .cloned()
+            .collect::<HashSet<_>>();
+
+        // Default conditions on the fact that all bitwidth variables must be strictly greater than 0
+        let extra_preconditions = unique_bitwidth_vars.iter().map(|e_old| {
+            let mut e = e_old.clone();
+            let root = e.root();
+            let zero_id = e.add(ModIR::Num(0));
+            // transform expr -> expr > 0
+            e.add(ModIR::GT([root, zero_id]));
+            e
+        });
+
+        let precond_exprs: Vec<RecExpr<ModIR>> = preconditions
+            .iter()
+            .map(|&p| p.parse().unwrap())
+            .chain(extra_preconditions)
+            .collect::<Vec<_>>();
+
+        let ret_self = Self {
+            name: String::from(name),
+            preconditions: precond_exprs,
+            lhs: lhs_expr,
+            rhs: rhs_expr,
+            bw_vars: all_bw_vars,
+            non_bw_vars: non_bw_vars,
+        };
+
+        println!(
+            "Created the following equivalence: \n{}\n =?\n{}\nwith the following conditions: {:}",
+            ret_self.lhs.to_string(),
+            ret_self.rhs.to_string(),
+            ret_self.precond_str()
+        );
+        ret_self
+    }
+
+    fn precond_str(&self) -> String {
+        self.preconditions
+            .clone()
+            .iter()
+            .map(|e| format!("\"{}\"", print_infix(e, &self.bw_vars, false)))
+            .collect::<Vec<_>>()
+            .join(" and ")
+    }
+
+    pub fn find_equivalence(self, make_dot: Option<&Path>) {
+        let (lhs_clone, rhs_clone) = (self.lhs.clone(), self.rhs.clone());
+        let (lhs_for_dot, rhs_for_dot) = (self.lhs.clone(), self.rhs.clone());
+
+        let make_dot: Option<PathBuf> = make_dot.map(|p| p.to_path_buf());
+
+        // Set up the runner with optional dot file generation
+        let mut runner: Runner<ModIR, ModAnalysis> = Runner::default()
+            .with_explanations_enabled()
+            // .with_iter_limit(50)
+            .with_time_limit(Duration::from_secs(20))
+            .with_hook(move |runner| {
+                if let Some(out_path) = &make_dot {
+                    let iter_num = runner.iterations.len();
+                    let dot = dot_equiv::make_dot(&runner.egraph, &lhs_for_dot, &rhs_for_dot);
+
+                    let pdf_path = out_path.join(format!("iter_{}.pdf", iter_num));
+                    let svg_path = out_path.join(format!("iter_{}.svg", iter_num));
+
+                    dot.to_pdf(&pdf_path).unwrap();
+                    dot.to_svg(&svg_path).unwrap();
+                }
+
+                if !runner.egraph.equivs(&self.lhs, &self.rhs).is_empty() {
+                    Err("Found equivalence".into())
+                } else {
+                    Ok(())
+                }
+            })
+            .with_expr(&lhs_clone)
+            .with_expr(&rhs_clone);
+
+        // Create the true node
+        let truth_id = runner.egraph.add(ModIR::Bool(true));
+        // Add the preconditions to the truth node of the egraph
+        for precond in &self.preconditions {
+            let p_id = runner.egraph.add_expr(precond);
+            runner.egraph.union_trusted(truth_id, p_id, "preconditions");
+        }
+
+        let rewrite_rules = &rules();
+
+        let mut runner = runner.run(rewrite_rules);
+
+        let equiv = !runner.egraph.equivs(&lhs_clone, &rhs_clone).is_empty();
+
+        // let output_file_path = output_dir.clone() + &String::from("/explanation.txt");
+        // let mut file = File::create(output_file_path)?;
+
+        let output_str = format!(
+            "{} LHS and RHS are{}equivalent!\n",
+            self.name,
+            if equiv { " " } else { " not " }
+        );
+
+        // file.write(
+        //     format!(
+        //         "{}\nlhs:{}\nrhs:{}\nconditions:{}\n\n",
+        //         output_str,
+        //         self.lhs.to_string(),
+        //         self.rhs.to_string(),
+        //         self.precond_str()
+        //     )
+        //     .as_bytes(),
+        // )?;
+
+        print!("{}", output_str);
+    }
+}
 
 // preconditions encoded as a list of conjunctions
 pub fn check_equivalence(
@@ -92,12 +247,10 @@ pub fn check_equivalence(
         .chain(extra_preconditions)
         .collect::<Vec<_>>();
 
-    let bw_vars_opt = all_bw_vars.iter().cloned().collect::<Vec<_>>();
-
     let precond_string = precond_exprs
         .clone()
         .iter()
-        .map(|e| format!("\"{}\"", print_infix(e, &bw_vars_opt, false)))
+        .map(|e| format!("\"{}\"", print_infix(e, &all_bw_vars, false)))
         .collect::<Vec<_>>()
         .join(" and ");
 
@@ -211,7 +364,7 @@ pub fn check_equivalence(
                     (
                         acc + &format!(
                             "have fact_{i}: \"{}\" by {reason}\n",
-                            print_infix(expr, &bw_vars_opt, true)
+                            print_infix(expr, &all_bw_vars, true)
                         ),
                         end + &format!("fact_{i} "),
                     )
@@ -232,8 +385,8 @@ theorem {th_name}_th:
 if {preconditions}
 for {nat_string} :: nat and {int_string} :: int\n",
                 th_name = proof_name,
-                lhs = print_infix(&lhs_expr, &bw_vars_opt, false),
-                rhs = print_infix(&rhs_expr, &bw_vars_opt, false),
+                lhs = print_infix(&lhs_expr, &all_bw_vars, false),
+                rhs = print_infix(&rhs_expr, &all_bw_vars, false),
                 preconditions = precond_string
             )
             .as_bytes(),
@@ -254,11 +407,11 @@ for {nat_string} :: nat and {int_string} :: int\n",
                 // assuming if one isn't defined the other one is
                 let rw_dir = fw.is_some();
                 let next_term_str =
-                    print_infix(&term.remove_rewrites().get_recexpr(), &bw_vars_opt, false);
+                    print_infix(&term.remove_rewrites().get_recexpr(), &all_bw_vars, false);
                 println!(
                     "{}: {} {} {} using {}",
                     i,
-                    print_infix(&prev_term.get_recexpr(), &bw_vars_opt, false),
+                    print_infix(&prev_term.get_recexpr(), &all_bw_vars, false),
                     if rw_dir { "->" } else { "<-" },
                     next_term_str,
                     rw

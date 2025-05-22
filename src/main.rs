@@ -1,4 +1,4 @@
-use hello_world::check_equivalence;
+use hello_world::Equivalence;
 
 fn main() {
     // let _ = check_equivalence(
@@ -8,13 +8,13 @@ fn main() {
     //     "(bw r (<< (bw p a) (bw t (+ (bw q b) (bw s c)))))",
     // );
 
-    let _ = check_equivalence(
-        Some("add_assoc_1"),
+    Equivalence::new(
+        "add_assoc_1",
         &["(>= q t)", "(>= u t)"],
         "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
-        None,
-    );
+    )
+    .find_equivalence(None);
 
     // let _ = check_equivalence(
     //     Some("mul_by_two"),

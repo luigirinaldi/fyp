@@ -90,7 +90,11 @@ pub fn get_vars(expr: &RecExpr<ModIR>) -> HashSet<Symbol> {
         .collect()
 }
 
-pub fn print_infix(expr: &RecExpr<ModIR>, nat_vars: &Vec<Symbol>, add_type_hint: bool) -> String {
+pub fn print_infix(
+    expr: &RecExpr<ModIR>,
+    nat_vars: &HashSet<Symbol>,
+    add_type_hint: bool,
+) -> String {
     let get_child_str = |e: &RecExpr<ModIR>, id: &Id| -> String {
         print_infix(
             &e[*id].build_recexpr(|i| e[i].clone()),
@@ -99,7 +103,7 @@ pub fn print_infix(expr: &RecExpr<ModIR>, nat_vars: &Vec<Symbol>, add_type_hint:
         )
     };
 
-    fn is_nat_var(expr: &RecExpr<ModIR>, id: &Id, nat_vars: &Vec<Symbol>) -> bool {
+    fn is_nat_var(expr: &RecExpr<ModIR>, id: &Id, nat_vars: &HashSet<Symbol>) -> bool {
         match &expr[*id] {
             ModIR::Var(symbol) => nat_vars.contains(&symbol),
             _ => false,
