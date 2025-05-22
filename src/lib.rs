@@ -27,6 +27,7 @@ pub struct Equivalence {
     rhs: RecExpr<ModIR>,
     bw_vars: HashSet<Symbol>,
     non_bw_vars: HashSet<Symbol>,
+    proof: Option<Explanation<ModIR>>,
 }
 
 impl Equivalence {
@@ -84,6 +85,7 @@ impl Equivalence {
             rhs: rhs_expr,
             bw_vars: all_bw_vars,
             non_bw_vars: non_bw_vars,
+            proof: None,
         };
 
         println!(
@@ -104,7 +106,11 @@ impl Equivalence {
             .join(" and ")
     }
 
-    pub fn find_equivalence(self, make_dot: Option<&Path>) {
+    pub fn find_equivalence(
+        mut self,
+        make_dot: Option<&Path>,
+        save_out: Option<&Path>,
+    ) -> Option<Explanation<ModIR>> {
         let (lhs_clone, rhs_clone) = (self.lhs.clone(), self.rhs.clone());
         let (lhs_for_dot, rhs_for_dot) = (self.lhs.clone(), self.rhs.clone());
 
@@ -113,7 +119,6 @@ impl Equivalence {
         // Set up the runner with optional dot file generation
         let mut runner: Runner<ModIR, ModAnalysis> = Runner::default()
             .with_explanations_enabled()
-            // .with_iter_limit(50)
             .with_time_limit(Duration::from_secs(20))
             .with_hook(move |runner| {
                 if let Some(out_path) = &make_dot {
@@ -127,7 +132,7 @@ impl Equivalence {
                     dot.to_svg(&svg_path).unwrap();
                 }
 
-                if !runner.egraph.equivs(&self.lhs, &self.rhs).is_empty() {
+                if !runner.egraph.equivs(&lhs_for_dot, &rhs_for_dot).is_empty() {
                     Err("Found equivalence".into())
                 } else {
                     Ok(())
@@ -148,29 +153,41 @@ impl Equivalence {
 
         let mut runner = runner.run(rewrite_rules);
 
+        runner.print_report();
+
         let equiv = !runner.egraph.equivs(&lhs_clone, &rhs_clone).is_empty();
 
-        // let output_file_path = output_dir.clone() + &String::from("/explanation.txt");
-        // let mut file = File::create(output_file_path)?;
-
-        let output_str = format!(
+        let mut output_str = format!(
             "{} LHS and RHS are{}equivalent!\n",
             self.name,
             if equiv { " " } else { " not " }
         );
 
-        // file.write(
-        //     format!(
-        //         "{}\nlhs:{}\nrhs:{}\nconditions:{}\n\n",
-        //         output_str,
-        //         self.lhs.to_string(),
-        //         self.rhs.to_string(),
-        //         self.precond_str()
-        //     )
-        //     .as_bytes(),
-        // )?;
+        self.proof = if equiv {
+            let mut expl = runner.egraph.explain_equivalence(&self.lhs, &self.rhs);
+            expl.check_proof(rewrite_rules);
 
-        print!("{}", output_str);
+            output_str += &expl.get_flat_string();
+            Some(expl)
+        } else {
+            None
+        };
+
+        let out_str = format!(
+            "lhs:{}\nrhs:{}\nconditions:{}\n{}\n",
+            self.lhs.to_string(),
+            self.rhs.to_string(),
+            self.precond_str(),
+            output_str,
+        );
+
+        if let Some(path) = save_out {
+            let mut file = File::create(path.join("explanation.txt")).unwrap();
+            file.write(out_str.as_bytes()).unwrap();
+        } else {
+            print!("{}", out_str);
+        }
+        self.proof
     }
 }
 

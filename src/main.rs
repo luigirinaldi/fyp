@@ -14,7 +14,7 @@ fn main() {
         "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     )
-    .find_equivalence(None);
+    .find_equivalence(None, None);
 
     // let _ = check_equivalence(
     //     Some("mul_by_two"),
