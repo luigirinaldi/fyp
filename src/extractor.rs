@@ -10,10 +10,6 @@ pub struct EGraphCostFn<'a> {
     shared_classes: HashMap<Id, bool>,
 }
 
-// impl<'a> Default for EGraphCostFn<'a> {
-//     fn default() -> Self {}
-// }
-
 impl<'a> EGraphCostFn<'a> {
     pub fn new(
         egraph: &'a EGraph<ModIR, ModAnalysis>,
@@ -26,7 +22,6 @@ impl<'a> EGraphCostFn<'a> {
             .into_iter()
             .filter_map(|(key, value1)| rhs_map.get(&key).map(|&value2| (key, value1 && value2)))
             .collect();
-        // self.shared_classes = Box::leak(Box::new(merged));
         Self {
             egraph,
             shared_classes: merged,
@@ -63,9 +58,3 @@ impl<'a> CostFunction<ModIR> for EGraphCostFn<'a> {
         enode.fold(enode_base_cost, |sum, id| sum.saturating_add(costs(id)))
     }
 }
-
-// let mut egraph = EGraph::<SymbolLang, MyAnalysis>::default();
-// let id = egraph.add_expr(&"(foo bar)".parse().unwrap());
-// let cost_func = EGraphCostFn { egraph: &egraph };
-// let mut extractor = Extractor::new(&egraph, cost_func);
-// let _ = extractor.find_best(id);
