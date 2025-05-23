@@ -10,6 +10,7 @@ mod dot_equiv;
 mod extractor;
 mod language;
 mod rewrite_rules;
+mod types;
 mod utils;
 use crate::extractor::EGraphCostFn;
 use crate::language::ModIR;
@@ -17,19 +18,10 @@ use crate::rewrite_rules::rules;
 use crate::utils::*;
 
 pub use utils::check_isabelle_proof;
+pub use utils::prepare_output_dir;
 
 use std::path::{Path, PathBuf};
-
-use serde::Deserialize;
-
-#[derive(Deserialize, Debug, Clone)]
-pub struct EquivalenceString {
-    pub name: String,
-    pub lhs: String,
-    pub rhs: String,
-    pub preconditions: Vec<String>,
-}
-
+pub use types::EquivalenceString;
 pub struct Equivalence {
     name: String,
     preconditions: Vec<RecExpr<ModIR>>,
@@ -42,11 +34,11 @@ pub struct Equivalence {
 }
 
 impl Equivalence {
-    pub fn new(eq: &EquivalenceString) -> Self {
+    pub fn new(name: &str, preconditions: &[&str], lhs: &str, rhs: &str) -> Self {
         // construct an equivalence struct
         // infer extra pre-conditions, mainly around which values need to be greater than 0
-        let lhs_expr: RecExpr<ModIR> = eq.lhs.parse().unwrap();
-        let rhs_expr: RecExpr<ModIR> = eq.rhs.parse().unwrap();
+        let lhs_expr: RecExpr<ModIR> = lhs.parse().unwrap();
+        let rhs_expr: RecExpr<ModIR> = rhs.parse().unwrap();
 
         let unique_bitwidth_vars: HashSet<_> = get_bitwidth_exprs(&lhs_expr)
             .iter()
@@ -83,15 +75,14 @@ impl Equivalence {
             e
         });
 
-        let precond_exprs: Vec<RecExpr<ModIR>> = eq
-            .preconditions
+        let precond_exprs: Vec<RecExpr<ModIR>> = preconditions
             .iter()
-            .map(|p| p.parse().unwrap())
+            .map(|&p| p.parse().unwrap())
             .chain(extra_preconditions)
             .collect::<Vec<_>>();
 
         let ret_self = Self {
-            name: eq.name.to_string(),
+            name: String::from(name),
             preconditions: precond_exprs,
             lhs: lhs_expr,
             rhs: rhs_expr,

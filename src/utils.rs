@@ -8,6 +8,7 @@ use crate::language::ModAnalysis;
 use crate::language::ModIR;
 
 use std::io::{Error, Write};
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 use std::fs;
@@ -211,5 +212,23 @@ pub fn check_isabelle_proof(proof_name: String, path: &Path) -> Result<(), Error
             eprintln!("Failed to run bash command: {}", e);
             Err(e)
         }
+    }
+}
+
+pub fn prepare_output_dir(output_dir: &PathBuf) {
+    if output_dir.exists() {
+        // Empty the directory
+        for entry in fs::read_dir(&output_dir).unwrap() {
+            let entry = entry.unwrap();
+            let path = entry.path();
+            if path.is_dir() {
+                fs::remove_dir_all(&path).unwrap();
+            } else {
+                fs::remove_file(&path).unwrap();
+            }
+        }
+    } else {
+        // Create the directory (and parent folders)
+        fs::create_dir_all(&output_dir).unwrap();
     }
 }

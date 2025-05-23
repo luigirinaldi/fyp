@@ -20,8 +20,20 @@ fn main() {
         serde_json::from_str(&data).expect("Failed to parse JSON");
 
     println!("{:#?}", test_cases);
-    for (i, case) in test_cases.iter().enumerate() {
-        Equivalence::new(case).find_equivalence(None, None);
+    for (_i, case) in test_cases.iter().enumerate() {
+        Equivalence::new(
+            &case.name,
+            &case
+                .preconditions
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<&str>>(),
+            &case.lhs,
+            &case.rhs,
+        )
+        .find_equivalence(None, None);
+
+        println!("{:#?}", serde_json::to_string_pretty(&case).unwrap())
     }
 
     let output_dir = PathBuf::from("./target/add_assoc_1");
@@ -36,12 +48,12 @@ fn main() {
         println!("! {:?}", why.kind());
     });
 
-    let proof_name = Equivalence::new(&EquivalenceString {
-        name: String::from("add_assoc_1"),
-        preconditions: vec![String::from("(>= q t)"), String::from("(>= u t)")],
-        lhs: String::from("(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))"),
-        rhs: String::from("(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))"),
-    })
+    let proof_name = Equivalence::new(
+        "add_assoc_1",
+        &["(>= q t)", "(>= u t)"],
+        "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
+        "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
+    )
     .find_equivalence(None, None)
     .to_isabelle(&output_dir, true);
 
