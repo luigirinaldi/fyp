@@ -1,6 +1,6 @@
 #!/bin/sh
 
-SLEDGEHAMMER_TIMEOUT=10
+SLEDGEHAMMER_TIMEOUT=1
 
 SRC_DIR="./test_data"
 DEST_DIR="./gen_graphs/tmp"
@@ -58,10 +58,15 @@ run_mirabelle() {
     stdbuf -oL isabelle mirabelle -d "$DIR" -O "$DIR/mirabelle_out" \
                 -A "try0" -A "sledgehammer[timeout=$SLEDGEHAMMER_TIMEOUT]" \
                 -T "$name_only" LemmaSledge | sed 's/^/[mirabelle] /'
-    # isabelle mirabelle -d "$DIR" -O "$DIR/mirabelle_out" -A "try0" -A "sledgehammer[timeout=$SLEDGEHAMMER_TIMEOUT]" -T "$name_only" LemmaSledge
   done
+
+  python ./gen_graphs/parse_mirabelle.py "$DIR" "./gen_graphs/data/$(basename "$DIR")"
 }
 
 # --- Run for both directories ---
+
+mkdir -p "./gen_graphs/data"
+
 run_mirabelle "$NO_LEMMA_DIR"
 run_mirabelle "$LEMMA_DIR"
+
