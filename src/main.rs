@@ -1,4 +1,9 @@
-use hello_world::Equivalence;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
+
+use hello_world::{check_isabelle_proof, Equivalence};
 
 fn main() {
     // let _ = check_equivalence(
@@ -8,13 +13,28 @@ fn main() {
     //     "(bw r (<< (bw p a) (bw t (+ (bw q b) (bw s c)))))",
     // );
 
-    Equivalence::new(
+    let output_dir = PathBuf::from("./target/add_assoc_1");
+
+    if Path::new(&output_dir).exists() {
+        fs::remove_dir_all(&output_dir).unwrap_or_else(|why| {
+            println!("! {:?}", why.kind());
+        });
+    }
+
+    fs::create_dir_all(&output_dir).unwrap_or_else(|why| {
+        println!("! {:?}", why.kind());
+    });
+
+    let proof_name = Equivalence::new(
         "add_assoc_1",
         &["(>= q t)", "(>= u t)"],
         "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     )
-    .find_equivalence(None, None);
+    .find_equivalence(None, None)
+    .to_isabelle(&output_dir, true);
+
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
 
     // let _ = check_equivalence(
     //     Some("mul_by_two"),
