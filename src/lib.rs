@@ -3,8 +3,7 @@ use egg::*;
 use language::ModAnalysis;
 use std::collections::HashSet;
 use std::fs::File;
-use std::io::{Error, Write};
-use std::process::{Command, Stdio};
+use std::io::Write;
 use std::time::Duration;
 
 mod dot_equiv;
@@ -17,65 +16,18 @@ use crate::language::ModIR;
 use crate::rewrite_rules::rules;
 use crate::utils::*;
 
-use std::fs;
+pub use utils::check_isabelle_proof;
+
 use std::path::{Path, PathBuf};
 
-pub fn check_isabelle_proof(proof_name: String, path: &Path) -> Result<(), Error> {
-    // 1. Copy rewrite lemma file
-    if let Err(e) = fs::copy(
-        "./proofs/rewrite_lemmas.thy",
-        path.join("rewrite_lemmas.thy"),
-    ) {
-        eprintln!("Failed to copy file: {}", e);
-        std::process::exit(1);
-    }
+use serde::Deserialize;
 
-    // 2. Create ROOT file in the destination directory
-    let root_path = path.join("ROOT");
-
-    let mut file = match File::create(&root_path) {
-        Ok(f) => f,
-        Err(e) => {
-            eprintln!("Failed to create ROOT file: {}", e);
-            std::process::exit(1);
-        }
-    };
-
-    let session_name = proof_name.clone() + "_proof";
-
-    if let Err(e) = write!(
-        file,
-        "session {session_name} = HOL + theories\n  rewrite_lemmas\n  {proof_name}",
-    ) {
-        eprintln!("Failed to write to ROOT file: {}", e);
-        std::process::exit(1);
-    }
-
-    // 3. Run bash command inside the destination directory
-    println!("Checking proof with Isabelle");
-    let output = Command::new("bash")
-        .arg("-c")
-        .arg(format!("isabelle build -v -d ./ -c {session_name}"))
-        .current_dir(path)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .output();
-
-    match output {
-        Ok(o) => {
-            if !o.status.success() {
-                eprintln!("Bash command exited with an error.");
-                Err(Error::other("proof couldn't be verified with isabelle"))
-            } else {
-                println!("Proof verified by Isabelle!");
-                Ok(())
-            }
-        }
-        Err(e) => {
-            eprintln!("Failed to run bash command: {}", e);
-            Err(e)
-        }
-    }
+#[derive(Deserialize, Debug, Clone)]
+pub struct EquivalenceString {
+    pub name: String,
+    pub lhs: String,
+    pub rhs: String,
+    pub preconditions: Vec<String>,
 }
 
 pub struct Equivalence {
@@ -90,11 +42,11 @@ pub struct Equivalence {
 }
 
 impl Equivalence {
-    pub fn new(name: &str, preconditions: &[&str], lhs: &str, rhs: &str) -> Self {
+    pub fn new(eq: &EquivalenceString) -> Self {
         // construct an equivalence struct
         // infer extra pre-conditions, mainly around which values need to be greater than 0
-        let lhs_expr: RecExpr<ModIR> = lhs.parse().unwrap();
-        let rhs_expr: RecExpr<ModIR> = rhs.parse().unwrap();
+        let lhs_expr: RecExpr<ModIR> = eq.lhs.parse().unwrap();
+        let rhs_expr: RecExpr<ModIR> = eq.rhs.parse().unwrap();
 
         let unique_bitwidth_vars: HashSet<_> = get_bitwidth_exprs(&lhs_expr)
             .iter()
@@ -131,14 +83,15 @@ impl Equivalence {
             e
         });
 
-        let precond_exprs: Vec<RecExpr<ModIR>> = preconditions
+        let precond_exprs: Vec<RecExpr<ModIR>> = eq
+            .preconditions
             .iter()
-            .map(|&p| p.parse().unwrap())
+            .map(|p| p.parse().unwrap())
             .chain(extra_preconditions)
             .collect::<Vec<_>>();
 
         let ret_self = Self {
-            name: String::from(name),
+            name: eq.name.to_string(),
             preconditions: precond_exprs,
             lhs: lhs_expr,
             rhs: rhs_expr,
