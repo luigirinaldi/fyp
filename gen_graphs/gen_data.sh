@@ -44,7 +44,11 @@ run_mirabelle() {
   echo "options [quick_and_dirty]" >> "$ROOT_FILE"
   echo "theories" >> "$ROOT_FILE"
 
+  count=0
   find "$DIR" -type f -name "*.thy" | while read -r file; do
+    if [ "$count" -ge 3 ]; then
+      break
+    fi
     base_name=$(basename "$file")
     name_only="${base_name%.thy}"
 
@@ -58,9 +62,11 @@ run_mirabelle() {
     stdbuf -oL isabelle mirabelle -d "$DIR" -O "$DIR/mirabelle_out" \
                 -A "try0" -A "sledgehammer[timeout=$SLEDGEHAMMER_TIMEOUT]" \
                 -T "$name_only" LemmaSledge | sed 's/^/[mirabelle] /'
+    count=$((count + 1))
   done
 
-  python ./gen_graphs/parse_mirabelle.py "$DIR" "./gen_graphs/data/$(basename "$DIR")"
+  cp "$DIR/mirabelle_out/mirabelle.log" "./gen_graphs/data/$(basename "$DIR")_mirabelle.log"
+  python ./gen_graphs/parse_mirabelle.py "$DIR/mirabelle_out/mirabelle.log" "./gen_graphs/data/$(basename "$DIR").json"
 }
 
 # --- Run for both directories ---
