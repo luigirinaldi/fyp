@@ -334,10 +334,12 @@ for {nat_string} :: nat and {int_string} :: int\n",
         if let Some(proof) = self.get_isabelle_proof() {
             proof_file.write(proof.as_bytes()).unwrap();
         } else {
-            proof_file.write("sorry".as_bytes()).unwrap();
+            proof_file
+                .write("proof -\n  show ?thesis sorry\nqed\n".as_bytes())
+                .unwrap();
         }
 
-        proof_file.write("end\n".as_bytes()).unwrap();
+        proof_file.write("\nend\n".as_bytes()).unwrap();
 
         proof_name
     }
