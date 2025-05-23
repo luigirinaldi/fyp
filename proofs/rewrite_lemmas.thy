@@ -1,14 +1,6 @@
 theory rewrite_lemmas
-    imports Main 
+    imports rewrite_defs 
 begin
-
-definition "bw (p::nat) (a::int) = a mod 2^p"
-(* assuming b can always be cast to a nat *)
-definition "shl (a::int) (b::int) = a * 2^(nat(b))"
-definition "shr (a::int) (b::int) = a div 2^(nat(b))"
-syntax
-    "shl" :: "int => int => int" ("_ << _")
-    "shr" :: "int => int => int" ("_ >> _")
 
 lemma bw_max_val:
 "bw p a \<le> 2^p - 1"
