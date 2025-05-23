@@ -7,7 +7,7 @@ use crate::language::ModIR;
 
 pub fn get_inferred_truths(
     egraph: &EGraph<ModIR, ModAnalysis>,
-) -> Vec<(&str, egg::RecExpr<ModIR>)> {
+) -> Vec<(String, egg::RecExpr<ModIR>)> {
     let truth_id = egraph.lookup(ModIR::Bool(true)).unwrap();
 
     egraph
@@ -26,7 +26,7 @@ pub fn get_inferred_truths(
             if let Some(just) = reason.as_str().strip_prefix("inferred_") {
                 let expr = egraph.id_to_expr(id);
                 println!("found {id:?} with reason {}:\n{}", reason, expr);
-                Some((just, expr))
+                Some((String::from(just), expr))
             } else {
                 None
             }

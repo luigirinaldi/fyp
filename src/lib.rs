@@ -20,6 +20,66 @@ use crate::utils::*;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+pub fn check_isabelle_proof() {
+    // 1. Copy rewrite lemma file
+    // if let Err(e) = fs::copy(
+    //     "./proofs/rewrite_lemmas.thy",
+    //     output_dir.clone() + "/rewrite_lemmas.thy",
+    // ) {
+    //     eprintln!("Failed to copy file: {}", e);
+    //     std::process::exit(1);
+    // }
+
+    // // 2. Create ROOT file in the destination directory
+    // let root_path = output_dir.clone() + "/ROOT";
+
+    // let mut file = match File::create(&root_path) {
+    //     Ok(f) => f,
+    //     Err(e) => {
+    //         eprintln!("Failed to create ROOT file: {}", e);
+    //         std::process::exit(1);
+    //     }
+    // };
+
+    // let session_name = proof_name.clone() + "_proof";
+
+    // if let Err(e) = write!(
+    //     file,
+    //     "session {session_name} = HOL + theories\n  rewrite_lemmas\n  {proof_name}",
+    // ) {
+    //     eprintln!("Failed to write to ROOT file: {}", e);
+    //     std::process::exit(1);
+    // }
+
+    // // 3. Run bash command inside the destination directory
+    // if !skip_isabelle_check.unwrap_or(false) {
+    //     println!("Checking proof with Isabelle");
+    //     let output = Command::new("bash")
+    //         .arg("-c")
+    //         .arg(format!("isabelle build -v -d ./ -c {session_name}"))
+    //         .current_dir(output_dir.clone())
+    //         .stdout(Stdio::piped())
+    //         .stderr(Stdio::piped())
+    //         .output();
+
+    //     match output {
+    //         Ok(o) => {
+    //             if !o.status.success() {
+    //                 eprintln!("Bash command exited with an error.");
+    //                 Err(Error::other("proof couldn't be verified with isabelle"))
+    //             } else {
+    //                 println!("Proof verified by Isabelle!");
+    //                 Ok(())
+    //             }
+    //         }
+    //         Err(e) => {
+    //             eprintln!("Failed to run bash command: {}", e);
+    //             Err(e)
+    //         }
+    //     }
+    // }
+}
+
 pub struct Equivalence {
     name: String,
     preconditions: Vec<RecExpr<ModIR>>,
@@ -28,6 +88,7 @@ pub struct Equivalence {
     bw_vars: HashSet<Symbol>,
     non_bw_vars: HashSet<Symbol>,
     proof: Option<Explanation<ModIR>>,
+    inferred_truths: Option<Vec<(String, RecExpr<ModIR>)>>,
 }
 
 impl Equivalence {
@@ -86,6 +147,7 @@ impl Equivalence {
             bw_vars: all_bw_vars,
             non_bw_vars: non_bw_vars,
             proof: None,
+            inferred_truths: None,
         };
 
         println!(
@@ -154,6 +216,7 @@ impl Equivalence {
         let mut runner = runner.run(rewrite_rules);
 
         runner.print_report();
+        self.inferred_truths = Some(get_inferred_truths(&runner.egraph));
 
         let equiv = !runner.egraph.equivs(&lhs_clone, &rhs_clone).is_empty();
 
@@ -188,6 +251,150 @@ impl Equivalence {
             print!("{}", out_str);
         }
         self.proof
+    }
+
+    fn get_isabelle_proof(self) -> Option<String> {
+        // Returns None if there is no proof
+        let flat_terms = if let Some(mut expl) = self.proof {
+            expl.make_flat_explanation().clone()
+        } else {
+            return None;
+        };
+
+        let mut prev_term = flat_terms[0].remove_rewrites();
+
+        let extra_facts = self
+            .inferred_truths
+            .as_ref()
+            .filter(|inf_t| !inf_t.is_empty())
+            .map_or(String::from(""), |inf_t| {
+                let (facts, note) = inf_t.iter().enumerate().fold(
+                    (String::from(""), String::from("note inferred_facts =")),
+                    |(acc, end), (i, (reason, expr))| {
+                        (
+                            acc + &format!(
+                                "have fact_{i}: \"{}\" by {reason}\n",
+                                print_infix(expr, &self.bw_vars, true)
+                            ),
+                            end + &format!("fact_{i} "),
+                        )
+                    },
+                );
+                facts + &note + "\n"
+            });
+
+        if flat_terms.len() > 2 {
+            let mut proof_str = format!("proof -\n{extra_facts}");
+
+            for (i, term) in flat_terms.iter().skip(1).enumerate() {
+                let (bw, fw) = term.get_rewrite();
+                let rw = if bw.is_some() {
+                    bw.unwrap()
+                } else {
+                    fw.unwrap()
+                };
+                // assuming if one isn't defined the other one is
+                let rw_dir = fw.is_some();
+                let next_term_str =
+                    print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false);
+                println!(
+                    "{}: {} {} {} using {}",
+                    i,
+                    print_infix(&prev_term.get_recexpr(), &self.bw_vars, false),
+                    if rw_dir { "->" } else { "<-" },
+                    next_term_str,
+                    rw
+                );
+                // Remove any '-rev' rewrites introduced by the double sided rewrite macro
+                let rewrite_str = rw.to_string().replace("-rev", "");
+                // Proof tactic based on the rewrite, by default use "simp only"
+                // to show that the single step in the equational reasoning
+                // is thanks to that rewrite
+                let proof_tactic = match rewrite_str.as_str() {
+                    // Using add to allow for simplication of constants
+                    "constant_prop" => String::from("by (simp add: bw_def)"),
+                    // use add instead of only to convert between nat type and int
+                    "shl_def" => String::from("by (simp add: shl_def)"),
+                    "shr_def" => String::from("by (simp add: shr_def)"),
+                    val @ ("div_pow_join" | "div_mult_self" | "div_same") => {
+                        format!("using that inferred_facts by (simp only: {val})")
+                    }
+                    other => format!("using that by (simp only: {})", other),
+                };
+                proof_str += &format!(
+                    "    {prefix}have \"{lhs} = {term}\" {proof}\n",
+                    prefix = if i == 0 { "" } else { "moreover " },
+                    lhs = if i == 0 { "?lhs" } else { "..." },
+                    term = next_term_str,
+                    proof = proof_tactic
+                );
+                prev_term = term.remove_rewrites();
+            }
+            proof_str += "ultimately show ?thesis by argo\nqed\n";
+            return Some(proof_str);
+        } else {
+            let (bw, fw) = flat_terms[1].get_rewrite();
+            let rw = if bw.is_some() {
+                bw.unwrap()
+            } else {
+                fw.unwrap()
+            };
+            Some(format!(
+                "using that by (simp only: {rw_rule})\n",
+                rw_rule = rw
+            ))
+        }
+    }
+
+    pub fn to_isabelle(self, path: &Path, use_lemmas: bool) {
+        let proof_name = self.name.replace("/", "_").replace(".rs", "");
+        let proof_file_path = path.join(format!("/{}.thy", proof_name));
+        let mut proof_file = File::create(proof_file_path).unwrap();
+
+        let nat_string = self
+            .bw_vars
+            .iter()
+            .map(|i| i.to_string())
+            .collect::<Vec<_>>()
+            .join(" ");
+        let int_string = self
+            .non_bw_vars
+            .iter()
+            .map(|i| i.to_string())
+            .collect::<Vec<_>>()
+            .join(" ");
+
+        proof_file
+            .write(
+                format!(
+                    "theory {th_name}
+    imports {imports}
+begin
+theorem {th_name}_th:
+\"{lhs}={rhs}\" (is \"?lhs = ?rhs\")
+if {preconditions}
+for {nat_string} :: nat and {int_string} :: int\n",
+                    imports = if use_lemmas {
+                        "rewrite_lemmas"
+                    } else {
+                        "rewrite_defs"
+                    },
+                    th_name = proof_name,
+                    lhs = print_infix(&self.lhs, &self.bw_vars, false),
+                    rhs = print_infix(&self.rhs, &self.bw_vars, false),
+                    preconditions = self.precond_str()
+                )
+                .as_bytes(),
+            )
+            .unwrap();
+
+        if let Some(proof) = self.get_isabelle_proof() {
+            proof_file.write(proof.as_bytes());
+        } else {
+            proof_file.write("sorry".as_bytes());
+        }
+
+        proof_file.write("end\n".as_bytes());
     }
 }
 
