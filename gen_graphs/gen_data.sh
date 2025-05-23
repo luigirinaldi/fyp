@@ -1,6 +1,6 @@
 #!/bin/sh
 
-SLEDGEHAMMER_TIMEOUT=1
+SLEDGEHAMMER_TIMEOUT=300
 
 SRC_DIR="./test_data"
 DEST_DIR="./gen_graphs/tmp"
@@ -44,11 +44,14 @@ run_mirabelle() {
   echo "options [quick_and_dirty]" >> "$ROOT_FILE"
   echo "theories" >> "$ROOT_FILE"
 
+  DATA_OUT_PRE="./gen_graphs/data/$(basename "$DIR")"
+  sys_data="$DATA_OUT_PRE"_system.json
+  echo "[" >> "$sys_data"
   count=0
   find "$DIR" -type f -name "*.thy" | while read -r file; do
-    if [ "$count" -ge 3 ]; then
-      break
-    fi
+    # if [ "$count" -ge 3 ]; then
+    #   break
+    # fi
     base_name=$(basename "$file")
     name_only="${base_name%.thy}"
 
@@ -59,14 +62,16 @@ run_mirabelle() {
 
     echo "  $name_only" >> "$ROOT_FILE"
     echo "Mirabelle running for $name_only"
-    stdbuf -oL isabelle mirabelle -d "$DIR" -O "$DIR/mirabelle_out" \
+
+    stdbuf -oL /usr/bin/time --output="$sys_data" -a --format="{\"name\":\""$name_only"\", \"cpu\":\"%P\", \"mem\":%M}," \
+                isabelle mirabelle -d "$DIR" -O "$DIR/mirabelle_out" \
                 -A "try0" -A "sledgehammer[timeout=$SLEDGEHAMMER_TIMEOUT]" \
                 -T "$name_only" LemmaSledge | sed 's/^/[mirabelle] /'
     count=$((count + 1))
   done
-
-  cp "$DIR/mirabelle_out/mirabelle.log" "./gen_graphs/data/$(basename "$DIR")_mirabelle.log"
-  python ./gen_graphs/parse_mirabelle.py "$DIR/mirabelle_out/mirabelle.log" "./gen_graphs/data/$(basename "$DIR").json"
+  echo "]" >> "$sys_data"
+  cp "$DIR/mirabelle_out/mirabelle.log" "$DATA_OUT_PRE""_mirabelle.log"
+  python ./gen_graphs/parse_mirabelle.py "$DIR/mirabelle_out/mirabelle.log" "$DATA_OUT_PRE""json"
 }
 
 # --- Run for both directories ---
