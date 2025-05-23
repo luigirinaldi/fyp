@@ -12,12 +12,13 @@ fn bitvector_shifts_merge_left_shift() {
         .join("bitvector_shifts")
         .join("merge_left_shift");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "merge_left_shift",
         &["(>= u r)", "(> t s)", "(> t q)"],
         "(bw r (<< (bw u (<< (bw p a) (bw q b))) (bw s c)))",
         "(bw r (<< (bw p a) (bw t (+ (bw q b) (bw s c)))))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -31,12 +32,13 @@ fn bitvector_shifts_merge_right_shift() {
         .join("bitvector_shifts")
         .join("merge_right_shift");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "merge_right_shift",
         &["(>= u p)", "(> t s)", "(> t q)"],
         "(bw r (>> (bw u (>> (bw p a) (bw q b))) (bw s c)))",
         "(bw r (>> (bw p a) (bw t (+ (bw q b) (bw s c)))))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -50,12 +52,13 @@ fn bitvector_shifts_left_shift_add_1() {
         .join("bitvector_shifts")
         .join("left_shift_add_1");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "left_shift_add_1",
         &["(>= u r)", "(>= s r)"],
         "(bw r (<< (bw s (+ (bw p a) (bw q b))) (bw t c)))",
         "(bw r (+ (bw u (<< (bw p a) (bw t c))) (bw u (<< (bw q b) (bw t c)))))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -69,12 +72,13 @@ fn bitvector_shifts_left_shift_add_2() {
         .join("bitvector_shifts")
         .join("left_shift_add_2");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "left_shift_add_2",
         &["(>= u r)", "(> s p)", "(> s q)"],
         "(bw r (<< (bw s (+ (bw p a) (bw q b))) (bw t c)))",
         "(bw r (+ (bw u (<< (bw p a) (bw t c))) (bw u (<< (bw q b) (bw t c)))))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -88,12 +92,13 @@ fn bitvector_shifts_add_right_shift() {
         .join("bitvector_shifts")
         .join("add_right_shift");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "add_right_shift",
         &["(>= q t)", "(>= s (+ p (- (^ 2 u) 1)))", "(> v s)", "(> v t)"],
         "(bw r (+ (bw p a) (bw q (>> (bw t b) (bw u c)))))",
         "(bw r (>> (bw v (+ (bw s (<< (bw p a) (bw u c))) (bw t b))) (bw u c)))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -107,12 +112,13 @@ fn bitvector_shifts_left_shift_mult() {
         .join("bitvector_shifts")
         .join("left_shift_mult");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "left_shift_mult",
         &["(>= t r)", "(>= v r)"],
         "(bw r (<< (bw t (* (bw p a) (bw q b))) (bw u c)))",
         "(bw r (* (bw v (<< (bw p a) (bw u c))) (bw q b)))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -126,12 +132,13 @@ fn bitvector_shifts_one_to_two_mult() {
         .join("bitvector_shifts")
         .join("one_to_two_mult");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "one_to_two_mult",
         &["(> q (+ p 2))", "(> q p)"],
         "(bw p (* (bw 1 1) (bw p x)))",
         "(bw p (- (bw q (* (bw 2 2) (bw p x))) (bw p x)))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();

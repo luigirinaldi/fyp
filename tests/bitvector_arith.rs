@@ -12,12 +12,13 @@ fn bitvector_arith_commutativity_add() {
         .join("bitvector_arith")
         .join("commutativity_add");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "commutativity_add",
         &[],
         "(bw r ( + (bw p a) (bw q b)))",
         "(bw r ( + (bw q b) (bw p a)))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -31,12 +32,13 @@ fn bitvector_arith_commutativity_mult() {
         .join("bitvector_arith")
         .join("commutativity_mult");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "commutativity_mult",
         &[],
         "(bw r ( * (bw p a) (bw q b)))",
         "(bw r ( * (bw q b) (bw p a)))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -50,12 +52,13 @@ fn bitvector_arith_mult_assoc_1() {
         .join("bitvector_arith")
         .join("mult_assoc_1");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "mult_assoc_1",
         &["(>= q t)", "(>= u t)"],
         "(bw t ( * (bw u (* (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -69,12 +72,13 @@ fn bitvector_arith_mult_assoc_2() {
         .join("bitvector_arith")
         .join("mult_assoc_2");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "mult_assoc_2",
         &["(>= q t)", "(<= (+ p r) u)"],
         "(bw t ( * (bw u (* (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -88,12 +92,13 @@ fn bitvector_arith_mult_assoc_3() {
         .join("bitvector_arith")
         .join("mult_assoc_3");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "mult_assoc_3",
         &["(<= (+ r s) q)", "(>= u t)"],
         "(bw t ( * (bw u (* (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -107,12 +112,13 @@ fn bitvector_arith_mult_assoc_4() {
         .join("bitvector_arith")
         .join("mult_assoc_4");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "mult_assoc_4",
         &["(<= (+ r s) q)", "(<= (+ p r) u)"],
         "(bw t ( * (bw u (* (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -126,12 +132,13 @@ fn bitvector_arith_add_assoc_1() {
         .join("bitvector_arith")
         .join("add_assoc_1");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "add_assoc_1",
         &["(>= q t)", "(>= u t)"],
         "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -145,12 +152,13 @@ fn bitvector_arith_add_assoc_2() {
         .join("bitvector_arith")
         .join("add_assoc_2");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "add_assoc_2",
         &["(< r q)", "(< s q)", "(>= u t)"],
         "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -164,12 +172,13 @@ fn bitvector_arith_add_assoc_3() {
         .join("bitvector_arith")
         .join("add_assoc_3");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "add_assoc_3",
         &["(>= q t)", "(< p u)", "(< r u)"],
         "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -183,12 +192,13 @@ fn bitvector_arith_add_assoc_4() {
         .join("bitvector_arith")
         .join("add_assoc_4");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "add_assoc_4",
         &["(< r q)", "(< s q)", "(< p u)", "(< r u)"],
         "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -202,12 +212,13 @@ fn bitvector_arith_dist_over_add() {
         .join("bitvector_arith")
         .join("dist_over_add");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "dist_over_add",
         &["(>= q r)", "(>= u r)", "(>= v r)"],
         "(bw r (* (bw p a) (+ (bw s b) (bw t c))))",
         "(bw r (+ (bw u (* (bw p a) (bw s b))) (bw v (* (bw p a) (bw t c)) ) ))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -221,12 +232,13 @@ fn bitvector_arith_sum_same() {
         .join("bitvector_arith")
         .join("sum_same");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "sum_same",
         &[],
         "(bw q (+ (bw p a) (bw p a)))",
         "(bw q (* (bw 2 2) (bw p a)))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -240,12 +252,13 @@ fn bitvector_arith_mult_sum_same() {
         .join("bitvector_arith")
         .join("mult_sum_same");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "mult_sum_same",
         &["(> t p)", "(> t 1)", "(>= s (+ p q))"],
         "(bw r (+ (bw s (* (bw p a) (bw q b))) (bw q b)))",
         "(bw r (* (bw t (+ (bw p a) (bw 1 1))) (bw q b)))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -259,12 +272,13 @@ fn bitvector_arith_add_zero() {
         .join("bitvector_arith")
         .join("add_zero");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "add_zero",
         &["(>= p p)"],
         "(bw p (+ (bw p a) (bw q 0)))",
         "(bw p a)",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -278,12 +292,13 @@ fn bitvector_arith_sub_to_neg() {
         .join("bitvector_arith")
         .join("sub_to_neg");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "sub_to_neg",
         &[],
         "(bw r (- (bw p a) (bw q b)))",
         "(bw r (+ (bw p a) (- (bw q b))))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -297,12 +312,13 @@ fn bitvector_arith_mul_one() {
         .join("bitvector_arith")
         .join("mul_one");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "mul_one",
         &["(>= p p)"],
         "(bw p (* (bw p a) (bw q 1)))",
         "(bw p a)",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
@@ -316,12 +332,13 @@ fn bitvector_arith_mul_two() {
         .join("bitvector_arith")
         .join("mul_two");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "mul_two",
         &[],
         "(bw r (* (bw p a) 2))",
         "(bw r (<< (bw p a) 1))",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();

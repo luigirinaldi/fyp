@@ -39,12 +39,13 @@ fn {fn_name}() {{
         .join("{prefix}")
         .join("{escaped_name}");
     prepare_output_dir(&output_dir);
-    let eq = Equivalence::new(
+    let mut eq = Equivalence::new(
         "{escaped_name}",
         &{preconditions},
         "{lhs}",
         "{rhs}",
     );
+    #[allow(unused_variables)]
     let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();

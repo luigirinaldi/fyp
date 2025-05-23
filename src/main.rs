@@ -4,24 +4,47 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use clap::Parser;
 use hello_world::{check_isabelle_proof, Equivalence, EquivalenceString};
 
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+struct Cli {
+    /// Path to the JSON file containing the equalities to check
+    file_name: PathBuf,
+
+    /// Skip searching for equivalence
+    #[arg(short, long, default_value = "false")]
+    skip_equiv: bool,
+
+    /// Only use the rewrite_defs, not the lemmas, when generating a theorem
+    #[arg(short, long, default_value = "false")]
+    def_only: bool,
+
+    /// Store the generated theorem in this path
+    #[arg(long, value_name = "FILE")]
+    theorem_path: Option<PathBuf>,
+
+    /// Store the explanation if it is found
+    #[arg(long, value_name = "FILE")]
+    expl_path: Option<PathBuf>,
+
+    /// Store generated dot-files in this path
+    #[arg(long, value_name = "FILE")]
+    dot_path: Option<PathBuf>,
+}
+
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let cli = Cli::parse();
 
-    if args.len() != 2 {
-        eprintln!("Usage: {} <path_to_test_file.json>", args[0]);
-        std::process::exit(1);
-    }
-
-    let path = &args[1];
+    let path = cli.file_name;
     let data = fs::read_to_string(path).expect("Failed to read input file");
     let test_cases: Vec<EquivalenceString> =
         serde_json::from_str(&data).expect("Failed to parse JSON");
 
     println!("{:#?}", test_cases);
     for (_i, case) in test_cases.iter().enumerate() {
-        Equivalence::new(
+        let mut equiv = Equivalence::new(
             &case.name,
             &case
                 .preconditions
@@ -30,32 +53,14 @@ fn main() {
                 .collect::<Vec<&str>>(),
             &case.lhs,
             &case.rhs,
-        )
-        .find_equivalence(None, None);
+        );
 
-        println!("{:#?}", serde_json::to_string_pretty(&case).unwrap())
+        if !cli.skip_equiv {
+            equiv.find_equivalence(cli.dot_path.clone(), cli.expl_path.clone());
+        }
+
+        if let Some(th_path) = &cli.theorem_path {
+            equiv.to_isabelle(th_path, !cli.def_only);
+        }
     }
-
-    let output_dir = PathBuf::from("./target/add_assoc_1");
-
-    if Path::new(&output_dir).exists() {
-        fs::remove_dir_all(&output_dir).unwrap_or_else(|why| {
-            println!("! {:?}", why.kind());
-        });
-    }
-
-    fs::create_dir_all(&output_dir).unwrap_or_else(|why| {
-        println!("! {:?}", why.kind());
-    });
-
-    let proof_name = Equivalence::new(
-        "add_assoc_1",
-        &["(>= q t)", "(>= u t)"],
-        "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
-        "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
-    )
-    .find_equivalence(None, None)
-    .to_isabelle(&output_dir, true);
-
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
 }

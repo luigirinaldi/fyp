@@ -29,7 +29,7 @@ pub struct Equivalence {
     rhs: RecExpr<ModIR>,
     bw_vars: HashSet<Symbol>,
     non_bw_vars: HashSet<Symbol>,
-    proof: Option<Explanation<ModIR>>,
+    proof: Option<Vec<egg::FlatTerm<ModIR>>>,
     inferred_truths: Option<Vec<(String, RecExpr<ModIR>)>>,
 }
 
@@ -110,7 +110,11 @@ impl Equivalence {
             .join(" and ")
     }
 
-    pub fn find_equivalence(mut self, make_dot: Option<&Path>, save_out: Option<&Path>) -> Self {
+    pub fn find_equivalence(
+        &mut self,
+        make_dot: Option<PathBuf>,
+        save_out: Option<PathBuf>,
+    ) -> &Self {
         let (lhs_clone, rhs_clone) = (self.lhs.clone(), self.rhs.clone());
         let (lhs_for_dot, rhs_for_dot) = (self.lhs.clone(), self.rhs.clone());
 
@@ -169,7 +173,7 @@ impl Equivalence {
             expl.check_proof(rewrite_rules);
 
             output_str += &expl.get_flat_string();
-            Some(expl)
+            Some(expl.make_flat_explanation().clone())
         } else {
             None
         };
@@ -191,10 +195,10 @@ impl Equivalence {
         self
     }
 
-    fn get_isabelle_proof(self) -> Option<String> {
+    fn get_isabelle_proof(&self) -> Option<String> {
         // Returns None if there is no proof
-        let flat_terms = if let Some(mut expl) = self.proof {
-            expl.make_flat_explanation().clone()
+        let flat_terms = if let Some(expl) = &self.proof {
+            expl
         } else {
             return None;
         };
@@ -284,7 +288,7 @@ impl Equivalence {
         }
     }
 
-    pub fn to_isabelle(self, path: &Path, use_lemmas: bool) -> String {
+    pub fn to_isabelle(&self, path: &Path, use_lemmas: bool) -> String {
         // Clean up theorem name
         let proof_name = self.name.replace("/", "_").replace(".rs", "");
         let proof_file_path = path.join(format!("{}.thy", proof_name));
