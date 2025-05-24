@@ -2,6 +2,15 @@
 
 SLEDGEHAMMER_TIMEOUT=300
 
+ISABELLE_PATH="isabelle"
+
+# Try running the version command
+if ! "$ISABELLE_PATH" version; then
+    echo "Error: Program at $ISABELLE_PATH failed to run or return version";
+    return;
+fi
+
+
 SRC_DIR="./test_data"
 DEST_DIR="./gen_graphs/tmp"
 LEMMA_DIR="$DEST_DIR/lemma"
@@ -64,7 +73,7 @@ run_mirabelle() {
     echo "Mirabelle running for $name_only"
 
     stdbuf -oL /usr/bin/time --output="$sys_data" -a --format="{\"name\":\""$name_only"\", \"cpu\":\"%P\", \"mem\":%M}," \
-                isabelle mirabelle -d "$DIR" -O "$DIR/mirabelle_out" \
+                "$ISABELLE_PATH" mirabelle -d "$DIR" -O "$DIR/mirabelle_out" \
                 -A "try0" -A "sledgehammer[timeout=$SLEDGEHAMMER_TIMEOUT]" \
                 -T "$name_only" LemmaSledge | sed 's/^/[mirabelle] /'
     count=$((count + 1))
