@@ -158,11 +158,17 @@ pub fn print_infix(
 }
 
 pub fn check_isabelle_proof(proof_name: String, path: &Path) -> Result<(), Error> {
-    // 1. Copy rewrite lemma file
+    // Copy rewrite lemma file
     if let Err(e) = fs::copy(
         "./proofs/rewrite_lemmas.thy",
         path.join("rewrite_lemmas.thy"),
     ) {
+        eprintln!("Failed to copy file: {}", e);
+        std::process::exit(1);
+    }
+
+    // Copy rewrite def file
+    if let Err(e) = fs::copy("./proofs/rewrite_defs.thy", path.join("rewrite_defs.thy")) {
         eprintln!("Failed to copy file: {}", e);
         std::process::exit(1);
     }
@@ -182,7 +188,7 @@ pub fn check_isabelle_proof(proof_name: String, path: &Path) -> Result<(), Error
 
     if let Err(e) = write!(
         file,
-        "session {session_name} = HOL + theories\n  rewrite_lemmas\n  {proof_name}",
+        "session {session_name} = HOL + theories\n  {proof_name}",
     ) {
         eprintln!("Failed to write to ROOT file: {}", e);
         std::process::exit(1);

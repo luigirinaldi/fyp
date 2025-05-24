@@ -71,7 +71,7 @@ run_mirabelle() {
   done
   echo "]" >> "$sys_data"
   cp "$DIR/mirabelle_out/mirabelle.log" "$DATA_OUT_PRE""_mirabelle.log"
-  python ./gen_graphs/parse_mirabelle.py "$DIR/mirabelle_out/mirabelle.log" "$DATA_OUT_PRE""json"
+  python ./gen_graphs/parse_mirabelle.py "$DIR/mirabelle_out/mirabelle.log" "$DATA_OUT_PRE"".json"
 }
 
 # --- Run for both directories ---
