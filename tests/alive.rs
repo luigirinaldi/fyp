@@ -72,6 +72,50 @@ fn alive_AddSub_1165() {
 
 
 #[test]
+fn alive_muldivrem_290_292() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("muldivrem_290_292");
+    prepare_output_dir(&output_dir);
+    let mut eq = Equivalence::new(
+        "muldivrem_290_292",
+        &["(< (bw k var_Y) (bw k 4))"],
+        "(bw k (* (bw k (<< (bw k 1) (bw k var_Y))) (bw k var_Op1)))",
+        "(bw k (<< (bw k var_Op1) (bw k var_Y)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_InstCombineShift497d() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("InstCombineShift497d");
+    prepare_output_dir(&output_dir);
+    let mut eq = Equivalence::new(
+        "InstCombineShift497d",
+        &["(< (bw k C) (bw k 4))"],
+        "(bw k (<< (bw k (+ (bw k var_X) (bw k C2))) (bw k C)))",
+        "(bw k (+ (bw k (<< (bw k var_X) (bw k C))) (bw k (<< (bw k C2) (bw k C)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
 fn alive_muldivrem_152() {
     let output_dir = PathBuf::from("target")
         .join("tests")
