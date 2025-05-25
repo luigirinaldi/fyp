@@ -1,6 +1,9 @@
+# Filter out the queries using the same criteria as in the "Towards Satisfiability Modulo Parametric Bit-vectors -- Artifact"
+
 import os
 import sys
 import shutil
+import re 
 
 def main():
     if len(sys.argv) != 2:
@@ -20,23 +23,24 @@ def main():
     with open(list_file, "r") as f:
         allowed_names = set(line.strip() for line in f if line.strip())
 
+    shutil.rmtree(output_dir)
     # Ensure output directory exists
     os.makedirs(output_dir, exist_ok=True)
 
     # Regex pattern for matching filenames
-    # pattern = re.compile(r"^([^:]+):\d+_values_4\.smt2$")
+    pattern = re.compile(r"(.*)_values_\d+\.smt2$")
 
     # Iterate over files in input directory
     count = 0
     for filename in os.listdir(input_dir):
-        if filename.endswith("_values_4.smt2"):
-            # print(filename)
-            if filename.replace("_values_4.smt2", "") in allowed_names:
-                print(filename)
-                src = os.path.join(input_dir, filename)
-                dst = os.path.join(output_dir, filename)
-                shutil.copy2(src, dst)
-                count += 1
+        if (match := pattern.match(filename)) and match.group(1) in allowed_names:
+            with open(input_dir + '/' + filename, 'r') as q_candidate:
+                if "(_ BitVec 4)" in "".join(q_candidate.readlines()):
+                    print(filename)
+                    src = os.path.join(input_dir, filename)
+                    dst = os.path.join(output_dir, filename)
+                    shutil.copy2(src, dst)
+                    count += 1
 
     print(f"{count} Matching files copied to '{output_dir}'.")
 
