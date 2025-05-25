@@ -22,6 +22,10 @@ lemma mul_remove_prec:
 if "q \<ge> p"
 by (metis bw_def le_imp_power_dvd mod_mod_cancel mod_mult_cong that)
 
+lemma mul_eq_prec:
+"bw p (bw p a *  b) = bw p ( a * b)"
+using mul_remove_prec by simp
+
 lemma add_full_prec:
 "bw p (bw q a + bw r b) = (bw q a + bw r b)"
 if "q < p \<and> r < p"
@@ -38,12 +42,19 @@ lemma add_remove_prec:
 if "q \<ge> p"
 by (metis bw_def le_imp_power_dvd mod_add_cong mod_mod_cancel that)
 
+lemma add_eq_prec:
+"bw p (bw p a + b) = bw p (a + b)"
+by (simp add: add_remove_prec)
+
 lemma reduce_mod:
 "bw p (bw q a) = bw q a"
 if "p \<ge> q"
 using bw_def 
 by (smt (verit) bw_max_val mod_pos_pos_trivial pos_mod_sign power_increasing that zero_less_power)
 
+lemma mod_eq:
+"bw p (bw p a) = bw p a"
+using bw_def by simp
 
 lemma div_gte:
 "bw p ((bw q a) div 2^nat(bw r b)) = bw q a div 2^nat(bw r b)"

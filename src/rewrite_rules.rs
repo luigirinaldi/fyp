@@ -17,7 +17,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mult_0"; "(* 0 ?a)" => "0"),
         rewrite!("mult_1";  "(* 1 ?a)" => "?a"),
         // ring identities?
-        rewrite!("bw_pow_sum";      "(* (^ ?a (bw ?p ?b)) 
+        rewrite!("bw_pow_sum";      "(* (^ ?a (bw ?p ?b))
                                         (^ ?a (bw ?q ?c)))"     => "(^ ?a (+ (bw ?p ?b) (bw ?q ?c)))"),
         // conditional ring identities
         rewrite!("div_pow_join";    "(div (div ?a ?b) ?c)"      => "(div ?a (* ?b ?c))" if precondition(&["(> ?c 0)"])),
@@ -29,27 +29,33 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("bw_1"; "(bw ?p 1)" => "1"),
         rewrite!("bw_0"; "(bw ?p 0)" => "0"),
         // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
-        rewrite!("add_remove_prec";    "(bw ?p (+ (bw ?q ?a) ?b))" 
+        rewrite!("add_remove_prec";    "(bw ?p (+ (bw ?q ?a) ?b))"
                                     => "(bw ?p (+ ?a ?b))"
                                         if precondition(&["(>= ?q ?p)"])),
+        rewrite!("add_eq_prec";        "(bw ?p (+ (bw ?p ?a) ?b))"
+                                    => "(bw ?p (+ ?a ?b))"),
         // mod sum rewrite preserving full precision
-        rewrite!("add_full_prec";   "(bw ?p (+ (bw ?q ?a) (bw ?r ?b)))" 
+        rewrite!("add_full_prec";   "(bw ?p (+ (bw ?q ?a) (bw ?r ?b)))"
                                  => "(+ (bw ?q ?a) (bw ?r ?b))"
                                     if precondition(&["(< ?q ?p)","(< ?r ?p)"])),
         // precision preserving transform
-        rewrite!("mul_full_prec";   "(bw ?r (* (bw ?q ?a) (bw ?p ?b)))" 
+        rewrite!("mul_full_prec";   "(bw ?r (* (bw ?q ?a) (bw ?p ?b)))"
                                  => "(* (bw ?q ?a) (bw ?p ?b))"
                                     if precondition(&["(>= ?r (+ ?p ?q))"])),
         // precision loss due to smaller outer mod
         rewrite!("mul_remove_prec"; "(bw ?q (* (bw ?p ?a) ?b))"
                                  => "(bw ?q (* ?a ?b))"
                                     if precondition(&["(>= ?p ?q)"])),
-        rewrite!("div_gte";         "(bw ?p (div (bw ?q ?a) ?b))" 
-                                 => "(div (bw ?q ?a) ?b)" 
+        rewrite!("mul_eq_prec";     "(bw ?q (* (bw ?q ?a) ?b))"
+                                 => "(bw ?q (* ?a ?b))"),
+        rewrite!("div_gte";         "(bw ?p (div (bw ?q ?a) ?b))"
+                                 => "(div (bw ?q ?a) ?b)"
                                     if precondition(&["(>= ?p ?q)"])),
         rewrite!("reduce_mod";      "(bw ?q (bw ?p ?a))"
-                                 => "(bw ?p a)" 
+                                 => "(bw ?p a)"
                                     if precondition(&["(>= ?q ?p)"])),
+        rewrite!("eq_mod";     "(bw ?p (bw ?p ?a))"
+                                => "(bw ?p a)"),
         rewrite!("mul_pow2";        "(bw ?s (* (bw ?p ?a) (^ 2 (bw ?q ?b))))"
                                  => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"
                                     if precondition(&["(>= ?s (+ ?p (- (^ 2 ?q) 1)))"])),
