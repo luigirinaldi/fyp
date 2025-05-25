@@ -114,7 +114,7 @@ impl Equivalence {
         &mut self,
         make_dot: Option<PathBuf>,
         save_out: Option<PathBuf>,
-    ) -> &Self {
+    ) -> Option<&Self> {
         let (lhs_clone, rhs_clone) = (self.lhs.clone(), self.rhs.clone());
         let (lhs_for_dot, rhs_for_dot) = (self.lhs.clone(), self.rhs.clone());
 
@@ -192,7 +192,11 @@ impl Equivalence {
         } else {
             print!("{}", out_str);
         }
-        self
+        if equiv {
+            Some(self)
+        } else {
+            None
+        }
     }
 
     fn get_isabelle_proof(&self) -> Option<String> {

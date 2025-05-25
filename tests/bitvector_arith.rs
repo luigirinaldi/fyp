@@ -19,7 +19,10 @@ fn bitvector_arith_commutativity_add() {
         "(bw r ( + (bw q b) (bw p a)))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -39,7 +42,10 @@ fn bitvector_arith_commutativity_mult() {
         "(bw r ( * (bw q b) (bw p a)))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -59,7 +65,10 @@ fn bitvector_arith_mult_assoc_1() {
         "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -79,7 +88,10 @@ fn bitvector_arith_mult_assoc_2() {
         "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -99,7 +111,10 @@ fn bitvector_arith_mult_assoc_3() {
         "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -119,7 +134,10 @@ fn bitvector_arith_mult_assoc_4() {
         "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -139,7 +157,10 @@ fn bitvector_arith_add_assoc_1() {
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -159,7 +180,10 @@ fn bitvector_arith_add_assoc_2() {
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -179,7 +203,10 @@ fn bitvector_arith_add_assoc_3() {
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -199,7 +226,10 @@ fn bitvector_arith_add_assoc_4() {
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -219,7 +249,10 @@ fn bitvector_arith_dist_over_add() {
         "(bw r (+ (bw u (* (bw p a) (bw s b))) (bw v (* (bw p a) (bw t c)) ) ))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -239,7 +272,10 @@ fn bitvector_arith_sum_same() {
         "(bw q (* (bw 2 2) (bw p a)))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -259,7 +295,10 @@ fn bitvector_arith_mult_sum_same() {
         "(bw r (* (bw t (+ (bw p a) (bw 1 1))) (bw q b)))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -279,7 +318,10 @@ fn bitvector_arith_add_zero() {
         "(bw p a)",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -299,7 +341,10 @@ fn bitvector_arith_sub_to_neg() {
         "(bw r (+ (bw p a) (- (bw q b))))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -319,7 +364,10 @@ fn bitvector_arith_mul_one() {
         "(bw p a)",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -339,7 +387,10 @@ fn bitvector_arith_mul_two() {
         "(bw r (<< (bw p a) 1))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
+    let proof_name = eq
+        .find_equivalence(None, Some(output_dir.clone()))
+        .unwrap()
+        .to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
