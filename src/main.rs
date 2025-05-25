@@ -5,7 +5,7 @@ use std::{
 };
 
 use clap::Parser;
-use hello_world::{check_isabelle_proof, Equivalence, EquivalenceString};
+use hello_world::{check_isabelle_proof, prepare_output_dir, Equivalence, EquivalenceString};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -56,7 +56,19 @@ fn main() {
         );
 
         if !cli.skip_equiv {
-            equiv.find_equivalence(cli.dot_path.clone(), cli.expl_path.clone());
+            // === Construct case-specific dot_path and expl_path ===
+            let dot_path = cli.dot_path.as_ref().map(|base| {
+                let path = base.join(&case.name);
+                prepare_output_dir(&path);
+                path
+            });
+
+            let expl_path = cli.expl_path.as_ref().map(|base| {
+                let path = base.join(&case.name);
+                prepare_output_dir(&path);
+                path
+            });
+            equiv.find_equivalence(dot_path, expl_path);
         }
 
         if let Some(th_path) = &cli.theorem_path {
