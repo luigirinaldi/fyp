@@ -43,7 +43,7 @@ fn main() {
         serde_json::from_str(&data).expect("Failed to parse JSON");
     if let Some(th_path) = &cli.theorem_path {
         // Create the dir where all of the proofs will be stored, doing it here because it will delete previous
-        prepare_output_dir(th_path);
+        prepare_output_dir(th_path, false);
     }
 
     println!("{:#?}", test_cases);
@@ -63,13 +63,13 @@ fn main() {
             // === Construct case-specific dot_path and expl_path ===
             let dot_path = cli.dot_path.as_ref().map(|base| {
                 let path = base.join(&case.name);
-                prepare_output_dir(&path);
+                prepare_output_dir(&path, true);
                 path
             });
 
             let expl_path = cli.expl_path.as_ref().map(|base| {
                 let path = base.join(&case.name);
-                prepare_output_dir(&path);
+                prepare_output_dir(&path, true);
                 path
             });
             equiv.find_equivalence(dot_path, expl_path);

@@ -56,11 +56,8 @@ run_mirabelle() {
   DATA_OUT_PRE="./gen_graphs/data/$(basename "$DIR")"
   sys_data="$DATA_OUT_PRE"_system.json
   echo "[" >> "$sys_data"
-  count=0
+
   find "$DIR" -type f -name "*.thy" | while read -r file; do
-    # if [ "$count" -ge 3 ]; then
-    #   break
-    # fi
     base_name=$(basename "$file")
     name_only="${base_name%.thy}"
 
@@ -76,7 +73,6 @@ run_mirabelle() {
                 "$ISABELLE_PATH" mirabelle -d "$DIR" -O "$DIR/mirabelle_out" \
                 -A "try0" -A "sledgehammer[timeout=$SLEDGEHAMMER_TIMEOUT]" \
                 -T "$name_only" LemmaSledge | sed 's/^/[mirabelle] /'
-    count=$((count + 1))
   done
   echo "]" >> "$sys_data"
   cp "$DIR/mirabelle_out/mirabelle.log" "$DATA_OUT_PRE""_mirabelle.log"

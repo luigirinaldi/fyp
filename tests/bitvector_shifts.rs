@@ -11,7 +11,7 @@ fn bitvector_shifts_merge_left_shift() {
         .join("tests")
         .join("bitvector_shifts")
         .join("merge_left_shift");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "merge_left_shift",
         &["(>= u r)", "(> t s)", "(> t q)"],
@@ -33,7 +33,7 @@ fn bitvector_shifts_merge_right_shift() {
         .join("tests")
         .join("bitvector_shifts")
         .join("merge_right_shift");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "merge_right_shift",
         &["(>= u p)", "(> t s)", "(> t q)"],
@@ -55,7 +55,7 @@ fn bitvector_shifts_left_shift_add_1() {
         .join("tests")
         .join("bitvector_shifts")
         .join("left_shift_add_1");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "left_shift_add_1",
         &["(>= u r)", "(>= s r)"],
@@ -77,7 +77,7 @@ fn bitvector_shifts_left_shift_add_2() {
         .join("tests")
         .join("bitvector_shifts")
         .join("left_shift_add_2");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "left_shift_add_2",
         &["(>= u r)", "(> s p)", "(> s q)"],
@@ -99,7 +99,7 @@ fn bitvector_shifts_add_right_shift() {
         .join("tests")
         .join("bitvector_shifts")
         .join("add_right_shift");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "add_right_shift",
         &["(>= q t)", "(>= s (+ p (- (^ 2 u) 1)))", "(> v s)", "(> v t)"],
@@ -121,7 +121,7 @@ fn bitvector_shifts_left_shift_mult() {
         .join("tests")
         .join("bitvector_shifts")
         .join("left_shift_mult");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "left_shift_mult",
         &["(>= t r)", "(>= v r)"],
@@ -143,7 +143,7 @@ fn bitvector_shifts_one_to_two_mult() {
         .join("tests")
         .join("bitvector_shifts")
         .join("one_to_two_mult");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "one_to_two_mult",
         &["(> q (+ p 2))", "(> q p)"],

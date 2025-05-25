@@ -40,7 +40,7 @@ fn {fn_name}() {{
         .join("tests")
         .join("{prefix}")
         .join("{escaped_name}");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "{escaped_name}",
         &{preconditions},

@@ -222,16 +222,18 @@ pub fn check_isabelle_proof(proof_name: String, path: &Path) -> Result<(), Error
     }
 }
 
-pub fn prepare_output_dir(output_dir: &PathBuf) {
+pub fn prepare_output_dir(output_dir: &PathBuf, delete_old: bool) {
     if output_dir.exists() {
-        // Empty the directory
-        for entry in fs::read_dir(&output_dir).unwrap() {
-            let entry = entry.unwrap();
-            let path = entry.path();
-            if path.is_dir() {
-                fs::remove_dir_all(&path).unwrap();
-            } else {
-                fs::remove_file(&path).unwrap();
+        if delete_old {
+            // Empty the directory
+            for entry in fs::read_dir(&output_dir).unwrap() {
+                let entry = entry.unwrap();
+                let path = entry.path();
+                if path.is_dir() {
+                    fs::remove_dir_all(&path).unwrap();
+                } else {
+                    fs::remove_file(&path).unwrap();
+                }
             }
         }
     } else {

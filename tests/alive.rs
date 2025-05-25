@@ -11,7 +11,7 @@ fn alive_AddSub_1164() {
         .join("tests")
         .join("alive")
         .join("AddSub_1164");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "AddSub_1164",
         &[],
@@ -33,7 +33,7 @@ fn alive_AddSub_1574() {
         .join("tests")
         .join("alive")
         .join("AddSub_1574");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "AddSub_1574",
         &[],
@@ -55,7 +55,7 @@ fn alive_AddSub_1165() {
         .join("tests")
         .join("alive")
         .join("AddSub_1165");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "AddSub_1165",
         &[],
@@ -77,7 +77,7 @@ fn alive_muldivrem_290_292() {
         .join("tests")
         .join("alive")
         .join("muldivrem_290_292");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "muldivrem_290_292",
         &["(< (bw k var_Y) (bw k 4))"],
@@ -99,7 +99,7 @@ fn alive_InstCombineShift497d() {
         .join("tests")
         .join("alive")
         .join("InstCombineShift497d");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "InstCombineShift497d",
         &["(< (bw k C) (bw k 4))"],
@@ -121,7 +121,7 @@ fn alive_muldivrem_152() {
         .join("tests")
         .join("alive")
         .join("muldivrem_152");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "muldivrem_152",
         &[],
@@ -143,7 +143,7 @@ fn alive_AddSub_1539_2() {
         .join("tests")
         .join("alive")
         .join("AddSub_1539_2");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "AddSub_1539_2",
         &[],
@@ -165,7 +165,7 @@ fn alive_muldivrem_229() {
         .join("tests")
         .join("alive")
         .join("muldivrem_229");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "muldivrem_229",
         &[],
@@ -187,7 +187,7 @@ fn alive_muldivrem_239() {
         .join("tests")
         .join("alive")
         .join("muldivrem_239");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "muldivrem_239",
         &[],
@@ -209,7 +209,7 @@ fn alive_Select_1105() {
         .join("tests")
         .join("alive")
         .join("Select_1105");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "Select_1105",
         &[],
@@ -231,7 +231,7 @@ fn alive_AddSub_1614() {
         .join("tests")
         .join("alive")
         .join("AddSub_1614");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "AddSub_1614",
         &[],
@@ -253,7 +253,7 @@ fn alive_AddSub_1176() {
         .join("tests")
         .join("alive")
         .join("AddSub_1176");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "AddSub_1176",
         &[],
@@ -275,7 +275,7 @@ fn alive_AddSub_1619() {
         .join("tests")
         .join("alive")
         .join("AddSub_1619");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "AddSub_1619",
         &[],
@@ -297,7 +297,7 @@ fn alive_Select_1100() {
         .join("tests")
         .join("alive")
         .join("Select_1100");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "Select_1100",
         &[],

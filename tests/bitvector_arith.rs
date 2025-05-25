@@ -11,7 +11,7 @@ fn bitvector_arith_commutativity_add() {
         .join("tests")
         .join("bitvector_arith")
         .join("commutativity_add");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "commutativity_add",
         &[],
@@ -33,7 +33,7 @@ fn bitvector_arith_commutativity_mult() {
         .join("tests")
         .join("bitvector_arith")
         .join("commutativity_mult");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "commutativity_mult",
         &[],
@@ -55,7 +55,7 @@ fn bitvector_arith_mult_assoc_1() {
         .join("tests")
         .join("bitvector_arith")
         .join("mult_assoc_1");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "mult_assoc_1",
         &["(>= q t)", "(>= u t)"],
@@ -77,7 +77,7 @@ fn bitvector_arith_mult_assoc_2() {
         .join("tests")
         .join("bitvector_arith")
         .join("mult_assoc_2");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "mult_assoc_2",
         &["(>= q t)", "(<= (+ p r) u)"],
@@ -99,7 +99,7 @@ fn bitvector_arith_mult_assoc_3() {
         .join("tests")
         .join("bitvector_arith")
         .join("mult_assoc_3");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "mult_assoc_3",
         &["(<= (+ r s) q)", "(>= u t)"],
@@ -121,7 +121,7 @@ fn bitvector_arith_mult_assoc_4() {
         .join("tests")
         .join("bitvector_arith")
         .join("mult_assoc_4");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "mult_assoc_4",
         &["(<= (+ r s) q)", "(<= (+ p r) u)"],
@@ -143,7 +143,7 @@ fn bitvector_arith_add_assoc_1() {
         .join("tests")
         .join("bitvector_arith")
         .join("add_assoc_1");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "add_assoc_1",
         &["(>= q t)", "(>= u t)"],
@@ -165,7 +165,7 @@ fn bitvector_arith_add_assoc_2() {
         .join("tests")
         .join("bitvector_arith")
         .join("add_assoc_2");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "add_assoc_2",
         &["(< r q)", "(< s q)", "(>= u t)"],
@@ -187,7 +187,7 @@ fn bitvector_arith_add_assoc_3() {
         .join("tests")
         .join("bitvector_arith")
         .join("add_assoc_3");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "add_assoc_3",
         &["(>= q t)", "(< p u)", "(< r u)"],
@@ -209,7 +209,7 @@ fn bitvector_arith_add_assoc_4() {
         .join("tests")
         .join("bitvector_arith")
         .join("add_assoc_4");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "add_assoc_4",
         &["(< r q)", "(< s q)", "(< p u)", "(< r u)"],
@@ -231,7 +231,7 @@ fn bitvector_arith_dist_over_add() {
         .join("tests")
         .join("bitvector_arith")
         .join("dist_over_add");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "dist_over_add",
         &["(>= q r)", "(>= u r)", "(>= v r)"],
@@ -253,7 +253,7 @@ fn bitvector_arith_sum_same() {
         .join("tests")
         .join("bitvector_arith")
         .join("sum_same");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "sum_same",
         &[],
@@ -275,7 +275,7 @@ fn bitvector_arith_mult_sum_same() {
         .join("tests")
         .join("bitvector_arith")
         .join("mult_sum_same");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "mult_sum_same",
         &["(> t p)", "(> t 1)", "(>= s (+ p q))"],
@@ -297,7 +297,7 @@ fn bitvector_arith_add_zero() {
         .join("tests")
         .join("bitvector_arith")
         .join("add_zero");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "add_zero",
         &["(>= p p)"],
@@ -319,7 +319,7 @@ fn bitvector_arith_sub_to_neg() {
         .join("tests")
         .join("bitvector_arith")
         .join("sub_to_neg");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "sub_to_neg",
         &[],
@@ -341,7 +341,7 @@ fn bitvector_arith_mul_one() {
         .join("tests")
         .join("bitvector_arith")
         .join("mul_one");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "mul_one",
         &["(>= p p)"],
@@ -363,7 +363,7 @@ fn bitvector_arith_mul_two() {
         .join("tests")
         .join("bitvector_arith")
         .join("mul_two");
-    prepare_output_dir(&output_dir);
+    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "mul_two",
         &[],
