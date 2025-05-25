@@ -12,7 +12,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mult.commute";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mult.assoc";      "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
         // identities
-        rewrite!("diff_cancel"; "(- ?a ?a)" => "0"),
+        rewrite!("diff_self"; "(- ?a ?a)" => "0"),
         rewrite!("add_0"; "(+ 0 ?a)" => "?a"),
         rewrite!("mult_0"; "(* 0 ?a)" => "0"),
         rewrite!("mult_1";  "(* 1 ?a)" => "?a"),
@@ -52,10 +52,10 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
                                  => "(div (bw ?q ?a) ?b)"
                                     if precondition(&["(>= ?p ?q)"])),
         rewrite!("reduce_mod";      "(bw ?q (bw ?p ?a))"
-                                 => "(bw ?p a)"
+                                 => "(bw ?p ?a)"
                                     if precondition(&["(>= ?q ?p)"])),
-        rewrite!("eq_mod";     "(bw ?p (bw ?p ?a))"
-                                => "(bw ?p a)"),
+        rewrite!("eq_mod";          "(bw ?p (bw ?p ?a))"
+                                 => "(bw ?p ?a)"),
         rewrite!("mul_pow2";        "(bw ?s (* (bw ?p ?a) (^ 2 (bw ?q ?b))))"
                                  => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"
                                     if precondition(&["(>= ?s (+ ?p (- (^ 2 ?q) 1)))"])),
