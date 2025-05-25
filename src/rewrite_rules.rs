@@ -74,6 +74,14 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // shift operations
         rewrite!("shl_def"; "(<< ?a ?b)" => "(* ?a (^ 2 ?b))"),
         rewrite!("shr_def"; "(>> ?a ?b)" => "(div ?a (^ 2 ?b))"),
+        // bitwise ops
+        rewrite!("add_as_xor_and";     "(+ (bw ?p ?a) (bw ?p ?b))" 
+                                 => "(+ (xor (bw ?p ?a) (bw ?p ?b)) (* 2 (and (bw ?p ?a) (bw ?p ?b))))"),
+        rewrite!("xor_as_or_and";      "(xor (bw ?p ?a) (bw ?p ?b))"
+                                 => "(- (or (bw ?p ?a) (bw ?p ?b)) (and (bw ?p ?a) (bw ?p ?b)))"),
+        rewrite!("and_allones"; "(and (bw ?p ?a) (bw ?p -1))" => "(bw ?p ?a)"),
+        rewrite!("or_allones";  "(or (bw ?p ?a) (bw ?p -1))" => "(bw ?p -1)"),
+        // rewrite!("xor_allones"; "(bw ?p (xor (bw ?p ?a) (bw ?p -1)))" => "(bw ?p (not (bw ?p ?a)))"),
     ];
     rules.extend(rewrite!("int_distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     rules.extend(rewrite!("Num.ring_1_class.mult_minus1"; "(- ?b)" <=> "(* -1 ?b)"));
