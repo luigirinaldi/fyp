@@ -136,6 +136,7 @@ pub fn print_infix(
             )
         }
         ModIR::Num(num) if add_type_hint => format!("({num}::int)"),
+        ModIR::Num(num) if *num < 0 => format!("({num})"),
         other => {
             if other.children().len() == 2 {
                 format!(

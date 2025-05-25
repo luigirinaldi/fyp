@@ -242,11 +242,11 @@ impl Equivalence {
                 // assuming if one isn't defined the other one is
                 let rw_dir = fw.is_some();
                 let next_term_str =
-                    print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, true);
+                    print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false);
                 println!(
                     "{}: {} {} {} using {}",
                     i,
-                    print_infix(&prev_term.get_recexpr(), &self.bw_vars, true),
+                    print_infix(&prev_term.get_recexpr(), &self.bw_vars, false),
                     if rw_dir { "->" } else { "<-" },
                     next_term_str,
                     rw
@@ -327,8 +327,8 @@ for {nat_string} :: nat and {int_string} :: int\n",
                         "rewrite_defs"
                     },
                     th_name = proof_name,
-                    lhs = print_infix(&self.lhs, &self.bw_vars, true),
-                    rhs = print_infix(&self.rhs, &self.bw_vars, true),
+                    lhs = print_infix(&self.lhs, &self.bw_vars, false),
+                    rhs = print_infix(&self.rhs, &self.bw_vars, false),
                     preconditions = self.precond_str()
                 )
                 .as_bytes(),
