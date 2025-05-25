@@ -57,11 +57,11 @@ def main():
 
     filtered_files = sat_mod_parametric(allowed_names, output_dir)
     
-    non_cond_dir = "non_cond_query"
+    bw_dir = "valid_queries"
 
-    shutil.rmtree(non_cond_dir, ignore_errors=True)
+    shutil.rmtree(bw_dir, ignore_errors=True)
     # Ensure output directory exists
-    os.makedirs(non_cond_dir, exist_ok=True)
+    os.makedirs(bw_dir, exist_ok=True)
     
     json_out = []
     
@@ -79,7 +79,7 @@ def main():
             })
             print(filename_clean)
             src = os.path.join(output_dir, filename)
-            dst = os.path.join(non_cond_dir, filename)
+            dst = os.path.join(bw_dir, filename)
             shutil.copy2(src, dst)
             if preconds != []:
                 cond_count += 1
