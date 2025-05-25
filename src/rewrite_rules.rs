@@ -12,10 +12,11 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mult.commute";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mult.assoc";      "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
         // identities
-        rewrite!("diff_self"; "(- ?a ?a)" => "0"),
-        rewrite!("add_0"; "(+ 0 ?a)" => "?a"),
-        rewrite!("mult_0"; "(* 0 ?a)" => "0"),
-        rewrite!("mult_1";  "(* 1 ?a)" => "?a"),
+        rewrite!("mult_2";          "(* 2 ?a)" => "(+ ?a ?a)"),
+        rewrite!("diff_self";       "(- ?a ?a)" => "0"),
+        rewrite!("add_0";           "(+ 0 ?a)" => "?a"),
+        rewrite!("mult_0";          "(* 0 ?a)" => "0"),
+        rewrite!("mult_1";          "(* 1 ?a)" => "?a"),
         // ring identities?
         rewrite!("bw_pow_sum";      "(* (^ ?a (bw ?p ?b))
                                         (^ ?a (bw ?q ?c)))"     => "(^ ?a (+ (bw ?p ?b) (bw ?q ?c)))"),
@@ -63,7 +64,6 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("shl_def"; "(<< ?a ?b)" => "(* ?a (^ 2 ?b))"),
         rewrite!("shr_def"; "(>> ?a ?b)" => "(div ?a (^ 2 ?b))"),
     ];
-    rules.extend(rewrite!("mult_2"; "(+ ?a ?a)" <=> "(* 2 ?a)"));
     rules.extend(rewrite!("int_distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     rules.extend(rewrite!("Num.ring_1_class.mult_minus1"; "(- ?b)" <=> "(* -1 ?b)"));
     rules.extend(rewrite!("sub_to_neg"; "(- ?a ?b)" <=> "(+ ?a (* -1 ?b))"));
