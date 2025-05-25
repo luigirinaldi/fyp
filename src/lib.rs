@@ -175,6 +175,20 @@ impl Equivalence {
             output_str += &expl.get_flat_string();
             Some(expl.make_flat_explanation().clone())
         } else {
+            let cost_func = EGraphCostFn::new(&runner.egraph, &self.lhs, &self.rhs);
+            // try to extract simplified representations
+            let extractor = Extractor::new(&runner.egraph, cost_func);
+            // need to look for the simplified version of the lhs and rhs expression
+            let (_best_cost, best_lhs_expr) =
+                extractor.find_best(runner.egraph.lookup_expr(&self.lhs).unwrap());
+            let (_best_cost, best_rhs_expr) =
+                extractor.find_best(runner.egraph.lookup_expr(&self.rhs).unwrap());
+
+            output_str += &format!(
+                "lhs simplified to:\n{}\nrhs simplified to:\n{}",
+                best_lhs_expr.to_string(),
+                best_rhs_expr.to_string()
+            );
             None
         };
 

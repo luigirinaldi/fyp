@@ -41,6 +41,10 @@ fn main() {
     let data = fs::read_to_string(path).expect("Failed to read input file");
     let test_cases: Vec<EquivalenceString> =
         serde_json::from_str(&data).expect("Failed to parse JSON");
+    if let Some(th_path) = &cli.theorem_path {
+        // Create the dir where all of the proofs will be stored, doing it here because it will delete previous
+        prepare_output_dir(th_path);
+    }
 
     println!("{:#?}", test_cases);
     for (_i, case) in test_cases.iter().enumerate() {
