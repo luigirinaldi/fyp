@@ -7,9 +7,11 @@ include!("src/types.rs");
 fn main() {
     println!("cargo:rerun-if-changed=test_data/bitvector_arith.json");
     println!("cargo:rerun-if-changed=test_data/bitvector_shifts.json");
+    println!("cargo:rerun-if-changed=test_data/alive.json");
 
     let files = vec![
         ("bitvector_arith", "test_data/bitvector_arith.json"),
+        ("alive", "test_data/alive.json"),
         ("bitvector_shifts", "test_data/bitvector_shifts.json"),
     ];
 
@@ -46,7 +48,7 @@ fn {fn_name}() {{
         "{rhs}",
     );
     #[allow(unused_variables)]
-    let proof_name = eq.find_equivalence(None, None).to_isabelle(&output_dir, true);
+    let proof_name = eq.find_equivalence(None, Some(output_dir.clone())).to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }}

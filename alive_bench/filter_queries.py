@@ -1,5 +1,6 @@
 # Filter out the queries using the same criteria as in the "Towards Satisfiability Modulo Parametric Bit-vectors -- Artifact"
 
+import json
 import os
 import sys
 import shutil
@@ -27,7 +28,7 @@ def sat_mod_parametric(name_filter, output_dir):
         if (match := pattern.match(filename)) and match.group(1) in name_filter:
             with open(input_dir + '/' + filename, 'r') as q_candidate:
                 if "(_ BitVec 4)" in (file_contents:="".join(q_candidate.readlines())):
-                    ret_vals[filename] = file_contents
+                    ret_vals[match.group(1)] = (file_contents, filename)
                     print(filename)
                     src = os.path.join(input_dir, filename)
                     dst = os.path.join(output_dir, filename)
@@ -62,20 +63,30 @@ def main():
     # Ensure output directory exists
     os.makedirs(non_cond_dir, exist_ok=True)
     
+    json_out = []
+    
     count = 0
-    for filename, filestr in filtered_files.items():
+    for filename_clean, (filestr, filename) in filtered_files.items():
         # print(filename, filestr)
         try:
-            parse_smt(StringIO(filestr))
+            lhs, rhs = parse_smt(StringIO(filestr))
+            json_out.append({
+                "name": filename_clean.strip().replace(':', '_').replace('-', '_'),
+                "lhs": lhs,
+                "rhs": rhs,
+                "preconditions": []
+            })
+            print(filename_clean)
             src = os.path.join(output_dir, filename)
             dst = os.path.join(non_cond_dir, filename)
             shutil.copy2(src, dst)
             count += 1
-        except AssertionError:
-            print(f"Skipped {filename}")
+        except AssertionError as e:
+            print(f"Skipped {filename} because {e}")
     
     print(f"{count} Queries are unconditional")
-
+    with open("../test_data/alive.json", "w") as f:
+        json.dump(json_out, f, indent=2)
 
 if __name__ == "__main__":
     main()
