@@ -65,26 +65,29 @@ def main():
     
     json_out = []
     
+    cond_count = 0
     count = 0
     for filename_clean, (filestr, filename) in filtered_files.items():
         # print(filename, filestr)
         try:
-            lhs, rhs = parse_smt(StringIO(filestr))
+            lhs, rhs, preconds = parse_smt(StringIO(filestr))
             json_out.append({
                 "name": filename_clean.strip().replace(':', '_').replace('-', '_'),
                 "lhs": lhs,
                 "rhs": rhs,
-                "preconditions": []
+                "preconditions": preconds
             })
             print(filename_clean)
             src = os.path.join(output_dir, filename)
             dst = os.path.join(non_cond_dir, filename)
             shutil.copy2(src, dst)
+            if preconds != []:
+                cond_count += 1
             count += 1
         except AssertionError as e:
             print(f"Skipped {filename} because {e}")
     
-    print(f"{count} Queries are unconditional")
+    print(f"{count} Total queries, {count - cond_count} are unconditional, {cond_count} are conditional")
     with open("../test_data/alive.json", "w") as f:
         json.dump(json_out, f, indent=2)
 
