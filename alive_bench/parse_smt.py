@@ -45,7 +45,8 @@ def to_bv_lang(expr: FNode) -> str:
             a = expr.args()[0]
             return f"(bw k (- {to_bv_lang(a)}))"
         case t if t == SYMBOL:
-            return f"(bw k {str(expr)})"
+            symb = str(expr).replace('%', 'var_')
+            return f"(bw k {symb})"
         case t if t == BV_CONSTANT:
             return f"(bw k {expr.bv_signed_value()})"
         case t if t in [BV_XOR, BV_AND, BV_NOT, BV_OR, ITE]:

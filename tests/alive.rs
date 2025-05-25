@@ -15,8 +15,8 @@ fn alive_AddSub_1164() {
     let mut eq = Equivalence::new(
         "AddSub_1164",
         &[],
-        "(bw k (+ (bw k (- (bw k 0) (bw k %a))) (bw k %b)))",
-        "(bw k (- (bw k %b) (bw k %a)))",
+        "(bw k (+ (bw k (- (bw k 0) (bw k var_a))) (bw k var_b)))",
+        "(bw k (- (bw k var_b) (bw k var_a)))",
     );
     #[allow(unused_variables)]
     let proof_name = eq
@@ -38,8 +38,8 @@ fn alive_AddSub_1574() {
     let mut eq = Equivalence::new(
         "AddSub_1574",
         &[],
-        "(bw k (- (bw k C) (bw k (+ (bw k %X) (bw k C2)))))",
-        "(bw k (- (bw k (- (bw k C) (bw k C2))) (bw k %X)))",
+        "(bw k (- (bw k C) (bw k (+ (bw k var_X) (bw k C2)))))",
+        "(bw k (- (bw k (- (bw k C) (bw k C2))) (bw k var_X)))",
     );
     #[allow(unused_variables)]
     let proof_name = eq
@@ -61,8 +61,8 @@ fn alive_AddSub_1165() {
     let mut eq = Equivalence::new(
         "AddSub_1165",
         &[],
-        "(bw k (+ (bw k (- (bw k 0) (bw k %a))) (bw k (- (bw k 0) (bw k %b)))))",
-        "(bw k (- (bw k 0) (bw k (+ (bw k %a) (bw k %b)))))",
+        "(bw k (+ (bw k (- (bw k 0) (bw k var_a))) (bw k (- (bw k 0) (bw k var_b)))))",
+        "(bw k (- (bw k 0) (bw k (+ (bw k var_a) (bw k var_b)))))",
     );
     #[allow(unused_variables)]
     let proof_name = eq
@@ -84,8 +84,8 @@ fn alive_muldivrem_152() {
     let mut eq = Equivalence::new(
         "muldivrem_152",
         &[],
-        "(bw k (* (bw k %x) (bw k -1)))",
-        "(bw k (- (bw k 0) (bw k %x)))",
+        "(bw k (* (bw k var_x) (bw k -1)))",
+        "(bw k (- (bw k 0) (bw k var_x)))",
     );
     #[allow(unused_variables)]
     let proof_name = eq
@@ -107,8 +107,8 @@ fn alive_AddSub_1539_2() {
     let mut eq = Equivalence::new(
         "AddSub_1539_2",
         &[],
-        "(bw k (- (bw k %x) (bw k C)))",
-        "(bw k (+ (bw k %x) (bw k (- (bw k C)))))",
+        "(bw k (- (bw k var_x) (bw k C)))",
+        "(bw k (+ (bw k var_x) (bw k (- (bw k C)))))",
     );
     #[allow(unused_variables)]
     let proof_name = eq
@@ -130,8 +130,8 @@ fn alive_muldivrem_229() {
     let mut eq = Equivalence::new(
         "muldivrem_229",
         &[],
-        "(bw k (* (bw k (+ (bw k %X) (bw k C1))) (bw k %Op1)))",
-        "(bw k (+ (bw k (* (bw k %X) (bw k %Op1))) (bw k (* (bw k C1) (bw k %Op1)))))",
+        "(bw k (* (bw k (+ (bw k var_X) (bw k C1))) (bw k var_Op1)))",
+        "(bw k (+ (bw k (* (bw k var_X) (bw k var_Op1))) (bw k (* (bw k C1) (bw k var_Op1)))))",
     );
     #[allow(unused_variables)]
     let proof_name = eq
@@ -153,8 +153,8 @@ fn alive_muldivrem_239() {
     let mut eq = Equivalence::new(
         "muldivrem_239",
         &[],
-        "(bw k (* (bw k (- (bw k 0) (bw k %X))) (bw k (- (bw k 0) (bw k %Y)))))",
-        "(bw k (* (bw k %X) (bw k %Y)))",
+        "(bw k (* (bw k (- (bw k 0) (bw k var_X))) (bw k (- (bw k 0) (bw k var_Y)))))",
+        "(bw k (* (bw k var_X) (bw k var_Y)))",
     );
     #[allow(unused_variables)]
     let proof_name = eq
@@ -176,8 +176,8 @@ fn alive_Select_1105() {
     let mut eq = Equivalence::new(
         "Select_1105",
         &[],
-        "(bw k %Y)",
-        "(bw k %Y)",
+        "(bw k var_Y)",
+        "(bw k var_Y)",
     );
     #[allow(unused_variables)]
     let proof_name = eq
@@ -199,8 +199,8 @@ fn alive_AddSub_1614() {
     let mut eq = Equivalence::new(
         "AddSub_1614",
         &[],
-        "(bw k (- (bw k %X) (bw k (+ (bw k %X) (bw k %Y)))))",
-        "(bw k (- (bw k 0) (bw k %Y)))",
+        "(bw k (- (bw k var_X) (bw k (+ (bw k var_X) (bw k var_Y)))))",
+        "(bw k (- (bw k 0) (bw k var_Y)))",
     );
     #[allow(unused_variables)]
     let proof_name = eq
@@ -222,8 +222,8 @@ fn alive_AddSub_1176() {
     let mut eq = Equivalence::new(
         "AddSub_1176",
         &[],
-        "(bw k (+ (bw k %a) (bw k (- (bw k 0) (bw k %b)))))",
-        "(bw k (- (bw k %a) (bw k %b)))",
+        "(bw k (+ (bw k var_a) (bw k (- (bw k 0) (bw k var_b)))))",
+        "(bw k (- (bw k var_a) (bw k var_b)))",
     );
     #[allow(unused_variables)]
     let proof_name = eq
@@ -245,8 +245,8 @@ fn alive_AddSub_1619() {
     let mut eq = Equivalence::new(
         "AddSub_1619",
         &[],
-        "(bw k (- (bw k (- (bw k %X) (bw k %Y))) (bw k %X)))",
-        "(bw k (- (bw k 0) (bw k %Y)))",
+        "(bw k (- (bw k (- (bw k var_X) (bw k var_Y))) (bw k var_X)))",
+        "(bw k (- (bw k 0) (bw k var_Y)))",
     );
     #[allow(unused_variables)]
     let proof_name = eq
@@ -268,8 +268,8 @@ fn alive_Select_1100() {
     let mut eq = Equivalence::new(
         "Select_1100",
         &[],
-        "(bw k %X)",
-        "(bw k %X)",
+        "(bw k var_X)",
+        "(bw k var_X)",
     );
     #[allow(unused_variables)]
     let proof_name = eq

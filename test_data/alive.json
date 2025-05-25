@@ -1,74 +1,74 @@
 [
   {
     "name": "AddSub_1164",
-    "lhs": "(bw k (+ (bw k (- (bw k 0) (bw k %a))) (bw k %b)))",
-    "rhs": "(bw k (- (bw k %b) (bw k %a)))",
+    "lhs": "(bw k (+ (bw k (- (bw k 0) (bw k var_a))) (bw k var_b)))",
+    "rhs": "(bw k (- (bw k var_b) (bw k var_a)))",
     "preconditions": []
   },
   {
     "name": "AddSub_1574",
-    "lhs": "(bw k (- (bw k C) (bw k (+ (bw k %X) (bw k C2)))))",
-    "rhs": "(bw k (- (bw k (- (bw k C) (bw k C2))) (bw k %X)))",
+    "lhs": "(bw k (- (bw k C) (bw k (+ (bw k var_X) (bw k C2)))))",
+    "rhs": "(bw k (- (bw k (- (bw k C) (bw k C2))) (bw k var_X)))",
     "preconditions": []
   },
   {
     "name": "AddSub_1165",
-    "lhs": "(bw k (+ (bw k (- (bw k 0) (bw k %a))) (bw k (- (bw k 0) (bw k %b)))))",
-    "rhs": "(bw k (- (bw k 0) (bw k (+ (bw k %a) (bw k %b)))))",
+    "lhs": "(bw k (+ (bw k (- (bw k 0) (bw k var_a))) (bw k (- (bw k 0) (bw k var_b)))))",
+    "rhs": "(bw k (- (bw k 0) (bw k (+ (bw k var_a) (bw k var_b)))))",
     "preconditions": []
   },
   {
     "name": "muldivrem_152",
-    "lhs": "(bw k (* (bw k %x) (bw k -1)))",
-    "rhs": "(bw k (- (bw k 0) (bw k %x)))",
+    "lhs": "(bw k (* (bw k var_x) (bw k -1)))",
+    "rhs": "(bw k (- (bw k 0) (bw k var_x)))",
     "preconditions": []
   },
   {
     "name": "AddSub_1539_2",
-    "lhs": "(bw k (- (bw k %x) (bw k C)))",
-    "rhs": "(bw k (+ (bw k %x) (bw k (- (bw k C)))))",
+    "lhs": "(bw k (- (bw k var_x) (bw k C)))",
+    "rhs": "(bw k (+ (bw k var_x) (bw k (- (bw k C)))))",
     "preconditions": []
   },
   {
     "name": "muldivrem_229",
-    "lhs": "(bw k (* (bw k (+ (bw k %X) (bw k C1))) (bw k %Op1)))",
-    "rhs": "(bw k (+ (bw k (* (bw k %X) (bw k %Op1))) (bw k (* (bw k C1) (bw k %Op1)))))",
+    "lhs": "(bw k (* (bw k (+ (bw k var_X) (bw k C1))) (bw k var_Op1)))",
+    "rhs": "(bw k (+ (bw k (* (bw k var_X) (bw k var_Op1))) (bw k (* (bw k C1) (bw k var_Op1)))))",
     "preconditions": []
   },
   {
     "name": "muldivrem_239",
-    "lhs": "(bw k (* (bw k (- (bw k 0) (bw k %X))) (bw k (- (bw k 0) (bw k %Y)))))",
-    "rhs": "(bw k (* (bw k %X) (bw k %Y)))",
+    "lhs": "(bw k (* (bw k (- (bw k 0) (bw k var_X))) (bw k (- (bw k 0) (bw k var_Y)))))",
+    "rhs": "(bw k (* (bw k var_X) (bw k var_Y)))",
     "preconditions": []
   },
   {
     "name": "Select_1105",
-    "lhs": "(bw k %Y)",
-    "rhs": "(bw k %Y)",
+    "lhs": "(bw k var_Y)",
+    "rhs": "(bw k var_Y)",
     "preconditions": []
   },
   {
     "name": "AddSub_1614",
-    "lhs": "(bw k (- (bw k %X) (bw k (+ (bw k %X) (bw k %Y)))))",
-    "rhs": "(bw k (- (bw k 0) (bw k %Y)))",
+    "lhs": "(bw k (- (bw k var_X) (bw k (+ (bw k var_X) (bw k var_Y)))))",
+    "rhs": "(bw k (- (bw k 0) (bw k var_Y)))",
     "preconditions": []
   },
   {
     "name": "AddSub_1176",
-    "lhs": "(bw k (+ (bw k %a) (bw k (- (bw k 0) (bw k %b)))))",
-    "rhs": "(bw k (- (bw k %a) (bw k %b)))",
+    "lhs": "(bw k (+ (bw k var_a) (bw k (- (bw k 0) (bw k var_b)))))",
+    "rhs": "(bw k (- (bw k var_a) (bw k var_b)))",
     "preconditions": []
   },
   {
     "name": "AddSub_1619",
-    "lhs": "(bw k (- (bw k (- (bw k %X) (bw k %Y))) (bw k %X)))",
-    "rhs": "(bw k (- (bw k 0) (bw k %Y)))",
+    "lhs": "(bw k (- (bw k (- (bw k var_X) (bw k var_Y))) (bw k var_X)))",
+    "rhs": "(bw k (- (bw k 0) (bw k var_Y)))",
     "preconditions": []
   },
   {
     "name": "Select_1100",
-    "lhs": "(bw k %X)",
-    "rhs": "(bw k %X)",
+    "lhs": "(bw k var_X)",
+    "rhs": "(bw k var_X)",
     "preconditions": []
   }
 ]
