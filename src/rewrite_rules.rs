@@ -36,9 +36,20 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("add_eq_prec";        "(bw ?p (+ (bw ?p ?a) ?b))"
                                     => "(bw ?p (+ ?a ?b))"),
         // mod sum rewrite preserving full precision
-        rewrite!("add_full_prec";   "(bw ?p (+ (bw ?q ?a) (bw ?r ?b)))"
-                                 => "(+ (bw ?q ?a) (bw ?r ?b))"
+        rewrite!("add_full_prec";      "(bw ?p (+ (bw ?q ?a) (bw ?r ?b)))"
+                                    => "(+ (bw ?q ?a) (bw ?r ?b))"
                                     if precondition(&["(< ?q ?p)","(< ?r ?p)"])),
+        // mod diff rewrite where outer bitwidth (p) is lower precision that inner (q)
+        rewrite!("diff_left_rm_prec";  "(bw ?p (- (bw ?q ?a) ?b))"
+                                    => "(bw ?p (- ?a ?b))"
+                                        if precondition(&["(>= ?q ?p)"])),
+        rewrite!("diff_left_eq_prec";  "(bw ?p (- (bw ?p ?a) ?b))"
+                                    => "(bw ?p (- ?a ?b))"),
+        rewrite!("diff_right_rm_prec"; "(bw ?p (- ?a (bw ?q ?b)))"
+                                    => "(bw ?p (- ?a ?b))"
+                                        if precondition(&["(>= ?q ?p)"])),
+        rewrite!("diff_right_eq_prec"; "(bw ?p (- ?a (bw ?p ?b)))"
+                                    => "(bw ?p (- ?a ?b))"),
         // precision preserving transform
         rewrite!("mul_full_prec";   "(bw ?r (* (bw ?q ?a) (bw ?p ?b)))"
                                  => "(* (bw ?q ?a) (bw ?p ?b))"

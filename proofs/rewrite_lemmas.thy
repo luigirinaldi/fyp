@@ -46,6 +46,24 @@ lemma add_eq_prec:
 "bw p (bw p a + b) = bw p (a + b)"
 by (simp add: add_remove_prec)
 
+lemma diff_left_remove_prec:
+"bw p (bw q a - b) = bw p (a - b)"
+if "q \<ge> p"
+by (metis add_remove_prec add_uminus_conv_diff that)
+
+lemma diff_left_eq_prec:
+"bw p (bw p a - b) = bw p (a - b)"
+using diff_left_remove_prec by simp
+
+lemma diff_right_remove_prec:
+"bw p (a - bw q b) = bw p (a - b)"
+if "q \<ge> p"
+by (metis bw_def le_imp_power_dvd mod_diff_cong mod_mod_cancel that)
+
+lemma diff_right_eq_prec:
+"bw p (a - bw p b) = bw p (a - b)"
+using diff_right_remove_prec by simp
+
 lemma reduce_mod:
 "bw p (bw q a) = bw q a"
 if "p \<ge> q"
