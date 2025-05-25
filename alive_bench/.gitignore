@@ -2,3 +2,4 @@ bv_to_bool_bench/
 filtered_values/
 non_cond_query/
 __pycache__/
+bv_to_bool_bench.tar.gz
