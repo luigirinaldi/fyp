@@ -207,6 +207,8 @@ impl Equivalence {
             return None;
         };
 
+        assert!(!flat_terms.is_empty(), "Empty flat_terms vector");
+
         let mut prev_term = flat_terms[0].remove_rewrites();
 
         let extra_facts = self
@@ -277,8 +279,8 @@ impl Equivalence {
                 prev_term = term.remove_rewrites();
             }
             proof_str += "ultimately show ?thesis by argo\nqed\n";
-            return Some(proof_str);
-        } else {
+            Some(proof_str)
+        } else if flat_terms.len() == 2 {
             let (bw, fw) = flat_terms[1].get_rewrite();
             let rw = if bw.is_some() {
                 bw.unwrap()
@@ -289,6 +291,11 @@ impl Equivalence {
                 "using that by (simp only: {rw_rule})\n",
                 rw_rule = rw
             ))
+        } else if flat_terms.len() == 1 {
+            // if the length is one then the two are trivially equal
+            Some(String::from("using that by simp\n"))
+        } else {
+            unreachable!("Something went wrong, proof with 0 length flat terms");
         }
     }
 
