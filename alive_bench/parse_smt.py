@@ -56,7 +56,18 @@ def to_bw_lang(expr: FNode) -> str:
         case t if t == BV_LSHR:
             a, b = expr.args()
             return f"(bw k (>> {to_bw_lang(a)} {to_bw_lang(b)}))"
-        case t if t in [BV_XOR, BV_AND, BV_NOT, BV_OR, ITE, BV_ASHR]:
+        case t if t == BV_XOR:
+            a, b = expr.args()
+            return f"(bw k (xor {to_bw_lang(a)} {to_bw_lang(b)}))"
+        case t if t == BV_OR:
+            a, b = expr.args()
+            return f"(bw k (| {to_bw_lang(a)} {to_bw_lang(b)}))"
+        case t if t == BV_AND:
+            a, b = expr.args()
+            return f"(bw k (& {to_bw_lang(a)} {to_bw_lang(b)}))"
+        case t if t == BV_NOT:
+            return f"(bw k (~ {to_bw_lang(expr.arg(0))}))"
+        case t if t in [ITE, BV_ASHR]:
             raise AssertionError(f"{op_to_str(t)} unsupported")
         case other:
             print(other, str(expr))

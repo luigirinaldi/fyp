@@ -135,4 +135,25 @@ by (smt (verit) and.commute and.left_commute and.right_neutral and_eq_not_not_or
 lemma xor_as_or_and: "xor (bw p a) (bw q b) = (or (bw p a) (bw q b)) - (and (bw p a) (bw q b))" 
 by (smt (verit, ccfv_SIG) add_as_xor_and plus_and_or)
 
+lemma neg_not: "-a = not a + 1" by (simp only: minus_eq_not_plus_1)
+
+(* Bitwise identities *)
+
+(* value "xor (bw 1 (-1)) (bw 1 (-1))"
+value "(bw 1 (not (bw 1 (-1))))" *)
+
+(* sledgehammer_params[timeout = 300] *)
+
+(* lemma "bw p (xor (bw p a) (bw p (-1))) = bw p (not (bw p a))" if "p > 0"
+sorry *)
+
+lemma and_allones: "and (bw p a) (bw p (-1)) = (bw p a)"
+by (metis and.right_neutral bw_def take_bit_and take_bit_eq_mod)
+
+lemma or_allones: "or (bw p a) (bw p (-1)) = bw p (-1)"
+by (metis bit.disj_one_right bw_def take_bit_int_def take_bit_or)
+
+
+(* sledgehammer *)
+
 end

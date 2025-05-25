@@ -27,6 +27,28 @@ fn alive_AddSub_1164() {
 
 
 #[test]
+fn alive_AndOrXor_2417() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2417");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2417",
+        &[],
+        "(bw k (xor (bw k (| (bw k (xor (bw k var_nx) (bw k -1))) (bw k var_y))) (bw k -1)))",
+        "(bw k (& (bw k var_nx) (bw k (xor (bw k var_y) (bw k -1)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
 fn alive_AddSub_1574() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -48,6 +70,28 @@ fn alive_AddSub_1574() {
 
 
 #[test]
+fn alive_AndOrXor_2587() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2587");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2587",
+        &[],
+        "(bw k (xor (bw k (& (bw k var_a) (bw k var_op1))) (bw k var_op1)))",
+        "(bw k (& (bw k (xor (bw k var_a) (bw k -1))) (bw k var_op1)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
 fn alive_AddSub_1165() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -65,6 +109,424 @@ fn alive_AddSub_1165() {
     eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2581() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2581");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2581",
+        &[],
+        "(bw k (xor (bw k (| (bw k var_a) (bw k var_op1))) (bw k var_op1)))",
+        "(bw k (& (bw k var_a) (bw k (xor (bw k var_op1) (bw k -1)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_InstCombineShift476() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("InstCombineShift476");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "InstCombineShift476",
+        &["(< (bw k C) (bw k 4))"],
+        "(bw k (<< (bw k (| (bw k (& (bw k (>> (bw k var_X) (bw k C))) (bw k C2))) (bw k var_Y))) (bw k C)))",
+        "(bw k (| (bw k (& (bw k var_X) (bw k (<< (bw k C2) (bw k C))))) (bw k (<< (bw k var_Y) (bw k C)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2243() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2243");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2243",
+        &[],
+        "(bw k (| (bw k (& (bw k (| (bw k var_B) (bw k var_C))) (bw k var_A))) (bw k var_B)))",
+        "(bw k (| (bw k var_B) (bw k (& (bw k var_A) (bw k var_C)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2367() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2367");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2367",
+        &[],
+        "(bw k (| (bw k (| (bw k var_A) (bw k C1))) (bw k var_op1)))",
+        "(bw k (| (bw k (| (bw k var_A) (bw k var_op1))) (bw k C1)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2247() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2247");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2247",
+        &[],
+        "(bw k (| (bw k (xor (bw k var_A) (bw k -1))) (bw k (xor (bw k var_B) (bw k -1)))))",
+        "(bw k (xor (bw k (& (bw k var_A) (bw k var_B))) (bw k -1)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2285() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2285");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2285",
+        &[],
+        "(bw k (| (bw k var_A) (bw k (xor (bw k (xor (bw k var_A) (bw k var_B))) (bw k -1)))))",
+        "(bw k (| (bw k var_A) (bw k (xor (bw k var_B) (bw k -1)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2231() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2231");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2231",
+        &[],
+        "(bw k (| (bw k (xor (bw k var_A) (bw k var_B))) (bw k (xor (bw k (xor (bw k var_B) (bw k var_C))) (bw k var_A)))))",
+        "(bw k (| (bw k (xor (bw k var_A) (bw k var_B))) (bw k var_C)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2123() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2123");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2123",
+        &[],
+        "(bw k (| (bw k (& (bw k var_A) (bw k (xor (bw k var_B) (bw k -1))))) (bw k (xor (bw k var_A) (bw k var_B)))))",
+        "(bw k (xor (bw k var_A) (bw k var_B)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2284() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2284");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2284",
+        &[],
+        "(bw k (| (bw k var_A) (bw k (xor (bw k (| (bw k var_A) (bw k var_B))) (bw k -1)))))",
+        "(bw k (| (bw k var_A) (bw k (xor (bw k var_B) (bw k -1)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2118() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2118");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2118",
+        &[],
+        "(bw k (| (bw k (& (bw k var_A) (bw k var_B))) (bw k (xor (bw k var_A) (bw k -1)))))",
+        "(bw k (| (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2265() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2265");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2265",
+        &[],
+        "(bw k (| (bw k (& (bw k var_A) (bw k var_B))) (bw k (xor (bw k var_A) (bw k var_B)))))",
+        "(bw k (| (bw k var_A) (bw k var_B)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AddSub_1043() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AddSub_1043");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AddSub_1043",
+        &[],
+        "(bw k (+ (bw k (+ (bw k (xor (bw k (& (bw k var_Z) (bw k C1))) (bw k C1))) (bw k 1))) (bw k var_RHS)))",
+        "(bw k (- (bw k var_RHS) (bw k (| (bw k var_Z) (bw k (~ (bw k C1)))))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_1230() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_1230");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_1230",
+        &[],
+        "(bw k (& (bw k (xor (bw k var_notOp0) (bw k -1))) (bw k (xor (bw k var_notOp1) (bw k -1)))))",
+        "(bw k (xor (bw k (| (bw k var_notOp0) (bw k var_notOp1))) (bw k -1)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2113() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2113");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2113",
+        &[],
+        "(bw k (| (bw k (& (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B))) (bw k var_A)))",
+        "(bw k (| (bw k var_A) (bw k var_B)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_InstCombineShift440() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("InstCombineShift440");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "InstCombineShift440",
+        &["(< (bw k C) (bw k 4))"],
+        "(bw k (<< (bw k (xor (bw k var_Y) (bw k (& (bw k (>> (bw k var_X) (bw k C))) (bw k C2))))) (bw k C)))",
+        "(bw k (xor (bw k (& (bw k var_X) (bw k (<< (bw k C2) (bw k C))))) (bw k (<< (bw k var_Y) (bw k C)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2475() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2475");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2475",
+        &[],
+        "(bw k (xor (bw k (- (bw k C) (bw k var_x))) (bw k -1)))",
+        "(bw k (+ (bw k var_x) (bw k (- (bw k -1) (bw k C)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2063() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2063");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2063",
+        &[],
+        "(bw k (| (bw k (xor (bw k var_x) (bw k C1))) (bw k C)))",
+        "(bw k (xor (bw k (| (bw k var_x) (bw k C))) (bw k (& (bw k C1) (bw k (~ (bw k C)))))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_135() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_135");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_135",
+        &[],
+        "(bw k (& (bw k (xor (bw k var_X) (bw k C1))) (bw k C2)))",
+        "(bw k (xor (bw k (& (bw k var_X) (bw k C2))) (bw k (& (bw k C1) (bw k C2)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2416() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2416");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2416",
+        &[],
+        "(bw k (xor (bw k (& (bw k (xor (bw k var_nx) (bw k -1))) (bw k var_y))) (bw k -1)))",
+        "(bw k (| (bw k var_nx) (bw k (xor (bw k var_y) (bw k -1)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
 
 
@@ -111,6 +573,204 @@ fn alive_InstCombineShift497d() {
 
 
 #[test]
+fn alive_InstCombineShift239() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("InstCombineShift239");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "InstCombineShift239",
+        &["(< (bw k C) (bw k 4))"],
+        "(bw k (>> (bw k (<< (bw k var_X) (bw k C))) (bw k C)))",
+        "(bw k (& (bw k var_X) (bw k (>> (bw k -1) (bw k C)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AddSub_1624() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AddSub_1624");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AddSub_1624",
+        &[],
+        "(bw k (- (bw k (| (bw k var_A) (bw k var_B))) (bw k (xor (bw k var_A) (bw k var_B)))))",
+        "(bw k (& (bw k var_A) (bw k var_B)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2515() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2515");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2515",
+        &["(< (bw k C2) (bw k 4))"],
+        "(bw k (xor (bw k (>> (bw k (xor (bw k var_x) (bw k C1))) (bw k C2))) (bw k C3)))",
+        "(bw k (xor (bw k (>> (bw k var_x) (bw k C2))) (bw k (xor (bw k (>> (bw k C1) (bw k C2))) (bw k C3)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2595() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2595");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2595",
+        &[],
+        "(bw k (xor (bw k (& (bw k var_a) (bw k var_b))) (bw k (| (bw k var_a) (bw k var_b)))))",
+        "(bw k (xor (bw k var_a) (bw k var_b)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_1241() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_1241");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_1241",
+        &[],
+        "(bw k (& (bw k (| (bw k var_A) (bw k var_B))) (bw k (xor (bw k (& (bw k var_A) (bw k var_B))) (bw k -1)))))",
+        "(bw k (xor (bw k var_A) (bw k var_B)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AddSub_1202() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AddSub_1202");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AddSub_1202",
+        &[],
+        "(bw k (+ (bw k (xor (bw k var_x) (bw k -1))) (bw k C)))",
+        "(bw k (- (bw k (- (bw k C) (bw k 1))) (bw k var_x)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2607() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2607");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2607",
+        &[],
+        "(bw k (xor (bw k (| (bw k var_a) (bw k (xor (bw k var_b) (bw k -1))))) (bw k (| (bw k (xor (bw k var_a) (bw k -1))) (bw k var_b)))))",
+        "(bw k (xor (bw k var_a) (bw k var_b)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2297() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2297");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2297",
+        &[],
+        "(bw k (| (bw k (& (bw k var_A) (bw k var_B))) (bw k (xor (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B)))))",
+        "(bw k (xor (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2627() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2627");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2627",
+        &[],
+        "(bw k (xor (bw k (xor (bw k var_a) (bw k var_c))) (bw k (| (bw k var_a) (bw k var_b)))))",
+        "(bw k (xor (bw k (& (bw k (xor (bw k var_a) (bw k -1))) (bw k var_b))) (bw k var_c)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
 fn alive_muldivrem_152() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -128,6 +788,50 @@ fn alive_muldivrem_152() {
     eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_1280() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_1280");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_1280",
+        &[],
+        "(bw k (& (bw k (| (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B))) (bw k var_A)))",
+        "(bw k (& (bw k var_A) (bw k var_B)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2430() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2430");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2430",
+        &[],
+        "(bw k (xor (bw k (| (bw k var_x) (bw k var_y))) (bw k -1)))",
+        "(bw k (& (bw k (xor (bw k var_x) (bw k -1))) (bw k (xor (bw k var_y) (bw k -1)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
 
 
@@ -153,6 +857,50 @@ fn alive_AddSub_1539_2() {
 
 
 #[test]
+fn alive_AddSub_1560() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AddSub_1560");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AddSub_1560",
+        &[],
+        "(bw k (- (bw k -1) (bw k var_a)))",
+        "(bw k (xor (bw k var_a) (bw k -1)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_InstCombineShift279() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("InstCombineShift279");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "InstCombineShift279",
+        &["(< (bw k C) (bw k 4))"],
+        "(bw k (<< (bw k (>> (bw k var_X) (bw k C))) (bw k C)))",
+        "(bw k (& (bw k var_X) (bw k (<< (bw k -1) (bw k C)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
 fn alive_muldivrem_229() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -170,6 +918,28 @@ fn alive_muldivrem_229() {
     eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2617() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2617");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2617",
+        &[],
+        "(bw k (xor (bw k (& (bw k var_a) (bw k (xor (bw k var_b) (bw k -1))))) (bw k (& (bw k (xor (bw k var_a) (bw k -1))) (bw k var_b)))))",
+        "(bw k (xor (bw k var_a) (bw k var_b)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
 
 
@@ -195,6 +965,28 @@ fn alive_muldivrem_239() {
 
 
 #[test]
+fn alive_AndOrXor_2486() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2486");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2486",
+        &[],
+        "(bw k (xor (bw k (+ (bw k var_x) (bw k C))) (bw k -1)))",
+        "(bw k (- (bw k (- (bw k -1) (bw k C))) (bw k var_x)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
 fn alive_Select_1105() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -212,6 +1004,248 @@ fn alive_Select_1105() {
     eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_1294() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_1294");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_1294",
+        &[],
+        "(bw k (& (bw k (| (bw k var_A) (bw k var_B))) (bw k (xor (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B)))))",
+        "(bw k (& (bw k var_A) (bw k var_B)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2647() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2647");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2647",
+        &[],
+        "(bw k (xor (bw k (& (bw k var_a) (bw k var_b))) (bw k (xor (bw k var_a) (bw k var_b)))))",
+        "(bw k (| (bw k var_a) (bw k var_b)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2263() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2263");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2263",
+        &[],
+        "(bw k (| (bw k var_op0) (bw k (xor (bw k var_op0) (bw k var_B)))))",
+        "(bw k (| (bw k var_op0) (bw k var_B)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2188() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2188");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2188",
+        &[],
+        "(bw k (| (bw k (& (bw k var_A) (bw k (xor (bw k var_D) (bw k -1))))) (bw k (& (bw k (xor (bw k var_A) (bw k -1))) (bw k var_D)))))",
+        "(bw k (xor (bw k var_A) (bw k var_D)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2429() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2429");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2429",
+        &[],
+        "(bw k (xor (bw k (& (bw k var_x) (bw k var_y))) (bw k -1)))",
+        "(bw k (| (bw k (xor (bw k var_x) (bw k -1))) (bw k (xor (bw k var_y) (bw k -1)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2264() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2264");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2264",
+        &[],
+        "(bw k (| (bw k var_A) (bw k (xor (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B)))))",
+        "(bw k (| (bw k var_A) (bw k (xor (bw k var_B) (bw k -1)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_1247() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_1247");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_1247",
+        &[],
+        "(bw k (& (bw k (xor (bw k (& (bw k var_A) (bw k var_B))) (bw k -1))) (bw k (| (bw k var_A) (bw k var_B)))))",
+        "(bw k (xor (bw k var_A) (bw k var_B)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_2658() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_2658");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2658",
+        &[],
+        "(bw k (xor (bw k (& (bw k var_a) (bw k (xor (bw k var_b) (bw k -1))))) (bw k (xor (bw k var_a) (bw k -1)))))",
+        "(bw k (xor (bw k (& (bw k var_a) (bw k var_b))) (bw k -1)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_1253() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_1253");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_1253",
+        &[],
+        "(bw k (& (bw k (xor (bw k var_A) (bw k var_B))) (bw k var_A)))",
+        "(bw k (& (bw k var_A) (bw k (xor (bw k var_B) (bw k -1)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AddSub_1295() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AddSub_1295");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AddSub_1295",
+        &[],
+        "(bw k (+ (bw k (& (bw k var_a) (bw k var_b))) (bw k (xor (bw k var_a) (bw k var_b)))))",
+        "(bw k (| (bw k var_a) (bw k var_b)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_144() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_144");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_144",
+        &[],
+        "(bw k (& (bw k (| (bw k var_X) (bw k C1))) (bw k C2)))",
+        "(bw k (& (bw k (| (bw k var_X) (bw k (& (bw k C1) (bw k C2))))) (bw k C2)))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
 
 
@@ -237,6 +1271,72 @@ fn alive_AddSub_1614() {
 
 
 #[test]
+fn alive_InstCombineShift497a() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("InstCombineShift497a");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "InstCombineShift497a",
+        &["(< (bw k C) (bw k 4))"],
+        "(bw k (>> (bw k (xor (bw k var_X) (bw k C2))) (bw k C)))",
+        "(bw k (xor (bw k (>> (bw k var_X) (bw k C))) (bw k (>> (bw k C2) (bw k C)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AddSub_1564() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AddSub_1564");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AddSub_1564",
+        &[],
+        "(bw k (- (bw k C) (bw k (xor (bw k var_x) (bw k -1)))))",
+        "(bw k (+ (bw k var_x) (bw k (+ (bw k C) (bw k 1)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_AndOrXor_1288() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("AndOrXor_1288");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_1288",
+        &[],
+        "(bw k (& (bw k (xor (bw k var_A) (bw k var_B))) (bw k (xor (bw k (xor (bw k var_B) (bw k var_C))) (bw k var_A)))))",
+        "(bw k (& (bw k (xor (bw k var_A) (bw k var_B))) (bw k (xor (bw k var_C) (bw k -1)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
+}
+
+
+#[test]
 fn alive_AddSub_1176() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -254,6 +1354,28 @@ fn alive_AddSub_1176() {
     eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+fn alive_InstCombineShift582() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive")
+        .join("InstCombineShift582");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "InstCombineShift582",
+        &["(< (bw k C) (bw k 4))"],
+        "(bw k (>> (bw k (<< (bw k var_X) (bw k C))) (bw k C)))",
+        "(bw k (& (bw k var_X) (bw k (>> (bw k -1) (bw k C)))))",
+    );
+    #[allow(unused_variables)]
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
 
 
