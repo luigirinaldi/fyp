@@ -17,6 +17,10 @@ define_language! {
         // bitvector operators
         ">>" = ShiftR([Id;2]),
         "<<" = ShiftL([Id;2]),
+        "&" = And([Id;2]),
+        "|" = Or([Id;2]),
+        "⊕" = Xor([Id;2]),
+        "~" = Not([Id; 1]),
         // Operators to handle preconditions
         ">"  = GT([Id; 2]),
         ">=" = GTE([Id; 2]),
