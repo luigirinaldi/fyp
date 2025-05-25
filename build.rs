@@ -48,10 +48,9 @@ fn {fn_name}() {{
         "{rhs}",
     );
     #[allow(unused_variables)]
-    let proof_name = eq
-        .find_equivalence(None, Some(output_dir.clone()))
-        .unwrap()
-        .to_isabelle(&output_dir, true);
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }}

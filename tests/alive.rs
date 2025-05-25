@@ -19,10 +19,9 @@ fn alive_AddSub_1164() {
         "(bw k (- (bw k var_b) (bw k var_a)))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq
-        .find_equivalence(None, Some(output_dir.clone()))
-        .unwrap()
-        .to_isabelle(&output_dir, true);
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -42,10 +41,9 @@ fn alive_AddSub_1574() {
         "(bw k (- (bw k (- (bw k C) (bw k C2))) (bw k var_X)))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq
-        .find_equivalence(None, Some(output_dir.clone()))
-        .unwrap()
-        .to_isabelle(&output_dir, true);
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -65,10 +63,9 @@ fn alive_AddSub_1165() {
         "(bw k (- (bw k 0) (bw k (+ (bw k var_a) (bw k var_b)))))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq
-        .find_equivalence(None, Some(output_dir.clone()))
-        .unwrap()
-        .to_isabelle(&output_dir, true);
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -88,10 +85,9 @@ fn alive_muldivrem_152() {
         "(bw k (- (bw k 0) (bw k var_x)))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq
-        .find_equivalence(None, Some(output_dir.clone()))
-        .unwrap()
-        .to_isabelle(&output_dir, true);
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -111,10 +107,9 @@ fn alive_AddSub_1539_2() {
         "(bw k (+ (bw k var_x) (bw k (- (bw k C)))))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq
-        .find_equivalence(None, Some(output_dir.clone()))
-        .unwrap()
-        .to_isabelle(&output_dir, true);
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -134,10 +129,9 @@ fn alive_muldivrem_229() {
         "(bw k (+ (bw k (* (bw k var_X) (bw k var_Op1))) (bw k (* (bw k C1) (bw k var_Op1)))))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq
-        .find_equivalence(None, Some(output_dir.clone()))
-        .unwrap()
-        .to_isabelle(&output_dir, true);
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -157,10 +151,9 @@ fn alive_muldivrem_239() {
         "(bw k (* (bw k var_X) (bw k var_Y)))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq
-        .find_equivalence(None, Some(output_dir.clone()))
-        .unwrap()
-        .to_isabelle(&output_dir, true);
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -180,10 +173,9 @@ fn alive_Select_1105() {
         "(bw k var_Y)",
     );
     #[allow(unused_variables)]
-    let proof_name = eq
-        .find_equivalence(None, Some(output_dir.clone()))
-        .unwrap()
-        .to_isabelle(&output_dir, true);
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -203,10 +195,9 @@ fn alive_AddSub_1614() {
         "(bw k (- (bw k 0) (bw k var_Y)))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq
-        .find_equivalence(None, Some(output_dir.clone()))
-        .unwrap()
-        .to_isabelle(&output_dir, true);
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -226,10 +217,9 @@ fn alive_AddSub_1176() {
         "(bw k (- (bw k var_a) (bw k var_b)))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq
-        .find_equivalence(None, Some(output_dir.clone()))
-        .unwrap()
-        .to_isabelle(&output_dir, true);
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -249,10 +239,9 @@ fn alive_AddSub_1619() {
         "(bw k (- (bw k 0) (bw k var_Y)))",
     );
     #[allow(unused_variables)]
-    let proof_name = eq
-        .find_equivalence(None, Some(output_dir.clone()))
-        .unwrap()
-        .to_isabelle(&output_dir, true);
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
@@ -272,10 +261,9 @@ fn alive_Select_1100() {
         "(bw k var_X)",
     );
     #[allow(unused_variables)]
-    let proof_name = eq
-        .find_equivalence(None, Some(output_dir.clone()))
-        .unwrap()
-        .to_isabelle(&output_dir, true);
+    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(proof_opt.is_some(), "Equivalence was not found");
+    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
     check_isabelle_proof(proof_name, &output_dir).unwrap();
 }
