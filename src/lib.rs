@@ -260,8 +260,11 @@ impl Equivalence {
                     // Using add to allow for simplication of constants
                     "constant_prop" => String::from("by (simp add: bw_def)"),
                     // use add instead of only to convert between nat type and int
-                    "shl_def" => String::from("by (simp add: shl_def)"),
-                    "shr_def" => String::from("by (simp add: shr_def)"),
+                    val @ ("shl_def" | "shr_def") => format!("by (simp add: {val})"),
+                    // need to use blast for diff_eq
+                    val @ ("diff_left_eq_prec" | "diff_right_eq_prec") => {
+                        format!("using that {val} by auto")
+                    }
                     val @ ("div_pow_join" | "div_mult_self" | "div_same") => {
                         format!("using that inferred_facts by (simp only: {val})")
                     }
