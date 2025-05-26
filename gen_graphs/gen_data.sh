@@ -26,9 +26,10 @@ mkdir -p "$DEST_DIR"
 # --- Functions ---
 run_mirabelle() {
   DIR="$1"
-  ROOT_FILE="$DIR/ROOT"
+  BASE_NAME="$2"
+  MODE="$3"  # either "lemma" or "no_lemma"
 
-  # Clear or create the ROOT file
+  ROOT_FILE="$DIR/ROOT"
   > "$ROOT_FILE"
 
   cp ./proofs/rewrite_lemmas.thy "$DIR"
@@ -38,9 +39,10 @@ run_mirabelle() {
   echo "options [quick_and_dirty]" >> "$ROOT_FILE"
   echo "theories" >> "$ROOT_FILE"
 
-  DATA_OUT_PRE="./gen_graphs/data/$(basename "$DIR")"
-  sys_data="$DATA_OUT_PRE"_system.json
-  mkdir -p "$(dirname "$sys_data")"
+  DATA_OUT_DIR="./gen_graphs/data/$BASE_NAME/$MODE"
+  mkdir -p "$DATA_OUT_DIR"
+
+  sys_data="$DATA_OUT_DIR/system.json"
   echo "[" >> "$sys_data"
 
   find "$DIR" -type f -name "*.thy" | while read -r file; do
@@ -53,7 +55,7 @@ run_mirabelle() {
     fi
 
     echo "  $name_only" >> "$ROOT_FILE"
-    echo "Mirabelle running for $name_only"
+    echo "Mirabelle running for $name_only ($MODE)"
 
     stdbuf -oL /usr/bin/time --output="$sys_data" -a --format="{\"name\":\"$name_only\", \"cpu\":\"%P\", \"mem\":%M}," \
       "$ISABELLE_PATH" mirabelle -d "$DIR" -O "$DIR/mirabelle_out" \
@@ -62,13 +64,12 @@ run_mirabelle() {
   done
 
   echo "]" >> "$sys_data"
-  cp "$DIR/mirabelle_out/mirabelle.log" "$DATA_OUT_PRE""_mirabelle.log"
-  python ./gen_graphs/parse_mirabelle.py "$DIR/mirabelle_out/mirabelle.log" "$DATA_OUT_PRE"".json"
+
+  cp "$DIR/mirabelle_out/mirabelle.log" "$DATA_OUT_DIR/mirabelle.log"
+  python ./gen_graphs/parse_mirabelle.py "$DIR/mirabelle_out/mirabelle.log" "$DATA_OUT_DIR/parsed.json"
 }
 
 # --- Main Processing Loop ---
-
-mkdir -p "./gen_graphs/data"
 
 find "$SRC_DIR" -type f -name "*.json" | while read -r file; do
   base_name=$(basename "$file" .json)
@@ -88,6 +89,6 @@ find "$SRC_DIR" -type f -name "*.json" | while read -r file; do
   "$BIN_PATH" "$file" --skip-equiv --theorem-path "$LEMMA_DIR" > /dev/null
 
   # Run Mirabelle
-  run_mirabelle "$NO_LEMMA_DIR"
-  run_mirabelle "$LEMMA_DIR"
+  run_mirabelle "$NO_LEMMA_DIR" "$base_name" "no_lemma"
+  run_mirabelle "$LEMMA_DIR" "$base_name" "lemma"
 done
