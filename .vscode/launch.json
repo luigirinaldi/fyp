@@ -1,0 +1,121 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'hello_world'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=hello-world"
+                ],
+                "filter": {
+                    "name": "hello_world",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'hello-world'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=hello-world",
+                    "--package=hello-world"
+                ],
+                "filter": {
+                    "name": "hello-world",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'hello-world' with args",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=hello-world",
+                    "--package=hello-world"
+                ],
+                "filter": {
+                    "name": "hello-world",
+                    "kind": "bin"
+                }
+            },
+            "args": ["test_data/alive.json", "-c" ,"--theorem-path","./target/alive/proof"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'hello-world'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=hello-world",
+                    "--package=hello-world"
+                ],
+                "filter": {
+                    "name": "hello-world",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'alive'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=alive",
+                    "--package=hello-world"
+                ],
+                "filter": {
+                    "name": "alive",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'rover'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=rover",
+                    "--package=hello-world"
+                ],
+                "filter": {
+                    "name": "rover",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

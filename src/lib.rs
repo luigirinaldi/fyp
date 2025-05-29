@@ -1,6 +1,7 @@
 use crate::Symbol;
 use egg::*;
 use language::ModAnalysis;
+use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::Write;
@@ -354,7 +355,13 @@ for {nat_string} :: nat and {int_string} :: int\n",
         proof_file.write("\nend\n".as_bytes()).unwrap();
     }
 
-    pub fn check_proof(&self, path: &Path) -> Result<(), std::io::Error> {
+    pub fn check_proof(
+        &self,
+        path: &Path,
+    ) -> Result<
+        std::option::Option<HashMap<std::string::String, Vec<std::string::String>>>,
+        std::io::Error,
+    > {
         return check_isabelle_proof(&vec![self.name.clone()], self.name.clone(), path);
     }
 }

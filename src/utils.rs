@@ -11,6 +11,9 @@ use std::io::{Error, Write};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
+use regex::Regex;
+use std::collections::HashMap;
+
 use std::fs;
 
 pub fn get_inferred_truths(
@@ -159,11 +162,77 @@ pub fn print_infix(
     }
 }
 
+/// Represents a session and its failing theories
+type FailingTheories = HashMap<String, Vec<String>>;
+
+/// Process the input log, detect failing sessions, parse failing theories
+fn find_failing_theories(log: &str) -> Result<FailingTheories, Error> {
+    let mut result: FailingTheories = HashMap::new();
+
+    // Regex to find lines like `{a} failed (see also "isabelle build_log -H Error {a}")`
+    let failure_regex =
+        Regex::new(r#"(?m)^(\w+) FAILED \(see also "isabelle build_log -H Error (\w+)"\)$"#)
+            .unwrap();
+
+    // Regex to find lines like `Theory "{a}.{b}" (in {a})`
+    let theory_regex = Regex::new(r#"Theory\s+"(\w+).(\w+)"\s+\(in\s+(\w+)\):"#).unwrap();
+
+    // Iterate over each failure match
+    for cap in failure_regex.captures_iter(log) {
+        let session = cap[1].to_string();
+        assert!(cap[1] == cap[2], "captured session doesn't match");
+
+        // Run `isabelle build_log -H Error {session}`
+        let output = Command::new("isabelle")
+            .args(["build_log", "-H", "Error", &session])
+            .output();
+
+        match output {
+            Ok(o) => {
+                let stdout = String::from_utf8_lossy(&o.stdout);
+
+                // Parse output for theory failures
+                for cap in theory_regex.captures_iter(&stdout) {
+                    assert!(cap[1] == cap[3], "captured session doesn't match");
+
+                    let _session_check = &cap[1];
+                    let theory = cap[2].to_string();
+                    println!("Found broken theory: {theory} in session {_session_check}");
+                    result.entry(session.clone()).or_default().push(theory);
+                }
+            }
+            Err(e) => {
+                eprintln!("Error found when running build_log -H for {session}");
+                return Err(e);
+            }
+        }
+    }
+
+    Result::Ok(result)
+}
+
+// // Example usage
+// fn main() {
+//     let log_data = r#"
+// Session1 failed (see also "isabelle build_log -H Error Session1")
+// Session2 failed (see also "isabelle build_log -H Error Session2")
+// "#;
+
+//     let failing = find_failing_theories(log_data);
+
+//     for (session, theories) in failing {
+//         println!("Session: {}", session);
+//         for theory in theories {
+//             println!("  Failing Theory: {}", theory);
+//         }
+//     }
+// }
+
 pub fn check_isabelle_proof(
     theorems: &Vec<String>,
     session_name: String,
     path: &Path,
-) -> Result<(), Error> {
+) -> Result<Option<HashMap<String, Vec<String>>>, Error> {
     // Copy rewrite lemma file
     if let Err(e) = fs::copy(
         "./proofs/rewrite_lemmas.thy",
@@ -213,10 +282,17 @@ pub fn check_isabelle_proof(
         Ok(o) => {
             if !o.status.success() {
                 eprintln!("Bash command exited with an error.");
-                Err(Error::other("proof couldn't be verified with isabelle"))
+
+                match find_failing_theories(&String::from_utf8_lossy(&o.stdout)) {
+                    Ok(failing_theorems) => Ok(Some(failing_theorems)),
+                    Err(e) => {
+                        eprintln!("Error while processing the logs");
+                        Err(Error::other("proof couldn't be verified with isabelle"))
+                    }
+                }
             } else {
                 println!("Proof verified by Isabelle!");
-                Ok(())
+                Ok(None)
             }
         }
         Err(e) => {
