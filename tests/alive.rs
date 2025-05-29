@@ -23,7 +23,7 @@ fn alive_AddSub_1164() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -45,7 +45,7 @@ fn alive_AddSub_1574() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -67,7 +67,7 @@ fn alive_AddSub_1165() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -89,7 +89,7 @@ fn alive_muldivrem_290_292() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -111,7 +111,7 @@ fn alive_InstCombineShift497d() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -133,7 +133,7 @@ fn alive_muldivrem_152() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -155,7 +155,7 @@ fn alive_AddSub_1539_2() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -177,7 +177,7 @@ fn alive_muldivrem_229() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -199,7 +199,7 @@ fn alive_muldivrem_239() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -221,7 +221,7 @@ fn alive_Select_1105() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -243,7 +243,7 @@ fn alive_AddSub_1614() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -265,7 +265,7 @@ fn alive_AddSub_1176() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -287,7 +287,7 @@ fn alive_AddSub_1619() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -309,6 +309,6 @@ fn alive_Select_1100() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 

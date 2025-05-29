@@ -23,7 +23,7 @@ fn bitvector_shifts_merge_left_shift() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -45,7 +45,7 @@ fn bitvector_shifts_merge_right_shift() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -67,7 +67,7 @@ fn bitvector_shifts_left_shift_add_1() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -89,7 +89,7 @@ fn bitvector_shifts_left_shift_add_2() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -111,7 +111,7 @@ fn bitvector_shifts_add_right_shift() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -133,7 +133,7 @@ fn bitvector_shifts_left_shift_mult() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
 
@@ -155,6 +155,6 @@ fn bitvector_shifts_one_to_two_mult() {
     assert!(proof_opt.is_some(), "Equivalence was not found");
     let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(proof_name, &output_dir).unwrap();
+    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
 }
 
