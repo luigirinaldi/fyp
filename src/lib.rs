@@ -95,7 +95,8 @@ impl Equivalence {
             equiv: None,
             runner: Runner::<ModIR, ModAnalysis>::default()
                 .with_explanations_enabled()
-                .with_time_limit(Duration::from_secs(20)),
+                .with_time_limit(Duration::from_secs(20))
+                .with_iter_limit(50),
         };
 
         ret_self
