@@ -33,7 +33,7 @@ pub fn get_inferred_truths(
 
             if let Some(just) = reason.as_str().strip_prefix("inferred_") {
                 let expr = egraph.id_to_expr(id);
-                println!("found {id:?} with reason {}:\n{}", reason, expr);
+                // println!("found {id:?} with reason {}:\n{}", reason, expr);
                 Some((String::from(just), expr))
             } else {
                 None

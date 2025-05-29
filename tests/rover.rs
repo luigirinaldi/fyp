@@ -6,10 +6,10 @@ use hello_world::*;
 
 
 #[test]
-fn bitvector_arith_commutativity_add() {
+fn rover_commutativity_add() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("commutativity_add");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -27,10 +27,10 @@ fn bitvector_arith_commutativity_add() {
 
 
 #[test]
-fn bitvector_arith_commutativity_mult() {
+fn rover_commutativity_mult() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("commutativity_mult");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -48,10 +48,10 @@ fn bitvector_arith_commutativity_mult() {
 
 
 #[test]
-fn bitvector_arith_mult_assoc_1() {
+fn rover_mult_assoc_1() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("mult_assoc_1");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -69,10 +69,10 @@ fn bitvector_arith_mult_assoc_1() {
 
 
 #[test]
-fn bitvector_arith_mult_assoc_2() {
+fn rover_mult_assoc_2() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("mult_assoc_2");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -90,10 +90,10 @@ fn bitvector_arith_mult_assoc_2() {
 
 
 #[test]
-fn bitvector_arith_mult_assoc_3() {
+fn rover_mult_assoc_3() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("mult_assoc_3");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -111,10 +111,10 @@ fn bitvector_arith_mult_assoc_3() {
 
 
 #[test]
-fn bitvector_arith_mult_assoc_4() {
+fn rover_mult_assoc_4() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("mult_assoc_4");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -132,10 +132,10 @@ fn bitvector_arith_mult_assoc_4() {
 
 
 #[test]
-fn bitvector_arith_add_assoc_1() {
+fn rover_add_assoc_1() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("add_assoc_1");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -153,10 +153,10 @@ fn bitvector_arith_add_assoc_1() {
 
 
 #[test]
-fn bitvector_arith_add_assoc_2() {
+fn rover_add_assoc_2() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("add_assoc_2");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -174,10 +174,10 @@ fn bitvector_arith_add_assoc_2() {
 
 
 #[test]
-fn bitvector_arith_add_assoc_3() {
+fn rover_add_assoc_3() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("add_assoc_3");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -195,10 +195,10 @@ fn bitvector_arith_add_assoc_3() {
 
 
 #[test]
-fn bitvector_arith_add_assoc_4() {
+fn rover_add_assoc_4() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("add_assoc_4");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -216,10 +216,10 @@ fn bitvector_arith_add_assoc_4() {
 
 
 #[test]
-fn bitvector_arith_dist_over_add() {
+fn rover_dist_over_add() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("dist_over_add");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -237,10 +237,10 @@ fn bitvector_arith_dist_over_add() {
 
 
 #[test]
-fn bitvector_arith_sum_same() {
+fn rover_sum_same() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("sum_same");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -258,10 +258,10 @@ fn bitvector_arith_sum_same() {
 
 
 #[test]
-fn bitvector_arith_mult_sum_same() {
+fn rover_mult_sum_same() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("mult_sum_same");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -279,10 +279,10 @@ fn bitvector_arith_mult_sum_same() {
 
 
 #[test]
-fn bitvector_arith_add_zero() {
+fn rover_add_zero() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("add_zero");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -300,10 +300,10 @@ fn bitvector_arith_add_zero() {
 
 
 #[test]
-fn bitvector_arith_sub_to_neg() {
+fn rover_sub_to_neg() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("sub_to_neg");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -321,15 +321,15 @@ fn bitvector_arith_sub_to_neg() {
 
 
 #[test]
-fn bitvector_arith_mul_one() {
+fn rover_mul_one() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("mul_one");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "mul_one",
-        &["(>= p p)"],
+        &[],
         "(bw p (* (bw p a) (bw q 1)))",
         "(bw p a)",
     );
@@ -342,10 +342,10 @@ fn bitvector_arith_mul_one() {
 
 
 #[test]
-fn bitvector_arith_mul_two() {
+fn rover_mul_two() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("bitvector_arith")
+        .join("rover")
         .join("mul_two");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
@@ -353,6 +353,153 @@ fn bitvector_arith_mul_two() {
         &[],
         "(bw r (* (bw p a) 2))",
         "(bw r (<< (bw p a) 1))",
+    );
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+fn rover_merge_left_shift() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("rover")
+        .join("merge_left_shift");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "merge_left_shift",
+        &["(>= u r)", "(> t s)", "(> t q)"],
+        "(bw r (<< (bw u (<< (bw p a) (bw q b))) (bw s c)))",
+        "(bw r (<< (bw p a) (bw t (+ (bw q b) (bw s c)))))",
+    );
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+fn rover_merge_right_shift() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("rover")
+        .join("merge_right_shift");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "merge_right_shift",
+        &["(>= u p)", "(> t s)", "(> t q)"],
+        "(bw r (>> (bw u (>> (bw p a) (bw q b))) (bw s c)))",
+        "(bw r (>> (bw p a) (bw t (+ (bw q b) (bw s c)))))",
+    );
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+fn rover_left_shift_add_1() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("rover")
+        .join("left_shift_add_1");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "left_shift_add_1",
+        &["(>= u r)", "(>= s r)"],
+        "(bw r (<< (bw s (+ (bw p a) (bw q b))) (bw t c)))",
+        "(bw r (+ (bw u (<< (bw p a) (bw t c))) (bw u (<< (bw q b) (bw t c)))))",
+    );
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+fn rover_left_shift_add_2() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("rover")
+        .join("left_shift_add_2");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "left_shift_add_2",
+        &["(>= u r)", "(> s p)", "(> s q)"],
+        "(bw r (<< (bw s (+ (bw p a) (bw q b))) (bw t c)))",
+        "(bw r (+ (bw u (<< (bw p a) (bw t c))) (bw u (<< (bw q b) (bw t c)))))",
+    );
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+fn rover_add_right_shift() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("rover")
+        .join("add_right_shift");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "add_right_shift",
+        &["(>= q t)", "(>= s (+ p (- (^ 2 u) 1)))", "(> v s)", "(> v t)"],
+        "(bw r (+ (bw p a) (bw q (>> (bw t b) (bw u c)))))",
+        "(bw r (>> (bw v (+ (bw s (<< (bw p a) (bw u c))) (bw t b))) (bw u c)))",
+    );
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+fn rover_left_shift_mult() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("rover")
+        .join("left_shift_mult");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "left_shift_mult",
+        &["(>= t r)", "(>= v r)"],
+        "(bw r (<< (bw t (* (bw p a) (bw q b))) (bw u c)))",
+        "(bw r (* (bw v (<< (bw p a) (bw u c))) (bw q b)))",
+    );
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
+    #[cfg(not(feature = "skip_isabelle"))]
+    eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+fn rover_one_to_two_mult() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("rover")
+        .join("one_to_two_mult");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "one_to_two_mult",
+        &["(> q (+ p 2))", "(> q p)"],
+        "(bw p (* (bw 1 1) (bw p x)))",
+        "(bw p (- (bw q (* (bw 2 2) (bw p x))) (bw p x)))",
     );
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");

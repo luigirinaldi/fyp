@@ -6,6 +6,8 @@ use std::{
     path::PathBuf,
 };
 
+use tqdm::tqdm;
+
 use clap::Parser;
 use egg::{Iteration, Report};
 use hello_world::{check_isabelle_proof, prepare_output_dir, Equivalence, EquivalenceString};
@@ -66,39 +68,41 @@ fn main() -> Result<(), std::io::Error> {
     // println!("{:#?}", test_cases);
     println!("Found {} test-cases", test_cases.len());
 
-    let checked_equivs = test_cases.iter().map(|case| {
-        let mut equiv = Equivalence::new(
-            &case.name,
-            &case
-                .preconditions
-                .iter()
-                .map(|s| s.as_str())
-                .collect::<Vec<&str>>(),
-            &case.lhs,
-            &case.rhs,
-        );
+    let checked_equivs: Vec<Equivalence> = tqdm(test_cases.iter())
+        .map(|case| {
+            let mut equiv = Equivalence::new(
+                &case.name,
+                &case
+                    .preconditions
+                    .iter()
+                    .map(|s| s.as_str())
+                    .collect::<Vec<&str>>(),
+                &case.lhs,
+                &case.rhs,
+            );
 
-        if !cli.skip_equiv {
-            // === Construct case-specific dot_path and expl_path ===
-            let dot_path = cli.dot_path.as_ref().map(|base| {
-                let path = base.join(&case.name);
-                prepare_output_dir(&path, true);
-                path
-            });
+            if !cli.skip_equiv {
+                // === Construct case-specific dot_path and expl_path ===
+                let dot_path = cli.dot_path.as_ref().map(|base| {
+                    let path = base.join(&case.name);
+                    prepare_output_dir(&path, true);
+                    path
+                });
 
-            let expl_path = cli.expl_path.as_ref().map(|base| {
-                let path = base.join(&case.name);
-                prepare_output_dir(&path, true);
-                path
-            });
-            equiv = equiv.find_equivalence(dot_path, expl_path);
-        }
+                let expl_path = cli.expl_path.as_ref().map(|base| {
+                    let path = base.join(&case.name);
+                    prepare_output_dir(&path, true);
+                    path
+                });
+                equiv = equiv.find_equivalence(dot_path, expl_path);
+            }
 
-        if let Some(th_path) = &cli.theorem_path {
-            equiv.to_isabelle(th_path, !cli.def_only);
-        }
-        equiv
-    });
+            if let Some(th_path) = &cli.theorem_path {
+                equiv.to_isabelle(th_path, !cli.def_only);
+            }
+            equiv
+        })
+        .collect();
 
     if let Some(info_path) = cli.runner_stats {
         if info_path.exists() {
@@ -108,7 +112,7 @@ fn main() -> Result<(), std::io::Error> {
         }
 
         let stats: HashMap<String, EquivRunnerInfo> = checked_equivs
-            .clone()
+            .iter()
             .map(|e| {
                 (
                     e.name.clone(),

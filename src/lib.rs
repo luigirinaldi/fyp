@@ -98,12 +98,6 @@ impl Equivalence {
                 .with_time_limit(Duration::from_secs(20)),
         };
 
-        println!(
-            "Created the following equivalence: \n{}\n =?\n{}\nwith the following conditions: {:}",
-            ret_self.lhs.to_string(),
-            ret_self.rhs.to_string(),
-            ret_self.precond_str()
-        );
         ret_self
     }
 
@@ -164,7 +158,6 @@ impl Equivalence {
 
         self.runner = self.runner.run(rewrite_rules);
 
-        self.runner.print_report();
         self.inferred_truths = Some(get_inferred_truths(&self.runner.egraph));
 
         let equiv = !self.runner.egraph.equivs(&lhs_clone, &rhs_clone).is_empty();
@@ -211,10 +204,7 @@ impl Equivalence {
         if let Some(path) = save_out {
             let mut file = File::create(path.join("explanation.txt")).unwrap();
             file.write(out_str.as_bytes()).unwrap();
-        } else {
-            print!("{}", out_str);
         }
-        // equiv
         self
     }
 
@@ -227,8 +217,6 @@ impl Equivalence {
         };
 
         assert!(!flat_terms.is_empty(), "Empty flat_terms vector");
-
-        let mut prev_term = flat_terms[0].remove_rewrites();
 
         let extra_facts = self
             .inferred_truths
@@ -260,18 +248,9 @@ impl Equivalence {
                 } else {
                     fw.unwrap()
                 };
-                // assuming if one isn't defined the other one is
-                let rw_dir = fw.is_some();
                 let next_term_str =
                     print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false);
-                println!(
-                    "{}: {} {} {} using {}",
-                    i,
-                    print_infix(&prev_term.get_recexpr(), &self.bw_vars, false),
-                    if rw_dir { "->" } else { "<-" },
-                    next_term_str,
-                    rw
-                );
+
                 // Remove any '-rev' rewrites introduced by the double sided rewrite macro
                 let rewrite_str = rw.to_string().replace("-rev", "");
                 // Proof tactic based on the rewrite, by default use "simp only"
@@ -295,7 +274,6 @@ impl Equivalence {
                     term = next_term_str,
                     proof = proof_tactic
                 );
-                prev_term = term.remove_rewrites();
             }
             proof_str += "ultimately show ?thesis by argo\nqed\n";
             Some(proof_str)

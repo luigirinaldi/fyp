@@ -153,7 +153,7 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
 
     // add to the egraph in case the inference is successful
     if let Some(just) = truth_reason {
-        println!("found new truth {} because {just}", condition.to_string());
+        // println!("found new truth {} because {just}", condition.to_string());
         let cond_id = egraph.add_expr(condition);
         // get the truth id, it should exist within the egraph at this point
         let truth_id = egraph.lookup(ModIR::Bool(true)).unwrap();

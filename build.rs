@@ -5,14 +5,12 @@ use std::path::PathBuf;
 include!("src/types.rs");
 
 fn main() {
-    println!("cargo:rerun-if-changed=test_data/bitvector_arith.json");
-    println!("cargo:rerun-if-changed=test_data/bitvector_shifts.json");
+    println!("cargo:rerun-if-changed=test_data/rover.json");
     println!("cargo:rerun-if-changed=test_data/alive.json");
 
     let files = vec![
-        ("bitvector_arith", "test_data/bitvector_arith.json"),
+        ("rover", "test_data/rover.json"),
         ("alive", "test_data/alive.json"),
-        ("bitvector_shifts", "test_data/bitvector_shifts.json"),
     ];
 
     for (prefix, file_path) in files {
