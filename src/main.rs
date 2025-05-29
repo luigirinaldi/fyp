@@ -1,5 +1,10 @@
 // use serde::Deserialize;
-use std::{fs, path::PathBuf};
+use std::{
+    collections::HashMap,
+    fs::{self, File},
+    io::Write,
+    path::PathBuf,
+};
 
 use clap::Parser;
 use egg::{Iteration, Report};
@@ -94,6 +99,30 @@ fn main() -> Result<(), std::io::Error> {
         }
         equiv
     });
+
+    if let Some(info_path) = cli.runner_stats {
+        if info_path.exists() {
+            assert!(info_path.is_file(), "Runner stats path has to be a file");
+        } else {
+            prepare_output_dir(&info_path.parent().unwrap().to_path_buf(), false);
+        }
+
+        let stats: HashMap<String, EquivRunnerInfo> = checked_equivs
+            .clone()
+            .map(|e| {
+                (
+                    e.name.clone(),
+                    EquivRunnerInfo {
+                        summary: e.runner.report(),
+                        iteration_info: e.runner.iterations.clone(),
+                    },
+                )
+            })
+            .collect();
+
+        let mut file_out = File::create(&info_path)?;
+        write!(file_out, "{}", serde_json::to_string(&stats).unwrap())?;
+    }
 
     let (true_equivs, false_equivs): (Vec<_>, Vec<_>) = checked_equivs
         .into_iter()
