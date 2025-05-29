@@ -78,9 +78,8 @@ fn main() -> Result<(), std::io::Error> {
                 prepare_output_dir(&path, true);
                 path
             });
-            equiv
-                .find_equivalence(dot_path, expl_path)
-                .map_or(Some(false), |_| Some(true))
+            equiv = equiv.find_equivalence(dot_path, expl_path);
+            equiv.equiv
         } else {
             None
         };
@@ -93,7 +92,7 @@ fn main() -> Result<(), std::io::Error> {
 
     let (true_equivs, false_equivs): (Vec<_>, Vec<_>) = checked_equivs
         .into_iter()
-        .partition(|(res, _)| res == &Some(true));
+        .partition(|(res, _)| res.is_some_and(|x| x));
 
     let true_equivs_names = true_equivs
         .into_iter()

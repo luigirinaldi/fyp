@@ -27,10 +27,12 @@ pub struct Equivalence {
     pub preconditions: Vec<RecExpr<ModIR>>,
     pub lhs: RecExpr<ModIR>,
     pub rhs: RecExpr<ModIR>,
+    pub equiv: Option<bool>,
     bw_vars: HashSet<Symbol>,
     non_bw_vars: HashSet<Symbol>,
     proof: Option<Vec<egg::FlatTerm<ModIR>>>,
     inferred_truths: Option<Vec<(String, RecExpr<ModIR>)>>,
+    runner: Runner<ModIR, ModAnalysis>,
 }
 
 impl Equivalence {
@@ -90,6 +92,10 @@ impl Equivalence {
             non_bw_vars: non_bw_vars,
             proof: None,
             inferred_truths: None,
+            equiv: None,
+            runner: Runner::<ModIR, ModAnalysis>::default()
+                .with_explanations_enabled()
+                .with_time_limit(Duration::from_secs(20)),
         };
 
         println!(
@@ -111,19 +117,18 @@ impl Equivalence {
     }
 
     pub fn find_equivalence(
-        &mut self,
+        mut self,
         make_dot: Option<PathBuf>,
         save_out: Option<PathBuf>,
-    ) -> Option<&Self> {
+    ) -> Self {
         let (lhs_clone, rhs_clone) = (self.lhs.clone(), self.rhs.clone());
         let (lhs_for_dot, rhs_for_dot) = (self.lhs.clone(), self.rhs.clone());
 
         let make_dot: Option<PathBuf> = make_dot.map(|p| p.to_path_buf());
 
         // Set up the runner with optional dot file generation
-        let mut runner: Runner<ModIR, ModAnalysis> = Runner::default()
-            .with_explanations_enabled()
-            .with_time_limit(Duration::from_secs(20))
+        self.runner = self
+            .runner
             .with_hook(move |runner| {
                 if let Some(out_path) = &make_dot {
                     let iter_num = runner.iterations.len();
@@ -146,21 +151,24 @@ impl Equivalence {
             .with_expr(&rhs_clone);
 
         // Create the true node
-        let truth_id = runner.egraph.add(ModIR::Bool(true));
+        let truth_id = self.runner.egraph.add(ModIR::Bool(true));
         // Add the preconditions to the truth node of the egraph
         for precond in &self.preconditions {
-            let p_id = runner.egraph.add_expr(precond);
-            runner.egraph.union_trusted(truth_id, p_id, "preconditions");
+            let p_id = self.runner.egraph.add_expr(precond);
+            self.runner
+                .egraph
+                .union_trusted(truth_id, p_id, "preconditions");
         }
 
         let rewrite_rules = &rules();
 
-        let mut runner = runner.run(rewrite_rules);
+        self.runner = self.runner.run(rewrite_rules);
 
-        runner.print_report();
-        self.inferred_truths = Some(get_inferred_truths(&runner.egraph));
+        self.runner.print_report();
+        self.inferred_truths = Some(get_inferred_truths(&self.runner.egraph));
 
-        let equiv = !runner.egraph.equivs(&lhs_clone, &rhs_clone).is_empty();
+        let equiv = !self.runner.egraph.equivs(&lhs_clone, &rhs_clone).is_empty();
+        self.equiv = Some(equiv);
 
         let mut output_str = format!(
             "{} LHS and RHS are{}equivalent!\n",
@@ -169,20 +177,20 @@ impl Equivalence {
         );
 
         self.proof = if equiv {
-            let mut expl = runner.egraph.explain_equivalence(&self.lhs, &self.rhs);
+            let mut expl = self.runner.egraph.explain_equivalence(&self.lhs, &self.rhs);
             expl.check_proof(rewrite_rules);
 
             output_str += &expl.get_flat_string();
             Some(expl.make_flat_explanation().clone())
         } else {
-            let cost_func = EGraphCostFn::new(&runner.egraph, &self.lhs, &self.rhs);
+            let cost_func = EGraphCostFn::new(&self.runner.egraph, &self.lhs, &self.rhs);
             // try to extract simplified representations
-            let extractor = Extractor::new(&runner.egraph, cost_func);
+            let extractor = Extractor::new(&self.runner.egraph, cost_func);
             // need to look for the simplified version of the lhs and rhs expression
             let (_best_cost, best_lhs_expr) =
-                extractor.find_best(runner.egraph.lookup_expr(&self.lhs).unwrap());
+                extractor.find_best(self.runner.egraph.lookup_expr(&self.lhs).unwrap());
             let (_best_cost, best_rhs_expr) =
-                extractor.find_best(runner.egraph.lookup_expr(&self.rhs).unwrap());
+                extractor.find_best(self.runner.egraph.lookup_expr(&self.rhs).unwrap());
 
             output_str += &format!(
                 "lhs simplified to:\n{}\nrhs simplified to:\n{}",
@@ -206,11 +214,8 @@ impl Equivalence {
         } else {
             print!("{}", out_str);
         }
-        if equiv {
-            Some(self)
-        } else {
-            None
-        }
+        // equiv
+        self
     }
 
     fn get_isabelle_proof(&self) -> Option<String> {
@@ -313,9 +318,9 @@ impl Equivalence {
         }
     }
 
-    pub fn to_isabelle(&self, path: &Path, use_lemmas: bool) -> String {
+    pub fn to_isabelle(&self, path: &Path, use_lemmas: bool) {
         // Clean up theorem name
-        let proof_name = self.name.replace("/", "_").replace(".rs", "");
+        let proof_name = &self.name;
         let proof_file_path = path.join(format!("{}.thy", proof_name));
         let mut proof_file = File::create(proof_file_path).unwrap();
 
@@ -365,7 +370,9 @@ for {nat_string} :: nat and {int_string} :: int\n",
         }
 
         proof_file.write("\nend\n".as_bytes()).unwrap();
+    }
 
-        proof_name
+    pub fn check_proof(&self, path: &Path) -> Result<(), std::io::Error> {
+        return check_isabelle_proof(&vec![self.name.clone()], self.name.clone(), path);
     }
 }

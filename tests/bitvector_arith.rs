@@ -18,12 +18,11 @@ fn bitvector_arith_commutativity_add() {
         "(bw r ( + (bw p a) (bw q b)))",
         "(bw r ( + (bw q b) (bw p a)))",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -40,12 +39,11 @@ fn bitvector_arith_commutativity_mult() {
         "(bw r ( * (bw p a) (bw q b)))",
         "(bw r ( * (bw q b) (bw p a)))",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -62,12 +60,11 @@ fn bitvector_arith_mult_assoc_1() {
         "(bw t ( * (bw u (* (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -84,12 +81,11 @@ fn bitvector_arith_mult_assoc_2() {
         "(bw t ( * (bw u (* (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -106,12 +102,11 @@ fn bitvector_arith_mult_assoc_3() {
         "(bw t ( * (bw u (* (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -128,12 +123,11 @@ fn bitvector_arith_mult_assoc_4() {
         "(bw t ( * (bw u (* (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -150,12 +144,11 @@ fn bitvector_arith_add_assoc_1() {
         "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -172,12 +165,11 @@ fn bitvector_arith_add_assoc_2() {
         "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -194,12 +186,11 @@ fn bitvector_arith_add_assoc_3() {
         "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -216,12 +207,11 @@ fn bitvector_arith_add_assoc_4() {
         "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
         "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -238,12 +228,11 @@ fn bitvector_arith_dist_over_add() {
         "(bw r (* (bw p a) (+ (bw s b) (bw t c))))",
         "(bw r (+ (bw u (* (bw p a) (bw s b))) (bw v (* (bw p a) (bw t c)) ) ))",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -260,12 +249,11 @@ fn bitvector_arith_sum_same() {
         "(bw q (+ (bw p a) (bw p a)))",
         "(bw q (* (bw 2 2) (bw p a)))",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -282,12 +270,11 @@ fn bitvector_arith_mult_sum_same() {
         "(bw r (+ (bw s (* (bw p a) (bw q b))) (bw q b)))",
         "(bw r (* (bw t (+ (bw p a) (bw 1 1))) (bw q b)))",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -304,12 +291,11 @@ fn bitvector_arith_add_zero() {
         "(bw p (+ (bw p a) (bw q 0)))",
         "(bw p a)",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -326,12 +312,11 @@ fn bitvector_arith_sub_to_neg() {
         "(bw r (- (bw p a) (bw q b)))",
         "(bw r (+ (bw p a) (- (bw q b))))",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -348,12 +333,11 @@ fn bitvector_arith_mul_one() {
         "(bw p (* (bw p a) (bw q 1)))",
         "(bw p a)",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
 
@@ -370,11 +354,10 @@ fn bitvector_arith_mul_two() {
         "(bw r (* (bw p a) 2))",
         "(bw r (<< (bw p a) 1))",
     );
-    #[allow(unused_variables)]
-    let proof_opt = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(proof_opt.is_some(), "Equivalence was not found");
-    let proof_name = proof_opt.unwrap().to_isabelle(&output_dir, true);
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
     #[cfg(not(feature = "skip_isabelle"))]
-    check_isabelle_proof(&vec![proof_name.clone()], proof_name, &output_dir).unwrap();
+    eq.check_proof(&output_dir).unwrap();
 }
 
