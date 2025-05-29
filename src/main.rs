@@ -2,7 +2,14 @@
 use std::{fs, path::PathBuf};
 
 use clap::Parser;
+use egg::{Iteration, Report};
 use hello_world::{check_isabelle_proof, prepare_output_dir, Equivalence, EquivalenceString};
+
+#[derive(serde::Serialize)]
+struct EquivRunnerInfo {
+    summary: Report,
+    iteration_info: Vec<Iteration<()>>,
+}
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -30,9 +37,13 @@ struct Cli {
     #[arg(long, value_name = "FILE")]
     expl_path: Option<PathBuf>,
 
-    /// Store generated dot-files in this path
+    /// Store generated dot-files in this path (slows down proof generation)
     #[arg(long, value_name = "FILE")]
     dot_path: Option<PathBuf>,
+
+    /// Store generated dot-files in this path
+    #[arg(long, value_name = "FILE")]
+    runner_stats: Option<PathBuf>,
 }
 
 fn main() -> Result<(), std::io::Error> {
@@ -62,7 +73,7 @@ fn main() -> Result<(), std::io::Error> {
             &case.rhs,
         );
 
-        let ret = if !cli.skip_equiv {
+        if !cli.skip_equiv {
             // === Construct case-specific dot_path and expl_path ===
             let dot_path = cli.dot_path.as_ref().map(|base| {
                 let path = base.join(&case.name);
@@ -76,25 +87,22 @@ fn main() -> Result<(), std::io::Error> {
                 path
             });
             equiv = equiv.find_equivalence(dot_path, expl_path);
-            equiv.equiv
-        } else {
-            None
-        };
+        }
 
         if let Some(th_path) = &cli.theorem_path {
             equiv.to_isabelle(th_path, !cli.def_only);
         }
-        (ret, equiv)
+        equiv
     });
 
     let (true_equivs, false_equivs): (Vec<_>, Vec<_>) = checked_equivs
         .into_iter()
-        .partition(|(res, _)| res.is_some_and(|x| x));
+        .partition(|e: &Equivalence| e.equiv.is_some_and(|x| x));
 
     let true_equivs_info = true_equivs
         .iter()
         .clone()
-        .map(|(_res, eq)| {
+        .map(|eq| {
             format!(
                 "{} | {}s, {}",
                 eq.name,
@@ -106,13 +114,13 @@ fn main() -> Result<(), std::io::Error> {
 
     let true_equivs_names = true_equivs
         .into_iter()
-        .map(|(_res, eq)| eq.name)
+        .map(|eq| eq.name)
         .collect::<Vec<_>>();
 
     let false_equivs_info = false_equivs
         .iter()
         .clone()
-        .map(|(_res, eq)| {
+        .map(|eq| {
             format!(
                 "{} | {:?}, {}",
                 eq.name,
