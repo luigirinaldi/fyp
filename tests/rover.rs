@@ -287,7 +287,7 @@ fn rover_add_zero() {
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
         "add_zero",
-        &["(>= p p)"],
+        &[],
         "(bw p (+ (bw p a) (bw q 0)))",
         "(bw p a)",
     );
