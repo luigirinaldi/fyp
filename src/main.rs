@@ -1,8 +1,5 @@
 // use serde::Deserialize;
-use std::{
-    env, fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::PathBuf};
 
 use clap::Parser;
 use hello_world::{check_isabelle_proof, prepare_output_dir, Equivalence, EquivalenceString};
@@ -94,20 +91,41 @@ fn main() -> Result<(), std::io::Error> {
         .into_iter()
         .partition(|(res, _)| res.is_some_and(|x| x));
 
+    let true_equivs_info = true_equivs
+        .iter()
+        .clone()
+        .map(|(_res, eq)| {
+            format!(
+                "{} | {}s, {}",
+                eq.name,
+                eq.runner.report().total_time.to_string(),
+                eq.runner.report().egraph_classes
+            )
+        })
+        .collect::<Vec<_>>();
+
     let true_equivs_names = true_equivs
         .into_iter()
         .map(|(_res, eq)| eq.name)
         .collect::<Vec<_>>();
 
-    let false_equivs_names = false_equivs
-        .into_iter()
-        .map(|(_res, eq)| eq.name)
+    let false_equivs_info = false_equivs
+        .iter()
+        .clone()
+        .map(|(_res, eq)| {
+            format!(
+                "{} | {:?}, {}",
+                eq.name,
+                eq.runner.report().stop_reason,
+                eq.runner.report().egraph_classes
+            )
+        })
         .collect::<Vec<_>>();
 
     println!(
         "The following equivalances were shown to be true:\n{}\nAnd the following to be false:\n{}",
-        true_equivs_names.join("\n"),
-        false_equivs_names.join("\n")
+        true_equivs_info.join("\n"),
+        false_equivs_info.join("\n")
     );
 
     if cli.check_proofs && !true_equivs_names.is_empty() {

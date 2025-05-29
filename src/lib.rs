@@ -28,11 +28,11 @@ pub struct Equivalence {
     pub lhs: RecExpr<ModIR>,
     pub rhs: RecExpr<ModIR>,
     pub equiv: Option<bool>,
+    pub runner: Runner<ModIR, ModAnalysis>,
     bw_vars: HashSet<Symbol>,
     non_bw_vars: HashSet<Symbol>,
     proof: Option<Vec<egg::FlatTerm<ModIR>>>,
     inferred_truths: Option<Vec<(String, RecExpr<ModIR>)>>,
-    runner: Runner<ModIR, ModAnalysis>,
 }
 
 impl Equivalence {
