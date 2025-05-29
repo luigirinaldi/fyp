@@ -23,10 +23,10 @@ pub use utils::prepare_output_dir;
 use std::path::{Path, PathBuf};
 pub use types::EquivalenceString;
 pub struct Equivalence {
-    name: String,
-    preconditions: Vec<RecExpr<ModIR>>,
-    lhs: RecExpr<ModIR>,
-    rhs: RecExpr<ModIR>,
+    pub name: String,
+    pub preconditions: Vec<RecExpr<ModIR>>,
+    pub lhs: RecExpr<ModIR>,
+    pub rhs: RecExpr<ModIR>,
     bw_vars: HashSet<Symbol>,
     non_bw_vars: HashSet<Symbol>,
     proof: Option<Vec<egg::FlatTerm<ModIR>>>,

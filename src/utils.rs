@@ -158,7 +158,11 @@ pub fn print_infix(
     }
 }
 
-pub fn check_isabelle_proof(proof_name: String, path: &Path) -> Result<(), Error> {
+pub fn check_isabelle_proof(
+    theorems: &Vec<String>,
+    session_name: String,
+    path: &Path,
+) -> Result<(), Error> {
     // Copy rewrite lemma file
     if let Err(e) = fs::copy(
         "./proofs/rewrite_lemmas.thy",
@@ -185,11 +189,10 @@ pub fn check_isabelle_proof(proof_name: String, path: &Path) -> Result<(), Error
         }
     };
 
-    let session_name = proof_name.clone() + "_proof";
-
     if let Err(e) = write!(
         file,
-        "session {session_name} = HOL + theories\n  {proof_name}",
+        "session {session_name} = HOL + theories\n  {}",
+        theorems.join("\n")
     ) {
         eprintln!("Failed to write to ROOT file: {}", e);
         std::process::exit(1);
