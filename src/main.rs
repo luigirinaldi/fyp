@@ -104,81 +104,89 @@ fn main() -> Result<(), std::io::Error> {
         })
         .collect();
 
-    if let Some(info_path) = cli.runner_stats {
-        if info_path.exists() {
-            assert!(info_path.is_file(), "Runner stats path has to be a file");
-        } else {
-            prepare_output_dir(&info_path.parent().unwrap().to_path_buf(), false);
+    if !cli.skip_equiv {
+        if let Some(info_path) = cli.runner_stats {
+            if info_path.exists() {
+                assert!(info_path.is_file(), "Runner stats path has to be a file");
+            } else {
+                prepare_output_dir(&info_path.parent().unwrap().to_path_buf(), false);
+            }
+
+            let stats: HashMap<String, EquivRunnerInfo> = checked_equivs
+                .iter()
+                .map(|e| {
+                    (
+                        e.name.clone(),
+                        EquivRunnerInfo {
+                            summary: e.runner.report(),
+                            iteration_info: e.runner.iterations.clone(),
+                        },
+                    )
+                })
+                .collect();
+
+            let mut file_out = File::create(&info_path)?;
+            write!(file_out, "{}", serde_json::to_string(&stats).unwrap())?;
         }
 
-        let stats: HashMap<String, EquivRunnerInfo> = checked_equivs
+        let (true_equivs, false_equivs): (Vec<_>, Vec<_>) = checked_equivs
+            .into_iter()
+            .partition(|e: &Equivalence| e.equiv.is_some_and(|x| x));
+
+        let true_equivs_info = true_equivs
             .iter()
-            .map(|e| {
-                (
-                    e.name.clone(),
-                    EquivRunnerInfo {
-                        summary: e.runner.report(),
-                        iteration_info: e.runner.iterations.clone(),
-                    },
+            .clone()
+            .map(|eq| {
+                format!(
+                    "{} | {}s, {}",
+                    eq.name,
+                    eq.runner.report().total_time.to_string(),
+                    eq.runner.report().egraph_classes
                 )
             })
-            .collect();
+            .collect::<Vec<_>>();
 
-        let mut file_out = File::create(&info_path)?;
-        write!(file_out, "{}", serde_json::to_string(&stats).unwrap())?;
-    }
+        let true_equivs_names = true_equivs
+            .into_iter()
+            .map(|eq| eq.name)
+            .collect::<Vec<_>>();
 
-    let (true_equivs, false_equivs): (Vec<_>, Vec<_>) = checked_equivs
-        .into_iter()
-        .partition(|e: &Equivalence| e.equiv.is_some_and(|x| x));
+        let false_equivs_info = false_equivs
+            .iter()
+            .clone()
+            .map(|eq| {
+                format!(
+                    "{} | {:?}, {}",
+                    eq.name,
+                    eq.runner.report().stop_reason,
+                    eq.runner.report().egraph_classes
+                )
+            })
+            .collect::<Vec<_>>();
 
-    let true_equivs_info = true_equivs
-        .iter()
-        .clone()
-        .map(|eq| {
-            format!(
-                "{} | {}s, {}",
-                eq.name,
-                eq.runner.report().total_time.to_string(),
-                eq.runner.report().egraph_classes
-            )
-        })
-        .collect::<Vec<_>>();
-
-    let true_equivs_names = true_equivs
-        .into_iter()
-        .map(|eq| eq.name)
-        .collect::<Vec<_>>();
-
-    let false_equivs_info = false_equivs
-        .iter()
-        .clone()
-        .map(|eq| {
-            format!(
-                "{} | {:?}, {}",
-                eq.name,
-                eq.runner.report().stop_reason,
-                eq.runner.report().egraph_classes
-            )
-        })
-        .collect::<Vec<_>>();
-
-    println!(
+        println!(
         "The following equivalances were shown to be true:\n{}\nAnd the following to be false:\n{}",
         true_equivs_info.join("\n"),
         false_equivs_info.join("\n")
     );
 
-    if cli.check_proofs && !true_equivs_names.is_empty() {
-        assert!(
-            cli.theorem_path.is_some(),
-            "Theorem path is required to check the proofs"
-        );
-        assert!(!cli.def_only, "Can't check equivalences without the lemmas");
+        if cli.check_proofs && !true_equivs_names.is_empty() {
+            assert!(
+                cli.theorem_path.is_some(),
+                "Theorem path is required to check the proofs"
+            );
+            assert!(!cli.def_only, "Can't check equivalences without the lemmas");
 
-        let session_name = String::from(path.file_stem().unwrap().to_str().unwrap());
+            let session_name = String::from(path.file_stem().unwrap().to_str().unwrap());
 
-        return check_isabelle_proof(&true_equivs_names, session_name, &cli.theorem_path.unwrap());
+            return check_isabelle_proof(
+                &true_equivs_names,
+                session_name,
+                &cli.theorem_path.unwrap(),
+            );
+        } else {
+            Ok(())
+        }
     } else {
         Ok(())
     }
