@@ -89,7 +89,7 @@ def precond_to_bw_lang(expr: FNode) -> str:
             print(other, str(expr))
             raise ValueError("unsupported node type", expr, op_to_str(other))
 
-def parse_smt(file) -> tuple[str, str, list[str]]:
+def parse_smt(file) -> tuple[tuple[str, str, list[str]], bool]:
     # Load the SMT-LIB query
     parser = SmtLibParser()
     script = parser.get_script(file)
@@ -103,6 +103,14 @@ def parse_smt(file) -> tuple[str, str, list[str]]:
     # print(formula)
     # print("Type:", type(formula))
 
+    def is_bitwise(expr: FNode):
+        if expr.node_type() in [BV_NOT, BV_AND, BV_XOR, BV_OR]:
+            return True
+        elif len(expr.args()) == 0:
+            return False
+        else:
+            return any([is_bitwise(e) for e in expr.args()])
+
     if formula.is_not():
         # This is the case where there are no preconditions necessary for the equality to hold
         # Look for specifically a rewrite of the form (! (lhs = rhs))
@@ -111,7 +119,8 @@ def parse_smt(file) -> tuple[str, str, list[str]]:
         assert eq.is_equals(), f"{eq} is not an equality"
         lhs, rhs = eq.args()
         
-        return (to_bw_lang(lhs), to_bw_lang(rhs), [])
+        
+        return (to_bw_lang(lhs), to_bw_lang(rhs), []), is_bitwise(lhs) or is_bitwise(rhs)
     elif formula.is_and():
         # And means there are preconditions
         # print(formula.args())
@@ -136,7 +145,7 @@ def parse_smt(file) -> tuple[str, str, list[str]]:
         lhs_out, rhs_out = to_bw_lang(rewrite[0]), to_bw_lang(rewrite[1])
         precond_out = [precond_to_bw_lang(e) for e in preconditions]
         
-        return lhs_out, rhs_out, precond_out
+        return (lhs_out, rhs_out, precond_out), is_bitwise(rewrite[0]) or is_bitwise(rewrite[1])
     else:
         # print(op_to_str(formula.node_type()))
         # print(formula)

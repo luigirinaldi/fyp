@@ -21,7 +21,7 @@ fn rover_commutativity_add() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -42,7 +42,7 @@ fn rover_commutativity_mult() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -63,7 +63,7 @@ fn rover_mult_assoc_1() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -84,7 +84,7 @@ fn rover_mult_assoc_2() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -105,7 +105,7 @@ fn rover_mult_assoc_3() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -126,7 +126,7 @@ fn rover_mult_assoc_4() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -147,7 +147,7 @@ fn rover_add_assoc_1() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -168,7 +168,7 @@ fn rover_add_assoc_2() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -189,7 +189,7 @@ fn rover_add_assoc_3() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -210,7 +210,7 @@ fn rover_add_assoc_4() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -231,7 +231,7 @@ fn rover_dist_over_add() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -252,7 +252,7 @@ fn rover_sum_same() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -273,7 +273,7 @@ fn rover_mult_sum_same() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -294,7 +294,7 @@ fn rover_add_zero() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -315,7 +315,7 @@ fn rover_sub_to_neg() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -336,7 +336,7 @@ fn rover_mul_one() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -357,7 +357,7 @@ fn rover_mul_two() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -378,7 +378,7 @@ fn rover_merge_left_shift() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -399,7 +399,7 @@ fn rover_merge_right_shift() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -420,7 +420,7 @@ fn rover_left_shift_add_1() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -441,7 +441,7 @@ fn rover_left_shift_add_2() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -462,7 +462,7 @@ fn rover_add_right_shift() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -483,7 +483,7 @@ fn rover_left_shift_mult() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 
@@ -504,7 +504,7 @@ fn rover_one_to_two_mult() {
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
-    #[cfg(not(feature = "skip_isabelle"))]
+    #[cfg(feature = "isabelle-check")]
     eq.check_proof(&output_dir).unwrap();
 }
 

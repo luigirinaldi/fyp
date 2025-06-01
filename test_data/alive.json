@@ -6,145 +6,15 @@
     "preconditions": []
   },
   {
-    "name": "AndOrXor_2417",
-    "lhs": "(bw k (xor (bw k (or (bw k (xor (bw k var_nx) (bw k -1))) (bw k var_y))) (bw k -1)))",
-    "rhs": "(bw k (and (bw k var_nx) (bw k (xor (bw k var_y) (bw k -1)))))",
-    "preconditions": []
-  },
-  {
     "name": "AddSub_1574",
     "lhs": "(bw k (- (bw k C) (bw k (+ (bw k var_X) (bw k C2)))))",
     "rhs": "(bw k (- (bw k (- (bw k C) (bw k C2))) (bw k var_X)))",
     "preconditions": []
   },
   {
-    "name": "AndOrXor_2587",
-    "lhs": "(bw k (xor (bw k (and (bw k var_a) (bw k var_op1))) (bw k var_op1)))",
-    "rhs": "(bw k (and (bw k (xor (bw k var_a) (bw k -1))) (bw k var_op1)))",
-    "preconditions": []
-  },
-  {
     "name": "AddSub_1165",
     "lhs": "(bw k (+ (bw k (- (bw k 0) (bw k var_a))) (bw k (- (bw k 0) (bw k var_b)))))",
     "rhs": "(bw k (- (bw k 0) (bw k (+ (bw k var_a) (bw k var_b)))))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2581",
-    "lhs": "(bw k (xor (bw k (or (bw k var_a) (bw k var_op1))) (bw k var_op1)))",
-    "rhs": "(bw k (and (bw k var_a) (bw k (xor (bw k var_op1) (bw k -1)))))",
-    "preconditions": []
-  },
-  {
-    "name": "InstCombineShift476",
-    "lhs": "(bw k (<< (bw k (or (bw k (and (bw k (>> (bw k var_X) (bw k C))) (bw k C2))) (bw k var_Y))) (bw k C)))",
-    "rhs": "(bw k (or (bw k (and (bw k var_X) (bw k (<< (bw k C2) (bw k C))))) (bw k (<< (bw k var_Y) (bw k C)))))",
-    "preconditions": [
-      "(< (bw k C) (bw k 4))"
-    ]
-  },
-  {
-    "name": "AndOrXor_2243",
-    "lhs": "(bw k (or (bw k (and (bw k (or (bw k var_B) (bw k var_C))) (bw k var_A))) (bw k var_B)))",
-    "rhs": "(bw k (or (bw k var_B) (bw k (and (bw k var_A) (bw k var_C)))))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2367",
-    "lhs": "(bw k (or (bw k (or (bw k var_A) (bw k C1))) (bw k var_op1)))",
-    "rhs": "(bw k (or (bw k (or (bw k var_A) (bw k var_op1))) (bw k C1)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2247",
-    "lhs": "(bw k (or (bw k (xor (bw k var_A) (bw k -1))) (bw k (xor (bw k var_B) (bw k -1)))))",
-    "rhs": "(bw k (xor (bw k (and (bw k var_A) (bw k var_B))) (bw k -1)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2285",
-    "lhs": "(bw k (or (bw k var_A) (bw k (xor (bw k (xor (bw k var_A) (bw k var_B))) (bw k -1)))))",
-    "rhs": "(bw k (or (bw k var_A) (bw k (xor (bw k var_B) (bw k -1)))))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2231",
-    "lhs": "(bw k (or (bw k (xor (bw k var_A) (bw k var_B))) (bw k (xor (bw k (xor (bw k var_B) (bw k var_C))) (bw k var_A)))))",
-    "rhs": "(bw k (or (bw k (xor (bw k var_A) (bw k var_B))) (bw k var_C)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2123",
-    "lhs": "(bw k (or (bw k (and (bw k var_A) (bw k (xor (bw k var_B) (bw k -1))))) (bw k (xor (bw k var_A) (bw k var_B)))))",
-    "rhs": "(bw k (xor (bw k var_A) (bw k var_B)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2284",
-    "lhs": "(bw k (or (bw k var_A) (bw k (xor (bw k (or (bw k var_A) (bw k var_B))) (bw k -1)))))",
-    "rhs": "(bw k (or (bw k var_A) (bw k (xor (bw k var_B) (bw k -1)))))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2118",
-    "lhs": "(bw k (or (bw k (and (bw k var_A) (bw k var_B))) (bw k (xor (bw k var_A) (bw k -1)))))",
-    "rhs": "(bw k (or (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2265",
-    "lhs": "(bw k (or (bw k (and (bw k var_A) (bw k var_B))) (bw k (xor (bw k var_A) (bw k var_B)))))",
-    "rhs": "(bw k (or (bw k var_A) (bw k var_B)))",
-    "preconditions": []
-  },
-  {
-    "name": "AddSub_1043",
-    "lhs": "(bw k (+ (bw k (+ (bw k (xor (bw k (and (bw k var_Z) (bw k C1))) (bw k C1))) (bw k 1))) (bw k var_RHS)))",
-    "rhs": "(bw k (- (bw k var_RHS) (bw k (or (bw k var_Z) (bw k (not (bw k C1)))))))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_1230",
-    "lhs": "(bw k (and (bw k (xor (bw k var_notOp0) (bw k -1))) (bw k (xor (bw k var_notOp1) (bw k -1)))))",
-    "rhs": "(bw k (xor (bw k (or (bw k var_notOp0) (bw k var_notOp1))) (bw k -1)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2113",
-    "lhs": "(bw k (or (bw k (and (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B))) (bw k var_A)))",
-    "rhs": "(bw k (or (bw k var_A) (bw k var_B)))",
-    "preconditions": []
-  },
-  {
-    "name": "InstCombineShift440",
-    "lhs": "(bw k (<< (bw k (xor (bw k var_Y) (bw k (and (bw k (>> (bw k var_X) (bw k C))) (bw k C2))))) (bw k C)))",
-    "rhs": "(bw k (xor (bw k (and (bw k var_X) (bw k (<< (bw k C2) (bw k C))))) (bw k (<< (bw k var_Y) (bw k C)))))",
-    "preconditions": [
-      "(< (bw k C) (bw k 4))"
-    ]
-  },
-  {
-    "name": "AndOrXor_2475",
-    "lhs": "(bw k (xor (bw k (- (bw k C) (bw k var_x))) (bw k -1)))",
-    "rhs": "(bw k (+ (bw k var_x) (bw k (- (bw k -1) (bw k C)))))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2063",
-    "lhs": "(bw k (or (bw k (xor (bw k var_x) (bw k C1))) (bw k C)))",
-    "rhs": "(bw k (xor (bw k (or (bw k var_x) (bw k C))) (bw k (and (bw k C1) (bw k (not (bw k C)))))))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_135",
-    "lhs": "(bw k (and (bw k (xor (bw k var_X) (bw k C1))) (bw k C2)))",
-    "rhs": "(bw k (xor (bw k (and (bw k var_X) (bw k C2))) (bw k (and (bw k C1) (bw k C2)))))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2416",
-    "lhs": "(bw k (xor (bw k (and (bw k (xor (bw k var_nx) (bw k -1))) (bw k var_y))) (bw k -1)))",
-    "rhs": "(bw k (or (bw k var_nx) (bw k (xor (bw k var_y) (bw k -1)))))",
     "preconditions": []
   },
   {
@@ -164,79 +34,9 @@
     ]
   },
   {
-    "name": "InstCombineShift239",
-    "lhs": "(bw k (>> (bw k (<< (bw k var_X) (bw k C))) (bw k C)))",
-    "rhs": "(bw k (and (bw k var_X) (bw k (>> (bw k -1) (bw k C)))))",
-    "preconditions": [
-      "(< (bw k C) (bw k 4))"
-    ]
-  },
-  {
-    "name": "AddSub_1624",
-    "lhs": "(bw k (- (bw k (or (bw k var_A) (bw k var_B))) (bw k (xor (bw k var_A) (bw k var_B)))))",
-    "rhs": "(bw k (and (bw k var_A) (bw k var_B)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2515",
-    "lhs": "(bw k (xor (bw k (>> (bw k (xor (bw k var_x) (bw k C1))) (bw k C2))) (bw k C3)))",
-    "rhs": "(bw k (xor (bw k (>> (bw k var_x) (bw k C2))) (bw k (xor (bw k (>> (bw k C1) (bw k C2))) (bw k C3)))))",
-    "preconditions": [
-      "(< (bw k C2) (bw k 4))"
-    ]
-  },
-  {
-    "name": "AndOrXor_2595",
-    "lhs": "(bw k (xor (bw k (and (bw k var_a) (bw k var_b))) (bw k (or (bw k var_a) (bw k var_b)))))",
-    "rhs": "(bw k (xor (bw k var_a) (bw k var_b)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_1241",
-    "lhs": "(bw k (and (bw k (or (bw k var_A) (bw k var_B))) (bw k (xor (bw k (and (bw k var_A) (bw k var_B))) (bw k -1)))))",
-    "rhs": "(bw k (xor (bw k var_A) (bw k var_B)))",
-    "preconditions": []
-  },
-  {
-    "name": "AddSub_1202",
-    "lhs": "(bw k (+ (bw k (xor (bw k var_x) (bw k -1))) (bw k C)))",
-    "rhs": "(bw k (- (bw k (- (bw k C) (bw k 1))) (bw k var_x)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2607",
-    "lhs": "(bw k (xor (bw k (or (bw k var_a) (bw k (xor (bw k var_b) (bw k -1))))) (bw k (or (bw k (xor (bw k var_a) (bw k -1))) (bw k var_b)))))",
-    "rhs": "(bw k (xor (bw k var_a) (bw k var_b)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2297",
-    "lhs": "(bw k (or (bw k (and (bw k var_A) (bw k var_B))) (bw k (xor (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B)))))",
-    "rhs": "(bw k (xor (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2627",
-    "lhs": "(bw k (xor (bw k (xor (bw k var_a) (bw k var_c))) (bw k (or (bw k var_a) (bw k var_b)))))",
-    "rhs": "(bw k (xor (bw k (and (bw k (xor (bw k var_a) (bw k -1))) (bw k var_b))) (bw k var_c)))",
-    "preconditions": []
-  },
-  {
     "name": "muldivrem_152",
     "lhs": "(bw k (* (bw k var_x) (bw k -1)))",
     "rhs": "(bw k (- (bw k 0) (bw k var_x)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_1280",
-    "lhs": "(bw k (and (bw k (or (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B))) (bw k var_A)))",
-    "rhs": "(bw k (and (bw k var_A) (bw k var_B)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2430",
-    "lhs": "(bw k (xor (bw k (or (bw k var_x) (bw k var_y))) (bw k -1)))",
-    "rhs": "(bw k (and (bw k (xor (bw k var_x) (bw k -1))) (bw k (xor (bw k var_y) (bw k -1)))))",
     "preconditions": []
   },
   {
@@ -246,29 +46,9 @@
     "preconditions": []
   },
   {
-    "name": "AddSub_1560",
-    "lhs": "(bw k (- (bw k -1) (bw k var_a)))",
-    "rhs": "(bw k (xor (bw k var_a) (bw k -1)))",
-    "preconditions": []
-  },
-  {
-    "name": "InstCombineShift279",
-    "lhs": "(bw k (<< (bw k (>> (bw k var_X) (bw k C))) (bw k C)))",
-    "rhs": "(bw k (and (bw k var_X) (bw k (<< (bw k -1) (bw k C)))))",
-    "preconditions": [
-      "(< (bw k C) (bw k 4))"
-    ]
-  },
-  {
     "name": "muldivrem_229",
     "lhs": "(bw k (* (bw k (+ (bw k var_X) (bw k C1))) (bw k var_Op1)))",
     "rhs": "(bw k (+ (bw k (* (bw k var_X) (bw k var_Op1))) (bw k (* (bw k C1) (bw k var_Op1)))))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2617",
-    "lhs": "(bw k (xor (bw k (and (bw k var_a) (bw k (xor (bw k var_b) (bw k -1))))) (bw k (and (bw k (xor (bw k var_a) (bw k -1))) (bw k var_b)))))",
-    "rhs": "(bw k (xor (bw k var_a) (bw k var_b)))",
     "preconditions": []
   },
   {
@@ -278,81 +58,9 @@
     "preconditions": []
   },
   {
-    "name": "AndOrXor_2486",
-    "lhs": "(bw k (xor (bw k (+ (bw k var_x) (bw k C))) (bw k -1)))",
-    "rhs": "(bw k (- (bw k (- (bw k -1) (bw k C))) (bw k var_x)))",
-    "preconditions": []
-  },
-  {
     "name": "Select_1105",
     "lhs": "(bw k var_Y)",
     "rhs": "(bw k var_Y)",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_1294",
-    "lhs": "(bw k (and (bw k (or (bw k var_A) (bw k var_B))) (bw k (xor (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B)))))",
-    "rhs": "(bw k (and (bw k var_A) (bw k var_B)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2647",
-    "lhs": "(bw k (xor (bw k (and (bw k var_a) (bw k var_b))) (bw k (xor (bw k var_a) (bw k var_b)))))",
-    "rhs": "(bw k (or (bw k var_a) (bw k var_b)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2263",
-    "lhs": "(bw k (or (bw k var_op0) (bw k (xor (bw k var_op0) (bw k var_B)))))",
-    "rhs": "(bw k (or (bw k var_op0) (bw k var_B)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2188",
-    "lhs": "(bw k (or (bw k (and (bw k var_A) (bw k (xor (bw k var_D) (bw k -1))))) (bw k (and (bw k (xor (bw k var_A) (bw k -1))) (bw k var_D)))))",
-    "rhs": "(bw k (xor (bw k var_A) (bw k var_D)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2429",
-    "lhs": "(bw k (xor (bw k (and (bw k var_x) (bw k var_y))) (bw k -1)))",
-    "rhs": "(bw k (or (bw k (xor (bw k var_x) (bw k -1))) (bw k (xor (bw k var_y) (bw k -1)))))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2264",
-    "lhs": "(bw k (or (bw k var_A) (bw k (xor (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B)))))",
-    "rhs": "(bw k (or (bw k var_A) (bw k (xor (bw k var_B) (bw k -1)))))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_1247",
-    "lhs": "(bw k (and (bw k (xor (bw k (and (bw k var_A) (bw k var_B))) (bw k -1))) (bw k (or (bw k var_A) (bw k var_B)))))",
-    "rhs": "(bw k (xor (bw k var_A) (bw k var_B)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_2658",
-    "lhs": "(bw k (xor (bw k (and (bw k var_a) (bw k (xor (bw k var_b) (bw k -1))))) (bw k (xor (bw k var_a) (bw k -1)))))",
-    "rhs": "(bw k (xor (bw k (and (bw k var_a) (bw k var_b))) (bw k -1)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_1253",
-    "lhs": "(bw k (and (bw k (xor (bw k var_A) (bw k var_B))) (bw k var_A)))",
-    "rhs": "(bw k (and (bw k var_A) (bw k (xor (bw k var_B) (bw k -1)))))",
-    "preconditions": []
-  },
-  {
-    "name": "AddSub_1295",
-    "lhs": "(bw k (+ (bw k (and (bw k var_a) (bw k var_b))) (bw k (xor (bw k var_a) (bw k var_b)))))",
-    "rhs": "(bw k (or (bw k var_a) (bw k var_b)))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_144",
-    "lhs": "(bw k (and (bw k (or (bw k var_X) (bw k C1))) (bw k C2)))",
-    "rhs": "(bw k (and (bw k (or (bw k var_X) (bw k (and (bw k C1) (bw k C2))))) (bw k C2)))",
     "preconditions": []
   },
   {
@@ -362,38 +70,10 @@
     "preconditions": []
   },
   {
-    "name": "InstCombineShift497a",
-    "lhs": "(bw k (>> (bw k (xor (bw k var_X) (bw k C2))) (bw k C)))",
-    "rhs": "(bw k (xor (bw k (>> (bw k var_X) (bw k C))) (bw k (>> (bw k C2) (bw k C)))))",
-    "preconditions": [
-      "(< (bw k C) (bw k 4))"
-    ]
-  },
-  {
-    "name": "AddSub_1564",
-    "lhs": "(bw k (- (bw k C) (bw k (xor (bw k var_x) (bw k -1)))))",
-    "rhs": "(bw k (+ (bw k var_x) (bw k (+ (bw k C) (bw k 1)))))",
-    "preconditions": []
-  },
-  {
-    "name": "AndOrXor_1288",
-    "lhs": "(bw k (and (bw k (xor (bw k var_A) (bw k var_B))) (bw k (xor (bw k (xor (bw k var_B) (bw k var_C))) (bw k var_A)))))",
-    "rhs": "(bw k (and (bw k (xor (bw k var_A) (bw k var_B))) (bw k (xor (bw k var_C) (bw k -1)))))",
-    "preconditions": []
-  },
-  {
     "name": "AddSub_1176",
     "lhs": "(bw k (+ (bw k var_a) (bw k (- (bw k 0) (bw k var_b)))))",
     "rhs": "(bw k (- (bw k var_a) (bw k var_b)))",
     "preconditions": []
-  },
-  {
-    "name": "InstCombineShift582",
-    "lhs": "(bw k (>> (bw k (<< (bw k var_X) (bw k C))) (bw k C)))",
-    "rhs": "(bw k (and (bw k var_X) (bw k (>> (bw k -1) (bw k C)))))",
-    "preconditions": [
-      "(< (bw k C) (bw k 4))"
-    ]
   },
   {
     "name": "AddSub_1619",

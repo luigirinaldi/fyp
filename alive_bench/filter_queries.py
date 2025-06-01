@@ -63,20 +63,27 @@ def main():
     # Ensure output directory exists
     os.makedirs(bw_dir, exist_ok=True)
     
-    json_out = []
+    bitwise_out = []
+    non_bitwise_out = []
     
     cond_count = 0
     count = 0
     for filename_clean, (filestr, filename) in filtered_files.items():
         # print(filename, filestr)
         try:
-            lhs, rhs, preconds = parse_smt(StringIO(filestr))
-            json_out.append({
+            (lhs, rhs, preconds), is_bitwise = parse_smt(StringIO(filestr))
+            bw_lang_expr = {
                 "name": filename_clean.strip().replace(':', '_').replace('-', '_'),
                 "lhs": lhs,
                 "rhs": rhs,
                 "preconditions": preconds
-            })
+            }
+            
+            if is_bitwise:
+                bitwise_out.append(bw_lang_expr)
+            else:
+                non_bitwise_out.append(bw_lang_expr)
+            
             print(filename_clean)
             src = os.path.join(output_dir, filename)
             dst = os.path.join(bw_dir, filename)
@@ -87,9 +94,11 @@ def main():
         except AssertionError as e:
             print(f"Skipped {filename} because {e}")
     
-    print(f"{count} Total queries, {count - cond_count} are unconditional, {cond_count} are conditional")
+    print(f"{count} Total queries, {count - cond_count} are unconditional, {cond_count} are conditional\n{len(bitwise_out)} bitwise expressions, {len(non_bitwise_out)} non bitwise expressions")
     with open("../test_data/alive.json", "w") as f:
-        json.dump(json_out, f, indent=2)
+        json.dump(non_bitwise_out, f, indent=2)
+    with open("../test_data/alive_bitwise.json", "w") as f:
+        json.dump(bitwise_out, f, indent=2)
 
 if __name__ == "__main__":
     main()
