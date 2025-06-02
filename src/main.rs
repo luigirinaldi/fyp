@@ -184,16 +184,16 @@ fn main() -> Result<(), std::io::Error> {
                 session_name.clone(),
                 &cli.theorem_path.unwrap(),
             ) {
-                Ok(wrong_proofs) => {
-                    match wrong_proofs {
-                        Some(hash) => {
-                            let fails = &hash[&session_name.clone()];
-                            println!("The following equivalences were found to be correct but couldn't be verified:\n{}", fails.join("\n"))
-                        }
-                        None => {}
-                    };
-                    Ok(())
-                }
+                Ok(wrong_proofs) => match wrong_proofs {
+                    Some(hash) => {
+                        let fails = &hash[&session_name.clone()];
+                        eprintln!("The following equivalences were found to be correct but couldn't be verified:\n{}", fails.join("\n"));
+                        Err(std::io::Error::other(
+                            "Some equivalences couldn't be verified",
+                        ))
+                    }
+                    None => Ok(()),
+                },
                 Err(e) => {
                     eprintln!("Error when checking isabelle proofs: {}", e);
                     Err(e)
