@@ -1,0 +1,82 @@
+{
+  "left_shift_add_2": {
+    "method": "timeout",
+    "total_time": 278267
+  },
+  "mul_two": {
+    "method": "timeout",
+    "total_time": 278970
+  },
+  "merge_right_shift": {
+    "method": "timeout",
+    "total_time": 278221
+  },
+  "mult_assoc_4": {
+    "method": "timeout",
+    "total_time": 279548
+  },
+  "left_shift_add_1": {
+    "method": "timeout",
+    "total_time": 278722
+  },
+  "mult_sum_same": {
+    "method": "timeout",
+    "total_time": 280481
+  },
+  "merge_left_shift": {
+    "method": "timeout",
+    "total_time": 278650
+  },
+  "add_zero": {
+    "method": "timeout",
+    "total_time": 277229
+  },
+  "mult_assoc_1": {
+    "method": "timeout",
+    "total_time": 277232
+  },
+  "mult_assoc_2": {
+    "method": "timeout",
+    "total_time": 278235
+  },
+  "add_assoc_4": {
+    "method": "timeout",
+    "total_time": 278357
+  },
+  "left_shift_mult": {
+    "method": "timeout",
+    "total_time": 278269
+  },
+  "add_right_shift": {
+    "method": "timeout",
+    "total_time": 278169
+  },
+  "dist_over_add": {
+    "method": "timeout",
+    "total_time": 278310
+  },
+  "one_to_two_mult": {
+    "method": "timeout",
+    "total_time": 277948
+  },
+  "mul_one": {
+    "method": "timeout",
+    "total_time": 278545
+  },
+  "add_assoc_2": {
+    "method": "timeout",
+    "total_time": 278187
+  },
+  "add_assoc_1": {
+    "method": "timeout",
+    "total_time": 278090
+  },
+  "mult_assoc_3": {
+    "method": "timeout",
+    "total_time": 278141
+  },
+  "add_assoc_3": {
+    "method": "timeout",
+    "total_time": 278138
+  }
+}
