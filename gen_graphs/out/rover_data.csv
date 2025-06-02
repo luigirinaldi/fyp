@@ -1,0 +1,25 @@
+                  , lemma  , no_lemma, egraph
+one_to_two_mult   ,        ,         , 0.00026808400000000003
+merge_left_shift  ,        ,         , 0.00018683599999999998
+add_right_shift   ,        ,         , 0.000172726
+merge_right_shift ,        ,         , 0.000141177
+left_shift_mult   ,        ,         , 0.000135883
+left_shift_add_2  , 286.321,         , 0.000182541
+sum_same          , 279.087,  277.236, 3.2846000000000004e-05
+left_shift_add_1  , 278.555,         , 0.000260797
+mul_two           , 264.968,         , 2.242e-05
+mult_sum_same     , 129.755,         , 0.000232561
+add_assoc_1       , 103.963,         , 0.00012779700000000002
+add_assoc_3       ,  74.964,         , 0.000125948
+mult_assoc_1      ,  73.536,         , 0.000133353
+add_assoc_2       ,  62.475,         , 9.1263e-05
+mult_assoc_2      ,  59.926,         , 0.000133696
+dist_over_add     ,  38.749,         , 0.00013392000000000002
+mult_assoc_3      ,  37.558,         , 8.971999999999999e-05
+add_assoc_4       ,  31.809,         , 8.845999999999999e-05
+add_zero          ,  27.127,         , 6.8964e-05
+mul_one           ,   7.586,         , 7.2071e-05
+mult_assoc_4      ,   6.283,         , 0.000150579
+sub_to_neg        ,   2.463,    2.388, 2.5597999999999998e-05
+commutativity_mult,   1.573,    1.756, 2.6061e-05
+commutativity_add ,   1.308,    1.567, 2.8686e-05
