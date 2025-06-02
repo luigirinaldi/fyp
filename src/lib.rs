@@ -265,7 +265,7 @@ impl Equivalence {
                     val @ ("shl_def" | "shr_def") => format!("by (simp add: {val})"),
                     // need to use blast for diff_eq
                     val @ ("diff_left_eq_prec" | "diff_right_eq_prec") => {
-                        format!("using that {val} by auto")
+                        format!("using that {val} by metis")
                     }
                     val @ ("div_pow_join" | "div_mult_self" | "div_same") => {
                         format!("using that inferred_facts by (simp only: {val})")
