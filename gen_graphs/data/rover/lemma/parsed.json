@@ -1,0 +1,22 @@
+{
+  "merge_right_shift": {
+    "method": "timeout",
+    "total_time": 278372
+  },
+  "merge_left_shift": {
+    "method": "timeout",
+    "total_time": 279395
+  },
+  "left_shift_mult": {
+    "method": "timeout",
+    "total_time": 280937
+  },
+  "add_right_shift": {
+    "method": "timeout",
+    "total_time": 278268
+  },
+  "one_to_two_mult": {
+    "method": "timeout",
+    "total_time": 278448
+  }
+}

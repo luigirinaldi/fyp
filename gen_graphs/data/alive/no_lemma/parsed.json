@@ -1,0 +1,30 @@
+{
+  "muldivrem_152": {
+    "method": "timeout",
+    "total_time": 278140
+  },
+  "InstCombineShift497d": {
+    "method": "timeout",
+    "total_time": 278111
+  },
+  "AddSub_1574": {
+    "method": "timeout",
+    "total_time": 277284
+  },
+  "muldivrem_239": {
+    "method": "timeout",
+    "total_time": 278286
+  },
+  "muldivrem_290_292": {
+    "method": "timeout",
+    "total_time": 277111
+  },
+  "muldivrem_229": {
+    "method": "timeout",
+    "total_time": 278126
+  },
+  "AddSub_1619": {
+    "method": "timeout",
+    "total_time": 278674
+  }
+}
