@@ -3,3 +3,6 @@ filtered_values/
 valid_queries/
 __pycache__/
 bv_to_bool_bench.tar.gz
+
+cluster_results.tar.xz
+cluster_results_alive
