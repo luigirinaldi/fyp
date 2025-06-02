@@ -1,0 +1,6 @@
+{
+  "InstCombineShift497d": {
+    "method": "timeout",
+    "total_time": 278144
+  }
+}
