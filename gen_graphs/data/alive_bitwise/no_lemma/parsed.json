@@ -179,6 +179,20 @@
     "method": "timeout",
     "total_time": 276731
   },
+  "InstCombineShift497a": {
+    "method": "cvc5",
+    "total_time": 279243,
+    "sh_time": 279243,
+    "atp_time": 18046,
+    "proof": "by (metis bw_def concat_bit_of_zero_2 concat_bit_take_bit_eq drop_bit_int_def drop_bit_xor shr_def take_bit_eq_mod take_bit_xor) (48 ms)"
+  },
+  "AndOrXor_2515": {
+    "method": "cvc5",
+    "total_time": 290134,
+    "sh_time": 290134,
+    "atp_time": 18021,
+    "proof": "by (smt (verit, ccfv_threshold) bw_def concat_bit_of_zero_2 concat_bit_take_bit_eq drop_bit_int_def drop_bit_xor shr_def take_bit_eq_mod take_bit_xor xor.commute xor.left_commute) (436 ms)"
+  },
   "AndOrXor_1294": {
     "method": "timeout",
     "total_time": 277911
