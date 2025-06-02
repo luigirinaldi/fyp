@@ -1,0 +1,5 @@
+[
+{"name":"mul_two", "cpu":"312%", "mem":8251792},
+{"name":"commutativity_mult", "cpu":"266%", "mem":778728},
+{"name":"mult_assoc_4", "cpu":"331%", "mem":15459304},
+{"name":"mult_sum_same", "cpu":"307%", "mem":13481120},

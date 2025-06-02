@@ -1,0 +1,194 @@
+{
+  "AndOrXor_2063": {
+    "method": "timeout",
+    "total_time": 276948
+  },
+  "AndOrXor_2429": {
+    "method": "timeout",
+    "total_time": 277876
+  },
+  "AndOrXor_2284": {
+    "method": "timeout",
+    "total_time": 278043
+  },
+  "AndOrXor_2367": {
+    "method": "timeout",
+    "total_time": 280003
+  },
+  "AndOrXor_1247": {
+    "method": "timeout",
+    "total_time": 278022
+  },
+  "AndOrXor_1288": {
+    "method": "timeout",
+    "total_time": 277943
+  },
+  "AndOrXor_144": {
+    "method": "timeout",
+    "total_time": 278720
+  },
+  "InstCombineShift440": {
+    "method": "timeout",
+    "total_time": 278276
+  },
+  "AndOrXor_2263": {
+    "method": "timeout",
+    "total_time": 279094
+  },
+  "InstCombineShift279": {
+    "method": "timeout",
+    "total_time": 278220
+  },
+  "AndOrXor_2658": {
+    "method": "timeout",
+    "total_time": 278933
+  },
+  "AndOrXor_2595": {
+    "method": "timeout",
+    "total_time": 278996
+  },
+  "AndOrXor_135": {
+    "method": "timeout",
+    "total_time": 278078
+  },
+  "AndOrXor_2188": {
+    "method": "timeout",
+    "total_time": 277212
+  },
+  "AddSub_1043": {
+    "method": "timeout",
+    "total_time": 278830
+  },
+  "AddSub_1202": {
+    "method": "timeout",
+    "total_time": 276997
+  },
+  "AndOrXor_2607": {
+    "method": "timeout",
+    "total_time": 278929
+  },
+  "InstCombineShift476": {
+    "method": "timeout",
+    "total_time": 278062
+  },
+  "AndOrXor_1241": {
+    "method": "timeout",
+    "total_time": 278901
+  },
+  "AndOrXor_2264": {
+    "method": "timeout",
+    "total_time": 277988
+  },
+  "AndOrXor_2231": {
+    "method": "timeout",
+    "total_time": 278228
+  },
+  "AndOrXor_2123": {
+    "method": "timeout",
+    "total_time": 277878
+  },
+  "AndOrXor_2247": {
+    "method": "timeout",
+    "total_time": 277969
+  },
+  "AndOrXor_2475": {
+    "method": "timeout",
+    "total_time": 276780
+  },
+  "AndOrXor_2243": {
+    "method": "timeout",
+    "total_time": 278464
+  },
+  "AndOrXor_2430": {
+    "method": "timeout",
+    "total_time": 277843
+  },
+  "AndOrXor_2297": {
+    "method": "timeout",
+    "total_time": 277991
+  },
+  "AndOrXor_2417": {
+    "method": "timeout",
+    "total_time": 277774
+  },
+  "AndOrXor_2285": {
+    "method": "timeout",
+    "total_time": 278904
+  },
+  "AndOrXor_2627": {
+    "method": "timeout",
+    "total_time": 278915
+  },
+  "AndOrXor_1253": {
+    "method": "timeout",
+    "total_time": 277956
+  },
+  "AndOrXor_2587": {
+    "method": "timeout",
+    "total_time": 278114
+  },
+  "AndOrXor_2113": {
+    "method": "timeout",
+    "total_time": 278937
+  },
+  "AndOrXor_1230": {
+    "method": "timeout",
+    "total_time": 278825
+  },
+  "InstCombineShift239": {
+    "method": "timeout",
+    "total_time": 278010
+  },
+  "AndOrXor_1280": {
+    "method": "timeout",
+    "total_time": 278846
+  },
+  "InstCombineShift582": {
+    "method": "timeout",
+    "total_time": 278033
+  },
+  "AndOrXor_2416": {
+    "method": "timeout",
+    "total_time": 278976
+  },
+  "AndOrXor_2647": {
+    "method": "timeout",
+    "total_time": 278085
+  },
+  "AndOrXor_2617": {
+    "method": "timeout",
+    "total_time": 277964
+  },
+  "AddSub_1564": {
+    "method": "timeout",
+    "total_time": 276366
+  },
+  "AndOrXor_2486": {
+    "method": "timeout",
+    "total_time": 276954
+  },
+  "InstCombineShift497a": {
+    "method": "timeout",
+    "total_time": 277999
+  },
+  "AndOrXor_2515": {
+    "method": "timeout",
+    "total_time": 278009
+  },
+  "AndOrXor_1294": {
+    "method": "timeout",
+    "total_time": 278854
+  },
+  "AndOrXor_2581": {
+    "method": "timeout",
+    "total_time": 277948
+  },
+  "AndOrXor_2265": {
+    "method": "timeout",
+    "total_time": 278192
+  },
+  "AndOrXor_2118": {
+    "method": "timeout",
+    "total_time": 278945
+  }
+}
