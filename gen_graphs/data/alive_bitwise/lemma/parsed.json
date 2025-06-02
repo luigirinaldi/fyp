@@ -11,6 +11,13 @@
     "method": "timeout",
     "total_time": 278043
   },
+  "AddSub_1624": {
+    "method": "cvc5",
+    "total_time": 283636,
+    "sh_time": 283636,
+    "atp_time": 164,
+    "proof": "by (metis (no_types, opaque_lifting) add.commute diff_add_cancel diff_diff_eq2 diff_right_eq_prec xor_as_or_and) (72 ms)"
+  },
   "AndOrXor_2367": {
     "method": "timeout",
     "total_time": 280003
@@ -42,6 +49,13 @@
   "AndOrXor_2658": {
     "method": "timeout",
     "total_time": 278933
+  },
+  "AddSub_1560": {
+    "method": "cvc5",
+    "total_time": 28365,
+    "sh_time": 28365,
+    "atp_time": 1530,
+    "proof": "by (simp add: and_allones or_allones xor_as_or_and) (0.8 ms)"
   },
   "AndOrXor_2595": {
     "method": "timeout",
@@ -138,6 +152,13 @@
   "InstCombineShift239": {
     "method": "timeout",
     "total_time": 278010
+  },
+  "AddSub_1295": {
+    "method": "cvc5",
+    "total_time": 391316,
+    "sh_time": 391316,
+    "atp_time": 4661,
+    "proof": "by (metis add.commute add_diff_cancel_left' add_eq_prec group_cancel.sub1 xor_as_or_and) (37 ms)"
   },
   "AndOrXor_1280": {
     "method": "timeout",
