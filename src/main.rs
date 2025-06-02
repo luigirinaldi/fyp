@@ -179,11 +179,26 @@ fn main() -> Result<(), std::io::Error> {
 
             let session_name = String::from(path.file_stem().unwrap().to_str().unwrap());
 
-            return check_isabelle_proof(
+            match check_isabelle_proof(
                 &true_equivs_names,
-                session_name,
+                session_name.clone(),
                 &cli.theorem_path.unwrap(),
-            );
+            ) {
+                Ok(wrong_proofs) => {
+                    match wrong_proofs {
+                        Some(hash) => {
+                            let fails = &hash[&session_name.clone()];
+                            println!("The following equivalences were found to be correct but couldn't be verified:\n{}", fails.join("\n"))
+                        }
+                        None => {}
+                    };
+                    Ok(())
+                }
+                Err(e) => {
+                    eprintln!("Error when checking isabelle proofs: {}", e);
+                    Err(e)
+                }
+            }
         } else {
             Ok(())
         }

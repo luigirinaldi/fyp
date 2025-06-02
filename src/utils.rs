@@ -197,7 +197,7 @@ fn find_failing_theories(log: &str) -> Result<FailingTheories, Error> {
 
                     let _session_check = &cap[1];
                     let theory = cap[2].to_string();
-                    println!("Found broken theory: {theory} in session {_session_check}");
+                    // println!("Found broken theory: {theory} in session {_session_check}");
                     result.entry(session.clone()).or_default().push(theory);
                 }
             }
@@ -281,13 +281,13 @@ pub fn check_isabelle_proof(
     match output {
         Ok(o) => {
             if !o.status.success() {
-                eprintln!("Bash command exited with an error.");
+                // eprintln!("Bash command exited with an error.");
 
                 match find_failing_theories(&String::from_utf8_lossy(&o.stdout)) {
                     Ok(failing_theorems) => Ok(Some(failing_theorems)),
                     Err(e) => {
-                        eprintln!("Error while processing the logs");
-                        Err(Error::other("proof couldn't be verified with isabelle"))
+                        eprintln!("Error while processing the logs: {}", e);
+                        Err(e)
                     }
                 }
             } else {
