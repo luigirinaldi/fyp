@@ -1,0 +1,49 @@
+{
+  "AndOrXor_2063": {
+    "method": "timeout",
+    "total_time": 552864
+  },
+  "AndOrXor_2429": {
+    "method": "timeout",
+    "total_time": 554031
+  },
+  "AndOrXor_2284": {
+    "method": "timeout",
+    "total_time": 554025
+  },
+  "AddSub_1624": {
+    "method": "cvc5",
+    "total_time": 52080,
+    "sh_time": 52080,
+    "atp_time": 156,
+    "proof": "by (metis add_diff_cancel_left' diff_diff_eq2 diff_right_eq_prec xor_as_or_and) (42 ms)"
+  },
+  "AndOrXor_2367": {
+    "method": "timeout",
+    "total_time": 554271
+  },
+  "AndOrXor_1247": {
+    "method": "timeout",
+    "total_time": 553449
+  },
+  "AndOrXor_1288": {
+    "method": "timeout",
+    "total_time": 553002
+  },
+  "AndOrXor_144": {
+    "method": "timeout",
+    "total_time": 556808
+  },
+  "InstCombineShift440": {
+    "method": "timeout",
+    "total_time": 553358
+  },
+  "AndOrXor_2263": {
+    "method": "timeout",
+    "total_time": 556920
+  },
+  "InstCombineShift279": {
+    "method": "timeout",
+    "total_time": 553013
+  }
+}
