@@ -2,231 +2,15 @@
 1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
 1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
 1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
-1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 4, minimize = true, overlord =
+1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 1, minimize = true, overlord =
 1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
 1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
 1.sledgehammer initialize   "zipperposition"],
 1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
 1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
 1.sledgehammer initialize  false}
-0.try0 goal.proof         5ms LemmaSledge.AddSub_1614 8:241  
-1.sledgehammer goal.proof     52195ms LemmaSledge.AddSub_1614 8:241  some (SH 52195ms, ATP 101ms) [cvc5]: Try this: by (metis diff_diff_eq diff_left_eq_prec diff_right_eq_prec diff_self) (22 ms)
-1.sledgehammer finalize   Total number of sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful sledgehammer calls: 1
-1.sledgehammer finalize   Number of sledgehammer lemmas: 4
-1.sledgehammer finalize   Max number of sledgehammer lemmas: 4
-1.sledgehammer finalize   Success rate: 100%
-1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 52.195
-1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.101
-1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 52.195
-1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.101
-1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
-1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
-1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
-1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
-1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 4, minimize = true, overlord =
-1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
-1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
-1.sledgehammer initialize   "zipperposition"],
-1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
-1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
-1.sledgehammer initialize  false}
-0.try0 goal.proof         6ms LemmaSledge.muldivrem_152 8:214  
-1.sledgehammer goal.proof     52248ms LemmaSledge.muldivrem_152 8:214  some (SH 52244ms, ATP 391ms) [cvc5]: Try this: by (metis bw_0 mul_eq_prec mult.commute mult_minus1 verit_minus_simplify(3)) (20 ms)
-1.sledgehammer finalize   Total number of sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful sledgehammer calls: 1
-1.sledgehammer finalize   Number of sledgehammer lemmas: 5
-1.sledgehammer finalize   Max number of sledgehammer lemmas: 5
-1.sledgehammer finalize   Success rate: 100%
-1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 52.244
-1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.391
-1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 52.244
-1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.391
-1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
-1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
-1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
-1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
-1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 4, minimize = true, overlord =
-1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
-1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
-1.sledgehammer initialize   "zipperposition"],
-1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
-1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
-1.sledgehammer initialize  false}
-0.try0 goal.proof         3ms LemmaSledge.Select_1105 8:167  succeeded
-1.sledgehammer goal.proof      1374ms LemmaSledge.Select_1105 8:167  some (SH 1374ms, ATP 296ms) [cvc5]: Try this: by simp (0.3 ms)
-1.sledgehammer finalize   Total number of sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful sledgehammer calls: 1
-1.sledgehammer finalize   Number of sledgehammer lemmas: 0
-1.sledgehammer finalize   Max number of sledgehammer lemmas: 0
-1.sledgehammer finalize   Success rate: 100%
-1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 1.374
-1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.296
-1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 1.374
-1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.296
-1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
-1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
-1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
-1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
-1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 4, minimize = true, overlord =
-1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
-1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
-1.sledgehammer initialize   "zipperposition"],
-1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
-1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
-1.sledgehammer initialize  false}
-0.try0 goal.proof         9ms LemmaSledge.InstCombineShift497d 8:323  
-1.sledgehammer goal.proof     554013ms LemmaSledge.InstCombineShift497d 8:323  timeout (SH 554012ms) [cvc5]: Timed out
-1.sledgehammer finalize   Total number of sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful sledgehammer calls: 0
-1.sledgehammer finalize   Number of sledgehammer lemmas: 0
-1.sledgehammer finalize   Max number of sledgehammer lemmas: 0
-1.sledgehammer finalize   Success rate: 0%
-1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 0
-1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 554.012
-1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.000
-1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 554.012
-1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.000
-1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
-1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
-1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
-1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
-1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 4, minimize = true, overlord =
-1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
-1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
-1.sledgehammer initialize   "zipperposition"],
-1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
-1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
-1.sledgehammer initialize  false}
-0.try0 goal.proof         6ms LemmaSledge.AddSub_1164 8:241  
-1.sledgehammer goal.proof     51268ms LemmaSledge.AddSub_1164 8:241  some (SH 51268ms, ATP 52ms) [cvc5]: Try this: by (simp add: add_eq_prec bw_0) (0.8 ms)
-1.sledgehammer finalize   Total number of sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful sledgehammer calls: 1
-1.sledgehammer finalize   Number of sledgehammer lemmas: 4
-1.sledgehammer finalize   Max number of sledgehammer lemmas: 4
-1.sledgehammer finalize   Success rate: 100%
-1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 51.268
-1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.052
-1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 51.268
-1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.052
-1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
-1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
-1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
-1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
-1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 4, minimize = true, overlord =
-1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
-1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
-1.sledgehammer initialize   "zipperposition"],
-1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
-1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
-1.sledgehammer initialize  false}
-0.try0 goal.proof         5ms LemmaSledge.AddSub_1574 8:254  
-1.sledgehammer goal.proof     52166ms LemmaSledge.AddSub_1574 8:254  some (SH 52166ms, ATP 1450ms) [cvc5]: Try this: by (metis diff_diff_eq diff_left_eq_prec diff_right_commute diff_right_eq_prec) (43 ms)
-1.sledgehammer finalize   Total number of sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful sledgehammer calls: 1
-1.sledgehammer finalize   Number of sledgehammer lemmas: 5
-1.sledgehammer finalize   Max number of sledgehammer lemmas: 5
-1.sledgehammer finalize   Success rate: 100%
-1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 52.166
-1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 1.450
-1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 52.166
-1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 1.450
-1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
-1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
-1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
-1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
-1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 4, minimize = true, overlord =
-1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
-1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
-1.sledgehammer initialize   "zipperposition"],
-1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
-1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
-1.sledgehammer initialize  false}
-0.try0 goal.proof         5ms LemmaSledge.muldivrem_239 8:265  
-1.sledgehammer goal.proof     127400ms LemmaSledge.muldivrem_239 8:265  some (SH 127400ms, ATP 2297ms) [cvc5]: Try this: by (metis (no_types, opaque_lifting) bw_0 diff_right_commute eq_iff_diff_eq_0 mul_eq_prec mult.commute right_diff_distrib') (48 ms)
-1.sledgehammer finalize   Total number of sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful sledgehammer calls: 1
-1.sledgehammer finalize   Number of sledgehammer lemmas: 6
-1.sledgehammer finalize   Max number of sledgehammer lemmas: 6
-1.sledgehammer finalize   Success rate: 100%
-1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 127.400
-1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 2.297
-1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 127.400
-1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 2.297
-1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
-1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
-1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
-1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
-1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 4, minimize = true, overlord =
-1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
-1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
-1.sledgehammer initialize   "zipperposition"],
-1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
-1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
-1.sledgehammer initialize  false}
-0.try0 goal.proof         5ms LemmaSledge.AddSub_1176 8:241  
-1.sledgehammer goal.proof     52120ms LemmaSledge.AddSub_1176 8:241  some (SH 52119ms, ATP 82ms) [cvc5]: Try this: by (metis add.commute add.group_left_neutral add_diff_eq add_eq_prec) (612 ms)
-1.sledgehammer finalize   Total number of sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful sledgehammer calls: 1
-1.sledgehammer finalize   Number of sledgehammer lemmas: 4
-1.sledgehammer finalize   Max number of sledgehammer lemmas: 4
-1.sledgehammer finalize   Success rate: 100%
-1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 52.119
-1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.082
-1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 52.119
-1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.082
-1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
-1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
-1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
-1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
-1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 4, minimize = true, overlord =
-1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
-1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
-1.sledgehammer initialize   "zipperposition"],
-1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
-1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
-1.sledgehammer initialize  false}
-0.try0 goal.proof         3ms LemmaSledge.Select_1100 8:167  succeeded
-1.sledgehammer goal.proof      1322ms LemmaSledge.Select_1100 8:167  some (SH 1322ms, ATP 273ms) [cvc5]: Try this: by auto (0.2 ms)
-1.sledgehammer finalize   Total number of sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful sledgehammer calls: 1
-1.sledgehammer finalize   Number of sledgehammer lemmas: 0
-1.sledgehammer finalize   Max number of sledgehammer lemmas: 0
-1.sledgehammer finalize   Success rate: 100%
-1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 1.322
-1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.273
-1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 1.322
-1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.273
-1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
-1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
-1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
-1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
-1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 4, minimize = true, overlord =
-1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
-1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
-1.sledgehammer initialize   "zipperposition"],
-1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
-1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
-1.sledgehammer initialize  false}
-0.try0 goal.proof         4ms LemmaSledge.AddSub_1539_2 8:224  
-1.sledgehammer goal.proof     52054ms LemmaSledge.AddSub_1539_2 8:224  some (SH 52053ms, ATP 489ms) [cvc5]: Try this: by (metis add.commute add_eq_prec diff_conv_add_uminus) (30 ms)
+0.try0 goal.proof         6ms LemmaSledge.AddSub_1614 8:241  
+1.sledgehammer goal.proof     52103ms LemmaSledge.AddSub_1614 8:241  some (SH 52103ms, ATP 122ms) [cvc5]: Try this: by (metis diff_diff_eq diff_right_eq_prec eq_iff_diff_eq_0) (98 ms)
 1.sledgehammer finalize   Total number of sledgehammer calls: 1
 1.sledgehammer finalize   Number of successful sledgehammer calls: 1
 1.sledgehammer finalize   Number of sledgehammer lemmas: 3
@@ -234,23 +18,95 @@
 1.sledgehammer finalize   Success rate: 100%
 1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
 1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 52.053
-1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.489
-1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 52.053
-1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.489
+1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 52.103
+1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.122
+1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 52.103
+1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.122
 1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
 1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
 1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
 1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
-1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 4, minimize = true, overlord =
+1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 1, minimize = true, overlord =
 1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
 1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
 1.sledgehammer initialize   "zipperposition"],
 1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
 1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
 1.sledgehammer initialize  false}
-0.try0 goal.proof         5ms LemmaSledge.muldivrem_290_292 8:293  
-1.sledgehammer goal.proof     536413ms LemmaSledge.muldivrem_290_292 8:293  some (SH 536413ms, ATP 637ms) [cvc5]: Try this: by (metis mul_eq_prec mult.commute mult_cancel_right1 shl_def) (621 ms)
+0.try0 goal.proof         4ms LemmaSledge.muldivrem_152 8:214  
+1.sledgehammer goal.proof     52105ms LemmaSledge.muldivrem_152 8:214  some (SH 52100ms, ATP 383ms) [cvc5]: Try this: by (metis bw_0 mul_eq_prec mult.commute mult_minus1 verit_minus_simplify(3)) (21 ms)
+1.sledgehammer finalize   Total number of sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful sledgehammer calls: 1
+1.sledgehammer finalize   Number of sledgehammer lemmas: 5
+1.sledgehammer finalize   Max number of sledgehammer lemmas: 5
+1.sledgehammer finalize   Success rate: 100%
+1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 52.100
+1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.383
+1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 52.100
+1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.383
+1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
+1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
+1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
+1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
+1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 1, minimize = true, overlord =
+1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
+1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
+1.sledgehammer initialize   "zipperposition"],
+1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
+1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
+1.sledgehammer initialize  false}
+0.try0 goal.proof         3ms LemmaSledge.Select_1105 8:167  succeeded
+1.sledgehammer goal.proof      1214ms LemmaSledge.Select_1105 8:167  some (SH 1214ms, ATP 369ms) [cvc5]: Try this: by simp (0.2 ms)
+1.sledgehammer finalize   Total number of sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful sledgehammer calls: 1
+1.sledgehammer finalize   Number of sledgehammer lemmas: 0
+1.sledgehammer finalize   Max number of sledgehammer lemmas: 0
+1.sledgehammer finalize   Success rate: 100%
+1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 1.214
+1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.369
+1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 1.214
+1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.369
+1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
+1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
+1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
+1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
+1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 1, minimize = true, overlord =
+1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
+1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
+1.sledgehammer initialize   "zipperposition"],
+1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
+1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
+1.sledgehammer initialize  false}
+0.try0 goal.proof         6ms LemmaSledge.InstCombineShift497d 8:323  
+1.sledgehammer goal.proof     553223ms LemmaSledge.InstCombineShift497d 8:323  timeout (SH 553223ms) [cvc5]: Timed out
+1.sledgehammer finalize   Total number of sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful sledgehammer calls: 0
+1.sledgehammer finalize   Number of sledgehammer lemmas: 0
+1.sledgehammer finalize   Max number of sledgehammer lemmas: 0
+1.sledgehammer finalize   Success rate: 0%
+1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 0
+1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 553.223
+1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.000
+1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 553.223
+1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.000
+1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
+1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
+1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
+1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
+1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 1, minimize = true, overlord =
+1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
+1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
+1.sledgehammer initialize   "zipperposition"],
+1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
+1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
+1.sledgehammer initialize  false}
+0.try0 goal.proof         5ms LemmaSledge.AddSub_1164 8:241  
+1.sledgehammer goal.proof     51302ms LemmaSledge.AddSub_1164 8:241  some (SH 51302ms, ATP 38ms) [cvc5]: Try this: by (simp add: add_eq_prec bw_0) (0.8 ms)
 1.sledgehammer finalize   Total number of sledgehammer calls: 1
 1.sledgehammer finalize   Number of successful sledgehammer calls: 1
 1.sledgehammer finalize   Number of sledgehammer lemmas: 4
@@ -258,71 +114,167 @@
 1.sledgehammer finalize   Success rate: 100%
 1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
 1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 536.413
-1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.637
-1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 536.413
-1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.637
+1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 51.302
+1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.038
+1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 51.302
+1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.038
 1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
 1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
 1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
 1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
-1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 4, minimize = true, overlord =
+1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 1, minimize = true, overlord =
 1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
 1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
 1.sledgehammer initialize   "zipperposition"],
 1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
 1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
 1.sledgehammer initialize  false}
-0.try0 goal.proof         6ms LemmaSledge.muldivrem_229 8:302  
-1.sledgehammer goal.proof     283520ms LemmaSledge.muldivrem_229 8:302  some (SH 283520ms, ATP 96ms) [cvc5]: Try this: by (metis add.commute add_eq_prec distrib_right mul_eq_prec) (35 ms)
+0.try0 goal.proof         5ms LemmaSledge.AddSub_1574 8:254  
+1.sledgehammer goal.proof     52152ms LemmaSledge.AddSub_1574 8:254  some (SH 52152ms, ATP 1365ms) [cvc5]: Try this: by (metis diff_diff_eq diff_left_eq_prec diff_right_commute diff_right_eq_prec) (29 ms)
+1.sledgehammer finalize   Total number of sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful sledgehammer calls: 1
+1.sledgehammer finalize   Number of sledgehammer lemmas: 5
+1.sledgehammer finalize   Max number of sledgehammer lemmas: 5
+1.sledgehammer finalize   Success rate: 100%
+1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 52.152
+1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 1.365
+1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 52.152
+1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 1.365
+1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
+1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
+1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
+1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
+1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 1, minimize = true, overlord =
+1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
+1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
+1.sledgehammer initialize   "zipperposition"],
+1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
+1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
+1.sledgehammer initialize  false}
+0.try0 goal.proof         6ms LemmaSledge.muldivrem_239 8:265  
+1.sledgehammer goal.proof     52165ms LemmaSledge.muldivrem_239 8:265  some (SH 52165ms, ATP 2263ms) [cvc5]: Try this: by (metis (no_types, opaque_lifting) bw_0 diff_right_commute eq_iff_diff_eq_0 mul_eq_prec mult.commute right_diff_distrib') (48 ms)
+1.sledgehammer finalize   Total number of sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful sledgehammer calls: 1
+1.sledgehammer finalize   Number of sledgehammer lemmas: 6
+1.sledgehammer finalize   Max number of sledgehammer lemmas: 6
+1.sledgehammer finalize   Success rate: 100%
+1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 52.165
+1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 2.263
+1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 52.165
+1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 2.263
+1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
+1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
+1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
+1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
+1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 1, minimize = true, overlord =
+1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
+1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
+1.sledgehammer initialize   "zipperposition"],
+1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
+1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
+1.sledgehammer initialize  false}
+0.try0 goal.proof         5ms LemmaSledge.AddSub_1176 8:241  
+1.sledgehammer goal.proof     52179ms LemmaSledge.AddSub_1176 8:241  some (SH 52179ms, ATP 119ms) [cvc5]: Try this: by (metis add.commute add_eq_prec comm_monoid_add_class.add_0 group_cancel.sub1) (573 ms)
 1.sledgehammer finalize   Total number of sledgehammer calls: 1
 1.sledgehammer finalize   Number of successful sledgehammer calls: 1
 1.sledgehammer finalize   Number of sledgehammer lemmas: 4
 1.sledgehammer finalize   Max number of sledgehammer lemmas: 4
-1.sledgehammer finalize   Success rate: 100%
-1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 283.520
-1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.096
-1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 283.520
-1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.096
-1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
-1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
-1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
-1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
-1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 4, minimize = true, overlord =
-1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
-1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
-1.sledgehammer initialize   "zipperposition"],
-1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
-1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
-1.sledgehammer initialize  false}
-0.try0 goal.proof         5ms LemmaSledge.AddSub_1165 8:281  
-1.sledgehammer goal.proof     52179ms LemmaSledge.AddSub_1165 8:281  some (SH 52179ms, ATP 22887ms) [cvc5]: Try this: by (metis add_0 add_eq_prec diff_add_eq diff_add_eq_diff_diff_swap diff_left_eq_prec diff_right_eq_prec) (88 ms)
-1.sledgehammer finalize   Total number of sledgehammer calls: 1
-1.sledgehammer finalize   Number of successful sledgehammer calls: 1
-1.sledgehammer finalize   Number of sledgehammer lemmas: 7
-1.sledgehammer finalize   Max number of sledgehammer lemmas: 7
 1.sledgehammer finalize   Success rate: 100%
 1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
 1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
 1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 52.179
-1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 22.887
+1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.119
 1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 52.179
-1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 22.887
+1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.119
 1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
 1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
 1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
 1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
-1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 4, minimize = true, overlord =
+1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 1, minimize = true, overlord =
 1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
 1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
 1.sledgehammer initialize   "zipperposition"],
 1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
 1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
 1.sledgehammer initialize  false}
-0.try0 goal.proof         5ms LemmaSledge.AddSub_1619 8:241  
-1.sledgehammer goal.proof     52137ms LemmaSledge.AddSub_1619 8:241  some (SH 52137ms, ATP 102ms) [cvc5]: Try this: by (simp add: diff_left_eq_prec diff_right_eq_prec) (3 ms)
+0.try0 goal.proof         3ms LemmaSledge.Select_1100 8:167  succeeded
+1.sledgehammer goal.proof      1269ms LemmaSledge.Select_1100 8:167  some (SH 1269ms, ATP 204ms) [cvc5]: Try this: by auto (0.3 ms)
+1.sledgehammer finalize   Total number of sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful sledgehammer calls: 1
+1.sledgehammer finalize   Number of sledgehammer lemmas: 0
+1.sledgehammer finalize   Max number of sledgehammer lemmas: 0
+1.sledgehammer finalize   Success rate: 100%
+1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 1.269
+1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.204
+1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 1.269
+1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.204
+1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
+1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
+1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
+1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
+1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 1, minimize = true, overlord =
+1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
+1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
+1.sledgehammer initialize   "zipperposition"],
+1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
+1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
+1.sledgehammer initialize  false}
+0.try0 goal.proof         6ms LemmaSledge.AddSub_1539_2 8:224  
+1.sledgehammer goal.proof     52010ms LemmaSledge.AddSub_1539_2 8:224  some (SH 52010ms, ATP 502ms) [cvc5]: Try this: by (metis add.commute add_eq_prec uminus_add_conv_diff) (30 ms)
+1.sledgehammer finalize   Total number of sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful sledgehammer calls: 1
+1.sledgehammer finalize   Number of sledgehammer lemmas: 3
+1.sledgehammer finalize   Max number of sledgehammer lemmas: 3
+1.sledgehammer finalize   Success rate: 100%
+1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 52.010
+1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.502
+1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 52.010
+1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.502
+1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
+1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
+1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
+1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
+1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 1, minimize = true, overlord =
+1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
+1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
+1.sledgehammer initialize   "zipperposition"],
+1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
+1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
+1.sledgehammer initialize  false}
+0.try0 goal.proof         4ms LemmaSledge.muldivrem_290_292 8:293  
+1.sledgehammer goal.proof     151435ms LemmaSledge.muldivrem_290_292 8:293  some (SH 151435ms, ATP 633ms) [cvc5]: Try this: by (metis mul_eq_prec mult.commute mult_numeral_1 numeral_One shl_def) (28 ms)
+1.sledgehammer finalize   Total number of sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful sledgehammer calls: 1
+1.sledgehammer finalize   Number of sledgehammer lemmas: 5
+1.sledgehammer finalize   Max number of sledgehammer lemmas: 5
+1.sledgehammer finalize   Success rate: 100%
+1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 151.435
+1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.633
+1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 151.435
+1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.633
+1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
+1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
+1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
+1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
+1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 1, minimize = true, overlord =
+1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
+1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
+1.sledgehammer initialize   "zipperposition"],
+1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
+1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
+1.sledgehammer initialize  false}
+0.try0 goal.proof         4ms LemmaSledge.muldivrem_229 8:302  
+1.sledgehammer goal.proof     52118ms LemmaSledge.muldivrem_229 8:302  some (SH 52118ms, ATP 89ms) [cvc5]: Try this: by (metis add.commute add_eq_prec mul_eq_prec ring_class.ring_distribs(2)) (36 ms)
 1.sledgehammer finalize   Total number of sledgehammer calls: 1
 1.sledgehammer finalize   Number of successful sledgehammer calls: 1
 1.sledgehammer finalize   Number of sledgehammer lemmas: 4
@@ -330,7 +282,55 @@
 1.sledgehammer finalize   Success rate: 100%
 1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
 1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
-1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 52.137
-1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.102
-1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 52.137
-1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.102
+1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 52.118
+1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.089
+1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 52.118
+1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.089
+1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
+1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
+1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
+1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
+1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 1, minimize = true, overlord =
+1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
+1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
+1.sledgehammer initialize   "zipperposition"],
+1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
+1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
+1.sledgehammer initialize  false}
+0.try0 goal.proof         6ms LemmaSledge.AddSub_1165 8:281  
+1.sledgehammer goal.proof     52175ms LemmaSledge.AddSub_1165 8:281  some (SH 52175ms, ATP 22070ms) [cvc5]: Try this: by (metis add_0 add_eq_prec diff_add_eq diff_add_eq_diff_diff_swap diff_left_eq_prec diff_right_eq_prec) (58 ms)
+1.sledgehammer finalize   Total number of sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful sledgehammer calls: 1
+1.sledgehammer finalize   Number of sledgehammer lemmas: 8
+1.sledgehammer finalize   Max number of sledgehammer lemmas: 8
+1.sledgehammer finalize   Success rate: 100%
+1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 52.175
+1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 22.070
+1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 52.175
+1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 22.070
+1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
+1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
+1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,
+1.sledgehammer initialize  lam_trans = NONE, learn = true, max_facts = NONE, max_mono_iters = NONE,
+1.sledgehammer initialize  max_new_mono_instances = NONE, max_proofs = 1, minimize = true, overlord =
+1.sledgehammer initialize  false, preplay_timeout = 1.000, provers =
+1.sledgehammer initialize  ["cvc5", "cvc5_proof", "verit", "z3", "e", "spass", "vampire",
+1.sledgehammer initialize   "zipperposition"],
+1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
+1.sledgehammer initialize  600.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
+1.sledgehammer initialize  false}
+0.try0 goal.proof         4ms LemmaSledge.AddSub_1619 8:241  
+1.sledgehammer goal.proof     52255ms LemmaSledge.AddSub_1619 8:241  some (SH 52255ms, ATP 114ms) [cvc5]: Try this: by (simp add: diff_left_eq_prec diff_right_eq_prec) (2 ms)
+1.sledgehammer finalize   Total number of sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful sledgehammer calls: 1
+1.sledgehammer finalize   Number of sledgehammer lemmas: 4
+1.sledgehammer finalize   Max number of sledgehammer lemmas: 4
+1.sledgehammer finalize   Success rate: 100%
+1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 52.255
+1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 0.114
+1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 52.255
+1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 0.114

@@ -1,212 +1,212 @@
 {
   "AndOrXor_2063": {
     "method": "timeout",
-    "total_time": 276802
+    "total_time": 552826
   },
   "AndOrXor_2429": {
     "method": "timeout",
-    "total_time": 277953
+    "total_time": 553084
   },
   "AndOrXor_2284": {
     "method": "timeout",
-    "total_time": 278013
+    "total_time": 553087
   },
   "AddSub_1624": {
     "method": "timeout",
-    "total_time": 277950
+    "total_time": 553318
   },
   "AndOrXor_2367": {
     "method": "timeout",
-    "total_time": 277099
+    "total_time": 552932
   },
   "AndOrXor_1247": {
     "method": "timeout",
-    "total_time": 277804
+    "total_time": 557603
   },
   "AndOrXor_1288": {
     "method": "timeout",
-    "total_time": 277841
+    "total_time": 555526
   },
   "AndOrXor_144": {
     "method": "timeout",
-    "total_time": 278024
+    "total_time": 553732
   },
   "InstCombineShift440": {
     "method": "timeout",
-    "total_time": 278105
+    "total_time": 553719
   },
   "AndOrXor_2263": {
     "method": "timeout",
-    "total_time": 276790
+    "total_time": 552806
   },
   "InstCombineShift279": {
     "method": "timeout",
-    "total_time": 277872
+    "total_time": 553179
   },
   "AndOrXor_2658": {
     "method": "timeout",
-    "total_time": 277911
+    "total_time": 556271
   },
   "AddSub_1560": {
     "method": "timeout",
-    "total_time": 278071
+    "total_time": 557794
   },
   "AndOrXor_2595": {
     "method": "timeout",
-    "total_time": 277966
+    "total_time": 553273
   },
   "AndOrXor_135": {
     "method": "timeout",
-    "total_time": 278349
+    "total_time": 554158
   },
   "AndOrXor_2188": {
     "method": "timeout",
-    "total_time": 277871
+    "total_time": 557493
   },
   "AddSub_1043": {
     "method": "timeout",
-    "total_time": 277809
+    "total_time": 553074
   },
   "AddSub_1202": {
     "method": "timeout",
-    "total_time": 276472
+    "total_time": 553679
   },
   "AndOrXor_2607": {
     "method": "timeout",
-    "total_time": 277924
+    "total_time": 552872
   },
   "InstCombineShift476": {
     "method": "timeout",
-    "total_time": 278011
+    "total_time": 553556
   },
   "AndOrXor_1241": {
     "method": "timeout",
-    "total_time": 277866
+    "total_time": 557240
   },
   "AndOrXor_2264": {
     "method": "timeout",
-    "total_time": 277837
+    "total_time": 552825
   },
   "AndOrXor_2231": {
     "method": "timeout",
-    "total_time": 277934
+    "total_time": 553430
   },
   "AndOrXor_2123": {
     "method": "timeout",
-    "total_time": 277771
+    "total_time": 557188
   },
   "AndOrXor_2247": {
     "method": "timeout",
-    "total_time": 277881
+    "total_time": 556335
   },
   "AndOrXor_2475": {
     "method": "timeout",
-    "total_time": 276398
+    "total_time": 553848
   },
   "AndOrXor_2243": {
     "method": "timeout",
-    "total_time": 278073
+    "total_time": 553555
   },
   "AndOrXor_2430": {
     "method": "timeout",
-    "total_time": 277843
+    "total_time": 557562
   },
   "AndOrXor_2297": {
     "method": "timeout",
-    "total_time": 277780
+    "total_time": 557701
   },
   "AndOrXor_2417": {
     "method": "timeout",
-    "total_time": 277777
+    "total_time": 557527
   },
   "AndOrXor_2285": {
     "method": "timeout",
-    "total_time": 277805
+    "total_time": 552891
   },
   "AndOrXor_2627": {
     "method": "timeout",
-    "total_time": 277907
+    "total_time": 556427
   },
   "AndOrXor_1253": {
     "method": "timeout",
-    "total_time": 277890
+    "total_time": 556671
   },
   "AndOrXor_2587": {
     "method": "timeout",
-    "total_time": 277896
+    "total_time": 556775
   },
   "AndOrXor_2113": {
     "method": "timeout",
-    "total_time": 277797
+    "total_time": 556074
   },
   "AndOrXor_1230": {
     "method": "timeout",
-    "total_time": 277858
+    "total_time": 557283
   },
   "InstCombineShift239": {
     "method": "timeout",
-    "total_time": 277881
+    "total_time": 553253
   },
   "AddSub_1295": {
     "method": "timeout",
-    "total_time": 277954
+    "total_time": 553564
   },
   "AndOrXor_1280": {
     "method": "timeout",
-    "total_time": 277910
+    "total_time": 557212
   },
   "InstCombineShift582": {
     "method": "timeout",
-    "total_time": 277868
+    "total_time": 553082
   },
   "AndOrXor_2416": {
     "method": "timeout",
-    "total_time": 277875
+    "total_time": 557415
   },
   "AndOrXor_2647": {
     "method": "timeout",
-    "total_time": 277902
+    "total_time": 553237
   },
   "AndOrXor_2617": {
     "method": "timeout",
-    "total_time": 278000
+    "total_time": 557733
   },
   "AddSub_1564": {
     "method": "timeout",
-    "total_time": 276712
+    "total_time": 554586
   },
   "AndOrXor_2486": {
     "method": "timeout",
-    "total_time": 276731
+    "total_time": 554522
   },
   "InstCombineShift497a": {
     "method": "cvc5",
-    "total_time": 279243,
-    "sh_time": 279243,
-    "atp_time": 18046,
-    "proof": "by (metis bw_def concat_bit_of_zero_2 concat_bit_take_bit_eq drop_bit_int_def drop_bit_xor shr_def take_bit_eq_mod take_bit_xor) (48 ms)"
+    "total_time": 451909,
+    "sh_time": 451909,
+    "atp_time": 17976,
+    "proof": "by (metis bw_def concat_bit_of_zero_2 concat_bit_take_bit_eq drop_bit_int_def drop_bit_xor shr_def take_bit_eq_mod take_bit_xor) (155 ms)"
   },
   "AndOrXor_2515": {
     "method": "cvc5",
-    "total_time": 290134,
-    "sh_time": 290134,
-    "atp_time": 18021,
-    "proof": "by (smt (verit, ccfv_threshold) bw_def concat_bit_of_zero_2 concat_bit_take_bit_eq drop_bit_int_def drop_bit_xor shr_def take_bit_eq_mod take_bit_xor xor.commute xor.left_commute) (436 ms)"
+    "total_time": 507091,
+    "sh_time": 507091,
+    "atp_time": 18028,
+    "proof": "by (smt (verit, best) bw_def concat_bit_of_zero_2 concat_bit_take_bit_eq drop_bit_int_def drop_bit_xor shr_def take_bit_eq_mod take_bit_xor xor.commute xor.left_commute) (313 ms)"
   },
   "AndOrXor_1294": {
     "method": "timeout",
-    "total_time": 277911
+    "total_time": 557532
   },
   "AndOrXor_2581": {
     "method": "timeout",
-    "total_time": 277795
+    "total_time": 557108
   },
   "AndOrXor_2265": {
     "method": "timeout",
-    "total_time": 279126
+    "total_time": 553961
   },
   "AndOrXor_2118": {
     "method": "timeout",
-    "total_time": 277952
+    "total_time": 556518
   }
 }
