@@ -281,7 +281,10 @@ pub fn check_isabelle_proof(
     match output {
         Ok(o) => {
             if !o.status.success() {
-                // eprintln!("Bash command exited with an error.");
+                eprintln!(
+                    "Isabelle proof check failed:\n{}",
+                    &String::from_utf8_lossy(&o.stdout)
+                );
 
                 match find_failing_theories(&String::from_utf8_lossy(&o.stdout)) {
                     Ok(failing_theorems) => Ok(Some(failing_theorems)),
