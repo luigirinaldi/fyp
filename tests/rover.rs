@@ -352,7 +352,7 @@ fn rover_mul_two() {
         "mul_two",
         &[],
         "(bw r (* (bw p a) 2))",
-        "(bw r (<< (bw p a) 1))",
+        "(bw r (<< (bw p a) (bw 1 1)))",
     );
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");

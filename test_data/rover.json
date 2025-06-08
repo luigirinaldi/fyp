@@ -99,7 +99,7 @@
     "name": "mul_two",
     "preconditions": [],
     "lhs": "(bw r (* (bw p a) 2))",
-    "rhs": "(bw r (<< (bw p a) 1))"
+    "rhs": "(bw r (<< (bw p a) (bw 1 1)))"
   },
   {
     "name": "merge_left_shift",
