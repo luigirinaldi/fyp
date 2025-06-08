@@ -16,6 +16,12 @@
         "lhs": "(bw k (or (bw k (and (bw k var_A) (bw k (xor (bw k var_D) (bw k -1))))) (bw k (and (bw k (xor (bw k var_A) (bw k -1))) (bw k var_D)))))",
         "rhs": "(bw k (not (bw k (or (and (bw k var_D) (bw k var_A)) (and (bw k (not (bw k var_A))) (bw k (not (bw k var_D))))))))",
         "preconditions": []
+    },        
+    {
+        "name": "AndOrXor_2188_other",
+        "lhs": "(bw k (not (bw k (or (and (bw k var_D) (bw k var_A)) (and (bw k (not (bw k var_A))) (bw k (not (bw k var_D))))))))",
+        "rhs": "(bw k (xor (bw k var_A) (bw k var_D)))",
+        "preconditions": []
     },
     {
     "name": "AndOrXor_2188",

@@ -74,11 +74,6 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // shift operations
         rewrite!("shl_def"; "(<< (bw ?p ?a) (bw ?q ?b))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
         rewrite!("shr_def"; "(>> (bw ?p ?a) (bw ?q ?b))" => "(div (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
-        // bitwise to arith
-        rewrite!("add_as_xor_and";  "(+ (bw ?p ?a) (bw ?p ?b))"
-                                 => "(+ (xor (bw ?p ?a) (bw ?p ?b)) (* 2 (and (bw ?p ?a) (bw ?p ?b))))"),
-        rewrite!("xor_as_or_and";   "(xor (bw ?p ?a) (bw ?p ?b))"
-                                 => "(- (or (bw ?p ?a) (bw ?p ?b)) (and (bw ?p ?a) (bw ?p ?b)))"),
         // bitwise ring? properties
         rewrite!("or.commute";     "(or ?a ?b)" => "(or ?b ?a)"),
         rewrite!("or.assoc";       "(or (or ?a ?b) ?c)" => "(or ?a (or ?b ?c))"),
@@ -100,9 +95,20 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("or_remove";  "(bw ?p (or (bw ?p ?a) (bw ?p ?b)))" => "(or (bw ?p ?a) (bw ?p ?b))"),
         rewrite!("xor_remove"; "(bw ?p (xor (bw ?p ?a) (bw ?p ?b)))" => "(xor (bw ?p ?a) (bw ?p ?b))"),
         // rewrite!("not_remove"; "(bw ?p (not (bw ?p ?a)))" => "(not (bw ?p ?a))"),
+        rewrite!("demorg_and"; "(bw ?p (not (and (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
+        rewrite!("demorg_or";  "(bw ?p (not (or (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (and (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
     ];
-    rules.extend(rewrite!("demorg_and"; "(bw ?p (not (and (bw ?p ?a) (bw ?p ?b))))" <=> "(bw ?p (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"));
-    rules.extend(rewrite!("demorg_or";  "(bw ?p (not (or (bw ?p ?a) (bw ?p ?b))))" <=> "(bw ?p (and (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"));
+    // bitwise to arith
+    rules.extend(rewrite!("add_as_xor_and";
+        "(+ (bw ?p ?a) (bw ?p ?b))"
+            <=>
+        "(+ (xor (bw ?p ?a) (bw ?p ?b)) (* 2 (and (bw ?p ?a) (bw ?p ?b))))"
+    ));
+    rules.extend(rewrite!("xor_as_or_and";
+        "(xor (bw ?p ?a) (bw ?p ?b))"
+        <=>
+        "(- (or (bw ?p ?a) (bw ?p ?b)) (and (bw ?p ?a) (bw ?p ?b)))"
+    ));
     rules.extend(rewrite!("and_distrib"; "(and ?a (or ?b ?c))" <=> "(or (and ?a ?b) (and ?a ?c))"));
     rules.extend(rewrite!("not_bw_not"; "(bw ?p ?a)" <=> "(bw ?p (not (bw ?p (not (bw ?p ?a)))))"));
 

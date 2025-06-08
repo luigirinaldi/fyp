@@ -167,4 +167,9 @@ lemma not_bw_not: "bw p (not (bw p (not (bw p a)))) = (bw p a)" if "p>0" by (met
 
 lemma and_distrib: "and a (or b c) = or (and a b) (and a c)" for a b c :: int by (simp only: Bit_Operations.ring_bit_operations_class.bit.conj_disj_distrib and.commute)
 
+lemma xor_and_or_help: "and (or a b) (or (not a) (not b)) = xor a b" for a b :: int by (simp add: bit.xor_def2)
+
+lemma xor_and_or: "and (or (bw p a) (bw p b)) (or (bw p (not (bw p a))) (bw p (not (bw p b)))) = xor (bw p a) (bw p b)" for a b :: int 
+using xor_and_or_help by (metis bw_def take_bit_and take_bit_eq_mod take_bit_not_take_bit take_bit_or take_bit_xor)
+
 end
