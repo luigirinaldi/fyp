@@ -72,8 +72,8 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
                                  => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"
                                     if precondition(&["(>= ?s (+ ?p (- (^ 2 ?q) 1)))"])),
         // shift operations
-        rewrite!("shl_def"; "(<< (bw ?p ?a) (bw ?q ?b))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
-        rewrite!("shr_def"; "(>> (bw ?p ?a) (bw ?q ?b))" => "(div (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
+        rewrite!("shl_def"; "(<< ?a (bw ?q ?b))" => "(* ?a (^ 2 (bw ?q ?b)))"),
+        rewrite!("shr_def"; "(>> ?a (bw ?q ?b))" => "(div ?a (^ 2 (bw ?q ?b)))"),
         // bitwise ops
         rewrite!("add_as_xor_and";     "(+ (bw ?p ?a) (bw ?p ?b))" 
                                  => "(+ (xor (bw ?p ?a) (bw ?p ?b)) (* 2 (and (bw ?p ?a) (bw ?p ?b))))"),
