@@ -47,7 +47,6 @@ impl Analysis<ModIR> for ModAnalysis {
 
         match enode {
             ModIR::Num(n) => Some(n.clone()),
-            ModIR::Neg(a) => Some(-(get(a)?.clone())),
             ModIR::Add([a, b]) => Some(get(a)? + get(b)?),
             ModIR::Sub([a, b]) => Some(get(a)? - get(b)?),
             ModIR::Mul([a, b]) => Some(get(a)? * get(b)?),
