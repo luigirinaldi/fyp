@@ -96,8 +96,9 @@ impl Equivalence {
             equiv: None,
             runner: Runner::<ModIR, ModAnalysis>::default()
                 .with_explanations_enabled()
-                .with_time_limit(Duration::from_secs(20))
-                .with_iter_limit(50),
+                .with_time_limit(Duration::from_secs(10))
+                .with_iter_limit(100)
+                .with_node_limit(100000),
         };
 
         ret_self
@@ -130,10 +131,10 @@ impl Equivalence {
                     let iter_num = runner.iterations.len();
                     let dot = dot_equiv::make_dot(&runner.egraph, &lhs_for_dot, &rhs_for_dot);
 
-                    let pdf_path = out_path.join(format!("iter_{}.pdf", iter_num));
+                    // let pdf_path = out_path.join(format!("iter_{}.pdf", iter_num));
                     let svg_path = out_path.join(format!("iter_{}.svg", iter_num));
 
-                    dot.to_pdf(&pdf_path).unwrap();
+                    // dot.to_pdf(&pdf_path).unwrap();
                     dot.to_svg(&svg_path).unwrap();
                 }
 

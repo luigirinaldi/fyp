@@ -153,7 +153,18 @@ by (metis and.right_neutral bw_def take_bit_and take_bit_eq_mod)
 lemma or_allones: "or (bw p a) (bw p (-1)) = bw p (-1)"
 by (metis bit.disj_one_right bw_def take_bit_int_def take_bit_or)
 
+(* lemma not_not: "a = not (not a)" for a :: int by simp *)
+lemma and_remove: "(bw p (and (bw p a) (bw p b))) = (and (bw p a) (bw p b))" by (simp add: bw_def)
+lemma or_remove: "(bw p (or (bw p a) (bw p b))) = (or (bw p a) (bw p b))" by (simp add: OR_upper bw_def)
+lemma xor_remove: "(bw p (xor (bw p a) (bw p b))) = (xor (bw p a) (bw p b))" by (simp add: XOR_upper bw_def)
 
-(* sledgehammer *)
+lemma demorg_and: "(bw p (not (and (bw p a) (bw p b)))) = bw p (or (bw p (not (bw p a))) (bw p (not (bw p b))))" using bw_def by (metis bit.de_Morgan_conj or_remove take_bit_eq_mod take_bit_or)
+lemma demorg_or: "(bw p (not (or (bw p a) (bw p b)))) = bw p (and (bw p (not (bw p a))) (bw p (not (bw p b))))" using bw_def by (metis and_remove bit.de_Morgan_disj take_bit_and take_bit_eq_mod)
+
+lemma xor_allones: "(bw p (xor a (bw p (-1)))) = (bw p (not a))" by (metis bit.xor_one_right bw_def mod_eq take_bit_eq_mod take_bit_xor)
+lemma and_assoc: "(and (and a b) c) = (and c (and b a))" by (simp add: and.commute)
+lemma not_bw_not: "bw p (not (bw p (not (bw p a)))) = (bw p a)" if "p>0" by (metis bit.double_compl bw_def take_bit_int_def take_bit_not_take_bit)
+
+lemma and_distrib: "and a (or b c) = or (and a b) (and a c)" for a b c :: int by (simp only: Bit_Operations.ring_bit_operations_class.bit.conj_disj_distrib and.commute)
 
 end
