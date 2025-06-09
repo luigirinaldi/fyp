@@ -2,10 +2,13 @@
 
 use hello_world::*;
 
-#[allow(unused_imports)] use std::path::PathBuf;
+use std::path::PathBuf;
+
+use ntest::timeout;
 
 
 #[test]
+#[timeout(10000)]
 #[allow(non_snake_case)]
 fn alive_AddSub_1164() {
     let output_dir = PathBuf::from("target")
@@ -28,6 +31,7 @@ fn alive_AddSub_1164() {
 
 
 #[test]
+#[timeout(10000)]
 #[allow(non_snake_case)]
 fn alive_AddSub_1574() {
     let output_dir = PathBuf::from("target")
@@ -50,6 +54,7 @@ fn alive_AddSub_1574() {
 
 
 #[test]
+#[timeout(10000)]
 #[allow(non_snake_case)]
 fn alive_AddSub_1165() {
     let output_dir = PathBuf::from("target")
@@ -72,6 +77,7 @@ fn alive_AddSub_1165() {
 
 
 #[test]
+#[timeout(10000)]
 #[allow(non_snake_case)]
 fn alive_muldivrem_290_292() {
     let output_dir = PathBuf::from("target")
@@ -94,6 +100,7 @@ fn alive_muldivrem_290_292() {
 
 
 #[test]
+#[timeout(10000)]
 #[allow(non_snake_case)]
 fn alive_InstCombineShift497d() {
     let output_dir = PathBuf::from("target")
@@ -116,6 +123,7 @@ fn alive_InstCombineShift497d() {
 
 
 #[test]
+#[timeout(10000)]
 #[allow(non_snake_case)]
 fn alive_muldivrem_152() {
     let output_dir = PathBuf::from("target")
@@ -138,6 +146,7 @@ fn alive_muldivrem_152() {
 
 
 #[test]
+#[timeout(10000)]
 #[allow(non_snake_case)]
 fn alive_AddSub_1539_2() {
     let output_dir = PathBuf::from("target")
@@ -160,6 +169,7 @@ fn alive_AddSub_1539_2() {
 
 
 #[test]
+#[timeout(10000)]
 #[allow(non_snake_case)]
 fn alive_muldivrem_229() {
     let output_dir = PathBuf::from("target")
@@ -182,6 +192,7 @@ fn alive_muldivrem_229() {
 
 
 #[test]
+#[timeout(10000)]
 #[allow(non_snake_case)]
 fn alive_muldivrem_239() {
     let output_dir = PathBuf::from("target")
@@ -204,6 +215,7 @@ fn alive_muldivrem_239() {
 
 
 #[test]
+#[timeout(10000)]
 #[allow(non_snake_case)]
 fn alive_Select_1105() {
     let output_dir = PathBuf::from("target")
@@ -226,6 +238,7 @@ fn alive_Select_1105() {
 
 
 #[test]
+#[timeout(10000)]
 #[allow(non_snake_case)]
 fn alive_AddSub_1614() {
     let output_dir = PathBuf::from("target")
@@ -248,6 +261,7 @@ fn alive_AddSub_1614() {
 
 
 #[test]
+#[timeout(10000)]
 #[allow(non_snake_case)]
 fn alive_AddSub_1176() {
     let output_dir = PathBuf::from("target")
@@ -270,6 +284,7 @@ fn alive_AddSub_1176() {
 
 
 #[test]
+#[timeout(10000)]
 #[allow(non_snake_case)]
 fn alive_AddSub_1619() {
     let output_dir = PathBuf::from("target")
@@ -292,6 +307,7 @@ fn alive_AddSub_1619() {
 
 
 #[test]
+#[timeout(10000)]
 #[allow(non_snake_case)]
 fn alive_Select_1100() {
     let output_dir = PathBuf::from("target")
