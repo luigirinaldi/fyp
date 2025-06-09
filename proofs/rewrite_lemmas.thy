@@ -135,7 +135,7 @@ by (smt (verit) and.commute and.left_commute and.right_neutral and_eq_not_not_or
 lemma xor_as_or_and: "xor (bw p a) (bw q b) = (or (bw p a) (bw q b)) - (and (bw p a) (bw q b))" 
 by (smt (verit, ccfv_SIG) add_as_xor_and plus_and_or)
 
-lemma neg_not: "-a = not a + 1" by (simp only: minus_eq_not_plus_1)
+lemma neg_not: "-(bw p a) = (not (bw p a)) + 1" by (simp only: minus_eq_not_plus_1)
 
 (* Bitwise identities *)
 
@@ -163,6 +163,7 @@ lemma demorg_or: "(bw p (not (or (bw p a) (bw p b)))) = bw p (and (bw p (not (bw
 
 lemma xor_allones: "(bw p (xor a (bw p (-1)))) = (bw p (not a))" by (metis bit.xor_one_right bw_def mod_eq take_bit_eq_mod take_bit_xor)
 lemma and_assoc: "(and (and a b) c) = (and c (and b a))" by (simp add: and.commute)
+lemma or_assoc: "(or (or a b) c) = (or c (or b a))" by (simp add: or.commute)
 lemma not_bw_not: "bw p (not (bw p (not (bw p a)))) = (bw p a)" if "p>0" by (metis bit.double_compl bw_def take_bit_int_def take_bit_not_take_bit)
 
 lemma and_distrib: "and a (or b c) = or (and a b) (and a c)" for a b c :: int by (simp only: Bit_Operations.ring_bit_operations_class.bit.conj_disj_distrib and.commute)
