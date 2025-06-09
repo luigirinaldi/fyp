@@ -81,24 +81,24 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("and_assoc";      "(and (and ?a ?b) ?c)" => "(and ?a (and ?b ?c))"),
         // bitwise identities
         rewrite!("xor_and_or";      "(and (or (bw ?p ?a) (bw ?p ?b)) (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))" => "(xor (bw ?p ?a) (bw ?p ?b))"),
-        // rewrite!("and_allones";     "(and (bw ?p ?a) (bw ?p -1))" => "(bw ?p ?a)"),
-        // rewrite!("or_allones";      "(or (bw ?p ?a) (bw ?p -1))" => "(bw ?p -1)"),
+        rewrite!("and_allones";     "(and (bw ?p ?a) (bw ?p -1))" => "(bw ?p ?a)"),
+        rewrite!("or_allones";      "(or (bw ?p ?a) (bw ?p -1))" => "(bw ?p -1)"),
         rewrite!("xor_allones";     "(bw ?p (xor (bw ?p ?a) (bw ?p -1)))" => "(bw ?p (not (bw ?p ?a)))"),
         rewrite!("and_self";        "(and ?a ?a)" => "?a"),
         rewrite!("or_self";         "(or ?a ?a)" =>  "?a"),
         rewrite!("and_not_self";    "(and (bw ?p ?a) (bw ?p (not (bw ?p ?a))))" => "0"),
         rewrite!("or_not_self";     "(or (bw ?p ?a) (not (bw ?p ?a)))" => "(bw ?p -1)"),
-        // rewrite!("and_zero"; "(and ?a 0)" => "0"),
-        // rewrite!("or_zero"; "(or ?a 0)" => "?a"),
+        rewrite!("and_zero";        "(and ?a 0)" => "0"),
+        rewrite!("or_zero";         "(or ?a 0)" => "?a"),
         // bitwise remove prec
         rewrite!("and_remove"; "(bw ?p (and (bw ?p ?a) (bw ?p ?b)))" => "(and (bw ?p ?a) (bw ?p ?b))"),
         rewrite!("or_remove";  "(bw ?p (or (bw ?p ?a) (bw ?p ?b)))" => "(or (bw ?p ?a) (bw ?p ?b))"),
         rewrite!("xor_remove"; "(bw ?p (xor (bw ?p ?a) (bw ?p ?b)))" => "(xor (bw ?p ?a) (bw ?p ?b))"),
-        // rewrite!("not_remove"; "(bw ?p (not (bw ?p ?a)))" => "(not (bw ?p ?a))"),
         rewrite!("demorg_and"; "(bw ?p (not (and (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("demorg_or";  "(bw ?p (not (or (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (and (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
     ];
     // bitwise to arith
+    // rules.extend(rewrite!("neg_not"; "(- (bw ?p ?a))" <=> "(+ (not (bw ?p ?a)) 1)"));
     rules.extend(rewrite!("add_as_xor_and";
         "(+ (bw ?p ?a) (bw ?p ?b))"
             <=>
