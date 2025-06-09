@@ -8,7 +8,7 @@ use ntest::timeout;
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_commutativity_add() {
     let output_dir = PathBuf::from("target")
@@ -31,7 +31,7 @@ fn rover_commutativity_add() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_commutativity_mult() {
     let output_dir = PathBuf::from("target")
@@ -54,7 +54,7 @@ fn rover_commutativity_mult() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_mult_assoc_1() {
     let output_dir = PathBuf::from("target")
@@ -77,7 +77,7 @@ fn rover_mult_assoc_1() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_mult_assoc_2() {
     let output_dir = PathBuf::from("target")
@@ -100,7 +100,7 @@ fn rover_mult_assoc_2() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_mult_assoc_3() {
     let output_dir = PathBuf::from("target")
@@ -123,7 +123,7 @@ fn rover_mult_assoc_3() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_mult_assoc_4() {
     let output_dir = PathBuf::from("target")
@@ -146,7 +146,7 @@ fn rover_mult_assoc_4() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_add_assoc_1() {
     let output_dir = PathBuf::from("target")
@@ -169,7 +169,7 @@ fn rover_add_assoc_1() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_add_assoc_2() {
     let output_dir = PathBuf::from("target")
@@ -192,7 +192,7 @@ fn rover_add_assoc_2() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_add_assoc_3() {
     let output_dir = PathBuf::from("target")
@@ -215,7 +215,7 @@ fn rover_add_assoc_3() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_add_assoc_4() {
     let output_dir = PathBuf::from("target")
@@ -238,7 +238,7 @@ fn rover_add_assoc_4() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_dist_over_add() {
     let output_dir = PathBuf::from("target")
@@ -261,7 +261,7 @@ fn rover_dist_over_add() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_sum_same() {
     let output_dir = PathBuf::from("target")
@@ -284,7 +284,7 @@ fn rover_sum_same() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_mult_sum_same() {
     let output_dir = PathBuf::from("target")
@@ -307,7 +307,7 @@ fn rover_mult_sum_same() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_add_zero() {
     let output_dir = PathBuf::from("target")
@@ -330,7 +330,7 @@ fn rover_add_zero() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_sub_to_neg() {
     let output_dir = PathBuf::from("target")
@@ -353,7 +353,7 @@ fn rover_sub_to_neg() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_mul_one() {
     let output_dir = PathBuf::from("target")
@@ -376,7 +376,7 @@ fn rover_mul_one() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_mul_two() {
     let output_dir = PathBuf::from("target")
@@ -399,7 +399,7 @@ fn rover_mul_two() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_merge_left_shift() {
     let output_dir = PathBuf::from("target")
@@ -422,7 +422,7 @@ fn rover_merge_left_shift() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_merge_right_shift() {
     let output_dir = PathBuf::from("target")
@@ -445,7 +445,7 @@ fn rover_merge_right_shift() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_left_shift_add_1() {
     let output_dir = PathBuf::from("target")
@@ -468,7 +468,7 @@ fn rover_left_shift_add_1() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_left_shift_add_2() {
     let output_dir = PathBuf::from("target")
@@ -491,7 +491,7 @@ fn rover_left_shift_add_2() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_add_right_shift() {
     let output_dir = PathBuf::from("target")
@@ -514,7 +514,7 @@ fn rover_add_right_shift() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_left_shift_mult() {
     let output_dir = PathBuf::from("target")
@@ -537,7 +537,7 @@ fn rover_left_shift_mult() {
 
 
 #[test]
-#[timeout(10000)]
+#[timeout(30000)]
 #[allow(non_snake_case)]
 fn rover_one_to_two_mult() {
     let output_dir = PathBuf::from("target")

@@ -95,7 +95,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("xor_remove"; "(bw ?p (xor (bw ?p ?a) (bw ?p ?b)))" => "(xor (bw ?p ?a) (bw ?p ?b))"),
         rewrite!("demorg_and"; "(bw ?p (not (and (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("demorg_or";  "(bw ?p (not (or (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (and (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
-        ];
+    ];
     rules.extend(rewrite!("xor_and_or";      "(and (or (bw ?p ?a) (bw ?p ?b)) (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))" <=> "(xor (bw ?p ?a) (bw ?p ?b))"));
     // bitwise to arith
     rules.extend(rewrite!("neg_not"; "(- (bw ?p ?a))" <=> "(+ (not (bw ?p ?a)) 1)"));
@@ -110,9 +110,8 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         "(- (or (bw ?p ?a) (bw ?p ?b)) (and (bw ?p ?a) (bw ?p ?b)))"
     ));
     rules.extend(rewrite!("and_distrib"; "(and ?a (or ?b ?c))" <=> "(or (and ?a ?b) (and ?a ?c))"));
-    rules.extend(
-        rewrite!("not_bw_not"; "(bw ?p (not (bw ?p (not (bw ?p ?a)))))" <=> "(bw ?p ?a)" ),
-    );
+    rules
+        .extend(rewrite!("not_bw_not"; "(bw ?p (not (bw ?p (not (bw ?p ?a)))))" <=> "(bw ?p ?a)" ));
 
     rules.extend(rewrite!("int_distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     rules.extend(rewrite!("Num.ring_1_class.mult_minus1"; "(- ?b)" <=> "(* -1 ?b)"));
