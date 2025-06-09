@@ -6,6 +6,7 @@ use hello_world::*;
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2417() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -27,6 +28,7 @@ fn alive_bitwise_AndOrXor_2417() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2587() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -48,6 +50,7 @@ fn alive_bitwise_AndOrXor_2587() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2581() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -69,6 +72,7 @@ fn alive_bitwise_AndOrXor_2581() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_InstCombineShift476() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -90,6 +94,7 @@ fn alive_bitwise_InstCombineShift476() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2243() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -111,6 +116,7 @@ fn alive_bitwise_AndOrXor_2243() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2367() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -132,6 +138,7 @@ fn alive_bitwise_AndOrXor_2367() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2247() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -153,6 +160,7 @@ fn alive_bitwise_AndOrXor_2247() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2285() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -174,6 +182,7 @@ fn alive_bitwise_AndOrXor_2285() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2231() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -195,6 +204,7 @@ fn alive_bitwise_AndOrXor_2231() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2123() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -216,6 +226,7 @@ fn alive_bitwise_AndOrXor_2123() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2284() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -237,6 +248,7 @@ fn alive_bitwise_AndOrXor_2284() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2118() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -258,6 +270,7 @@ fn alive_bitwise_AndOrXor_2118() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2265() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -279,6 +292,7 @@ fn alive_bitwise_AndOrXor_2265() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AddSub_1043() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -300,6 +314,7 @@ fn alive_bitwise_AddSub_1043() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_1230() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -321,6 +336,7 @@ fn alive_bitwise_AndOrXor_1230() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2113() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -342,6 +358,7 @@ fn alive_bitwise_AndOrXor_2113() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_InstCombineShift440() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -363,6 +380,7 @@ fn alive_bitwise_InstCombineShift440() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2475() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -384,6 +402,7 @@ fn alive_bitwise_AndOrXor_2475() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2063() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -405,6 +424,7 @@ fn alive_bitwise_AndOrXor_2063() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_135() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -426,6 +446,7 @@ fn alive_bitwise_AndOrXor_135() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2416() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -447,6 +468,7 @@ fn alive_bitwise_AndOrXor_2416() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_InstCombineShift239() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -468,6 +490,7 @@ fn alive_bitwise_InstCombineShift239() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AddSub_1624() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -489,6 +512,7 @@ fn alive_bitwise_AddSub_1624() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2515() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -510,6 +534,7 @@ fn alive_bitwise_AndOrXor_2515() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2595() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -531,6 +556,7 @@ fn alive_bitwise_AndOrXor_2595() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_1241() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -552,6 +578,7 @@ fn alive_bitwise_AndOrXor_1241() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AddSub_1202() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -573,6 +600,7 @@ fn alive_bitwise_AddSub_1202() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2607() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -594,6 +622,7 @@ fn alive_bitwise_AndOrXor_2607() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2297() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -615,6 +644,7 @@ fn alive_bitwise_AndOrXor_2297() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2627() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -636,6 +666,7 @@ fn alive_bitwise_AndOrXor_2627() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_1280() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -657,6 +688,7 @@ fn alive_bitwise_AndOrXor_1280() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2430() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -678,6 +710,7 @@ fn alive_bitwise_AndOrXor_2430() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AddSub_1560() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -699,6 +732,7 @@ fn alive_bitwise_AddSub_1560() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_InstCombineShift279() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -720,6 +754,7 @@ fn alive_bitwise_InstCombineShift279() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2617() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -741,6 +776,7 @@ fn alive_bitwise_AndOrXor_2617() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2486() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -762,6 +798,7 @@ fn alive_bitwise_AndOrXor_2486() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_1294() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -783,6 +820,7 @@ fn alive_bitwise_AndOrXor_1294() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2647() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -804,6 +842,7 @@ fn alive_bitwise_AndOrXor_2647() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2263() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -825,6 +864,7 @@ fn alive_bitwise_AndOrXor_2263() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2188() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -846,6 +886,7 @@ fn alive_bitwise_AndOrXor_2188() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2429() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -867,6 +908,7 @@ fn alive_bitwise_AndOrXor_2429() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2264() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -888,6 +930,7 @@ fn alive_bitwise_AndOrXor_2264() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_1247() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -909,6 +952,7 @@ fn alive_bitwise_AndOrXor_1247() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2658() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -930,6 +974,7 @@ fn alive_bitwise_AndOrXor_2658() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_1253() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -951,6 +996,7 @@ fn alive_bitwise_AndOrXor_1253() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AddSub_1295() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -972,6 +1018,7 @@ fn alive_bitwise_AddSub_1295() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_144() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -993,6 +1040,7 @@ fn alive_bitwise_AndOrXor_144() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_InstCombineShift497a() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -1014,6 +1062,7 @@ fn alive_bitwise_InstCombineShift497a() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AddSub_1564() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -1035,6 +1084,7 @@ fn alive_bitwise_AddSub_1564() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_1288() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -1056,6 +1106,7 @@ fn alive_bitwise_AndOrXor_1288() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_bitwise_InstCombineShift582() {
     let output_dir = PathBuf::from("target")
         .join("tests")

@@ -6,6 +6,7 @@ use hello_world::*;
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_AddSub_1164() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -27,6 +28,7 @@ fn alive_AddSub_1164() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_AddSub_1574() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -48,6 +50,7 @@ fn alive_AddSub_1574() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_AddSub_1165() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -69,6 +72,7 @@ fn alive_AddSub_1165() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_muldivrem_290_292() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -90,6 +94,7 @@ fn alive_muldivrem_290_292() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_InstCombineShift497d() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -111,6 +116,7 @@ fn alive_InstCombineShift497d() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_muldivrem_152() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -132,6 +138,7 @@ fn alive_muldivrem_152() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_AddSub_1539_2() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -153,6 +160,7 @@ fn alive_AddSub_1539_2() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_muldivrem_229() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -174,6 +182,7 @@ fn alive_muldivrem_229() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_muldivrem_239() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -195,6 +204,7 @@ fn alive_muldivrem_239() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_Select_1105() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -216,6 +226,7 @@ fn alive_Select_1105() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_AddSub_1614() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -237,6 +248,7 @@ fn alive_AddSub_1614() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_AddSub_1176() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -258,6 +270,7 @@ fn alive_AddSub_1176() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_AddSub_1619() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -279,6 +292,7 @@ fn alive_AddSub_1619() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn alive_Select_1100() {
     let output_dir = PathBuf::from("target")
         .join("tests")

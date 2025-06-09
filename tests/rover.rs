@@ -6,6 +6,7 @@ use hello_world::*;
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_commutativity_add() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -27,6 +28,7 @@ fn rover_commutativity_add() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_commutativity_mult() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -48,6 +50,7 @@ fn rover_commutativity_mult() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_mult_assoc_1() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -69,6 +72,7 @@ fn rover_mult_assoc_1() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_mult_assoc_2() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -90,6 +94,7 @@ fn rover_mult_assoc_2() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_mult_assoc_3() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -111,6 +116,7 @@ fn rover_mult_assoc_3() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_mult_assoc_4() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -132,6 +138,7 @@ fn rover_mult_assoc_4() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_add_assoc_1() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -153,6 +160,7 @@ fn rover_add_assoc_1() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_add_assoc_2() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -174,6 +182,7 @@ fn rover_add_assoc_2() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_add_assoc_3() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -195,6 +204,7 @@ fn rover_add_assoc_3() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_add_assoc_4() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -216,6 +226,7 @@ fn rover_add_assoc_4() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_dist_over_add() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -237,6 +248,7 @@ fn rover_dist_over_add() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_sum_same() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -258,6 +270,7 @@ fn rover_sum_same() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_mult_sum_same() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -279,6 +292,7 @@ fn rover_mult_sum_same() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_add_zero() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -300,6 +314,7 @@ fn rover_add_zero() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_sub_to_neg() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -321,6 +336,7 @@ fn rover_sub_to_neg() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_mul_one() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -342,6 +358,7 @@ fn rover_mul_one() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_mul_two() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -363,6 +380,7 @@ fn rover_mul_two() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_merge_left_shift() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -384,6 +402,7 @@ fn rover_merge_left_shift() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_merge_right_shift() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -405,6 +424,7 @@ fn rover_merge_right_shift() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_left_shift_add_1() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -426,6 +446,7 @@ fn rover_left_shift_add_1() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_left_shift_add_2() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -447,6 +468,7 @@ fn rover_left_shift_add_2() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_add_right_shift() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -468,6 +490,7 @@ fn rover_add_right_shift() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_left_shift_mult() {
     let output_dir = PathBuf::from("target")
         .join("tests")
@@ -489,6 +512,7 @@ fn rover_left_shift_mult() {
 
 
 #[test]
+#[allow(non_snake_case)]
 fn rover_one_to_two_mult() {
     let output_dir = PathBuf::from("target")
         .join("tests")

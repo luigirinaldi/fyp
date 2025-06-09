@@ -45,6 +45,7 @@ fn main() {
                 output,
                 r#"
 #[test]
+#[allow(non_snake_case)]
 fn {fn_name}() {{
     let output_dir = PathBuf::from("target")
         .join("tests")
