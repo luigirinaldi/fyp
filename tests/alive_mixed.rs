@@ -23,7 +23,7 @@ fn alive_mixed_InstCombineShift476() {
         "(bw k (<< (bw k (or (bw k (and (bw k (>> (bw k var_X) (bw k C))) (bw k C2))) (bw k var_Y))) (bw k C)))",
         "(bw k (or (bw k (and (bw k var_X) (bw k (<< (bw k C2) (bw k C))))) (bw k (<< (bw k var_Y) (bw k C)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -47,7 +47,7 @@ fn alive_mixed_AddSub_1043() {
         "(bw k (+ (bw k (+ (bw k (xor (bw k (and (bw k var_Z) (bw k C1))) (bw k C1))) (bw k 1))) (bw k var_RHS)))",
         "(bw k (- (bw k var_RHS) (bw k (or (bw k var_Z) (bw k (not (bw k C1)))))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -71,7 +71,7 @@ fn alive_mixed_InstCombineShift440() {
         "(bw k (<< (bw k (xor (bw k var_Y) (bw k (and (bw k (>> (bw k var_X) (bw k C))) (bw k C2))))) (bw k C)))",
         "(bw k (xor (bw k (and (bw k var_X) (bw k (<< (bw k C2) (bw k C))))) (bw k (<< (bw k var_Y) (bw k C)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -95,7 +95,7 @@ fn alive_mixed_AndOrXor_2475() {
         "(bw k (xor (bw k (- (bw k C) (bw k var_x))) (bw k -1)))",
         "(bw k (+ (bw k var_x) (bw k (- (bw k -1) (bw k C)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -119,7 +119,7 @@ fn alive_mixed_InstCombineShift239() {
         "(bw k (>> (bw k (<< (bw k var_X) (bw k C))) (bw k C)))",
         "(bw k (and (bw k var_X) (bw k (>> (bw k -1) (bw k C)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -143,7 +143,7 @@ fn alive_mixed_AddSub_1624() {
         "(bw k (- (bw k (or (bw k var_A) (bw k var_B))) (bw k (xor (bw k var_A) (bw k var_B)))))",
         "(bw k (and (bw k var_A) (bw k var_B)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -167,7 +167,7 @@ fn alive_mixed_AndOrXor_2515() {
         "(bw k (xor (bw k (>> (bw k (xor (bw k var_x) (bw k C1))) (bw k C2))) (bw k C3)))",
         "(bw k (xor (bw k (>> (bw k var_x) (bw k C2))) (bw k (xor (bw k (>> (bw k C1) (bw k C2))) (bw k C3)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -191,7 +191,7 @@ fn alive_mixed_AddSub_1202() {
         "(bw k (+ (bw k (xor (bw k var_x) (bw k -1))) (bw k C)))",
         "(bw k (- (bw k (- (bw k C) (bw k 1))) (bw k var_x)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -215,7 +215,7 @@ fn alive_mixed_AddSub_1560() {
         "(bw k (- (bw k -1) (bw k var_a)))",
         "(bw k (xor (bw k var_a) (bw k -1)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -239,7 +239,7 @@ fn alive_mixed_InstCombineShift279() {
         "(bw k (<< (bw k (>> (bw k var_X) (bw k C))) (bw k C)))",
         "(bw k (and (bw k var_X) (bw k (<< (bw k -1) (bw k C)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -263,7 +263,7 @@ fn alive_mixed_AndOrXor_2486() {
         "(bw k (xor (bw k (+ (bw k var_x) (bw k C))) (bw k -1)))",
         "(bw k (- (bw k (- (bw k -1) (bw k C))) (bw k var_x)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -287,7 +287,7 @@ fn alive_mixed_AddSub_1295() {
         "(bw k (+ (bw k (and (bw k var_a) (bw k var_b))) (bw k (xor (bw k var_a) (bw k var_b)))))",
         "(bw k (or (bw k var_a) (bw k var_b)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -311,7 +311,7 @@ fn alive_mixed_InstCombineShift497a() {
         "(bw k (>> (bw k (xor (bw k var_X) (bw k C2))) (bw k C)))",
         "(bw k (xor (bw k (>> (bw k var_X) (bw k C))) (bw k (>> (bw k C2) (bw k C)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -335,7 +335,7 @@ fn alive_mixed_AddSub_1564() {
         "(bw k (- (bw k C) (bw k (xor (bw k var_x) (bw k -1)))))",
         "(bw k (+ (bw k var_x) (bw k (+ (bw k C) (bw k 1)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -359,7 +359,7 @@ fn alive_mixed_InstCombineShift582() {
         "(bw k (>> (bw k (<< (bw k var_X) (bw k C))) (bw k C)))",
         "(bw k (and (bw k var_X) (bw k (>> (bw k -1) (bw k C)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]

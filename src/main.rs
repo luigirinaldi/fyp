@@ -1,7 +1,6 @@
 // use serde::Deserialize;
 use std::{
     collections::HashMap,
-    f32::consts::E,
     fs::{self, File},
     io::Write,
     path::PathBuf,
@@ -25,7 +24,7 @@ static ALLOC: dhat::Alloc = dhat::Alloc;
 struct EquivRunnerInfo {
     summary: Report,
     memory_footprint: Option<u64>,
-    crude_time: Option<u128>,
+    crude_time: Option<f64>,
     iteration_info: Vec<Iteration<()>>,
 }
 
@@ -163,7 +162,7 @@ fn main() -> Result<(), std::io::Error> {
                         EquivRunnerInfo {
                             summary: e.runner.report(),
                             memory_footprint: mem.clone(),
-                            crude_time: dur.map(|d| d.as_millis()),
+                            crude_time: dur.map(|d| d.as_secs_f64()),
                             iteration_info: e.runner.iterations.clone(),
                         },
                     )

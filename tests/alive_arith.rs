@@ -23,7 +23,7 @@ fn alive_arith_AddSub_1164() {
         "(bw k (+ (bw k (- (bw k 0) (bw k var_a))) (bw k var_b)))",
         "(bw k (- (bw k var_b) (bw k var_a)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -47,7 +47,7 @@ fn alive_arith_AddSub_1574() {
         "(bw k (- (bw k C) (bw k (+ (bw k var_X) (bw k C2)))))",
         "(bw k (- (bw k (- (bw k C) (bw k C2))) (bw k var_X)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -71,7 +71,7 @@ fn alive_arith_AddSub_1165() {
         "(bw k (+ (bw k (- (bw k 0) (bw k var_a))) (bw k (- (bw k 0) (bw k var_b)))))",
         "(bw k (- (bw k 0) (bw k (+ (bw k var_a) (bw k var_b)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -95,7 +95,7 @@ fn alive_arith_muldivrem_290_292() {
         "(bw k (* (bw k (<< (bw k 1) (bw k var_Y))) (bw k var_Op1)))",
         "(bw k (<< (bw k var_Op1) (bw k var_Y)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -119,7 +119,7 @@ fn alive_arith_InstCombineShift497d() {
         "(bw k (<< (bw k (+ (bw k var_X) (bw k C2))) (bw k C)))",
         "(bw k (+ (bw k (<< (bw k var_X) (bw k C))) (bw k (<< (bw k C2) (bw k C)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -143,7 +143,7 @@ fn alive_arith_muldivrem_152() {
         "(bw k (* (bw k var_x) (bw k -1)))",
         "(bw k (- (bw k 0) (bw k var_x)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -167,7 +167,7 @@ fn alive_arith_AddSub_1539_2() {
         "(bw k (- (bw k var_x) (bw k C)))",
         "(bw k (+ (bw k var_x) (bw k (- (bw k C)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -191,7 +191,7 @@ fn alive_arith_muldivrem_229() {
         "(bw k (* (bw k (+ (bw k var_X) (bw k C1))) (bw k var_Op1)))",
         "(bw k (+ (bw k (* (bw k var_X) (bw k var_Op1))) (bw k (* (bw k C1) (bw k var_Op1)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -215,7 +215,7 @@ fn alive_arith_muldivrem_239() {
         "(bw k (* (bw k (- (bw k 0) (bw k var_X))) (bw k (- (bw k 0) (bw k var_Y)))))",
         "(bw k (* (bw k var_X) (bw k var_Y)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -239,7 +239,7 @@ fn alive_arith_AddSub_1614() {
         "(bw k (- (bw k var_X) (bw k (+ (bw k var_X) (bw k var_Y)))))",
         "(bw k (- (bw k 0) (bw k var_Y)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -263,7 +263,7 @@ fn alive_arith_AddSub_1176() {
         "(bw k (+ (bw k var_a) (bw k (- (bw k 0) (bw k var_b)))))",
         "(bw k (- (bw k var_a) (bw k var_b)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -287,7 +287,7 @@ fn alive_arith_AddSub_1619() {
         "(bw k (- (bw k (- (bw k var_X) (bw k var_Y))) (bw k var_X)))",
         "(bw k (- (bw k 0) (bw k var_Y)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -311,7 +311,7 @@ fn alive_arith_Select_1105() {
         "(bw k var_Y)",
         "(bw k var_Y)",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -335,7 +335,7 @@ fn alive_arith_Select_1100() {
         "(bw k var_X)",
         "(bw k var_X)",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]

@@ -61,7 +61,7 @@ fn {fn_name}() {{
         "{lhs}",
         "{rhs}",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]

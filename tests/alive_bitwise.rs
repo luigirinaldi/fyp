@@ -23,7 +23,7 @@ fn alive_bitwise_AndOrXor_2417() {
         "(bw k (xor (bw k (or (bw k (xor (bw k var_nx) (bw k -1))) (bw k var_y))) (bw k -1)))",
         "(bw k (and (bw k var_nx) (bw k (xor (bw k var_y) (bw k -1)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -47,7 +47,7 @@ fn alive_bitwise_AndOrXor_2587() {
         "(bw k (xor (bw k (and (bw k var_a) (bw k var_op1))) (bw k var_op1)))",
         "(bw k (and (bw k (xor (bw k var_a) (bw k -1))) (bw k var_op1)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -71,7 +71,7 @@ fn alive_bitwise_AndOrXor_2581() {
         "(bw k (xor (bw k (or (bw k var_a) (bw k var_op1))) (bw k var_op1)))",
         "(bw k (and (bw k var_a) (bw k (xor (bw k var_op1) (bw k -1)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -95,7 +95,7 @@ fn alive_bitwise_AndOrXor_2243() {
         "(bw k (or (bw k (and (bw k (or (bw k var_B) (bw k var_C))) (bw k var_A))) (bw k var_B)))",
         "(bw k (or (bw k var_B) (bw k (and (bw k var_A) (bw k var_C)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -119,7 +119,7 @@ fn alive_bitwise_AndOrXor_2367() {
         "(bw k (or (bw k (or (bw k var_A) (bw k C1))) (bw k var_op1)))",
         "(bw k (or (bw k (or (bw k var_A) (bw k var_op1))) (bw k C1)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -143,7 +143,7 @@ fn alive_bitwise_AndOrXor_2247() {
         "(bw k (or (bw k (xor (bw k var_A) (bw k -1))) (bw k (xor (bw k var_B) (bw k -1)))))",
         "(bw k (xor (bw k (and (bw k var_A) (bw k var_B))) (bw k -1)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -167,7 +167,7 @@ fn alive_bitwise_AndOrXor_2285() {
         "(bw k (or (bw k var_A) (bw k (xor (bw k (xor (bw k var_A) (bw k var_B))) (bw k -1)))))",
         "(bw k (or (bw k var_A) (bw k (xor (bw k var_B) (bw k -1)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -191,7 +191,7 @@ fn alive_bitwise_AndOrXor_2231() {
         "(bw k (or (bw k (xor (bw k var_A) (bw k var_B))) (bw k (xor (bw k (xor (bw k var_B) (bw k var_C))) (bw k var_A)))))",
         "(bw k (or (bw k (xor (bw k var_A) (bw k var_B))) (bw k var_C)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -215,7 +215,7 @@ fn alive_bitwise_AndOrXor_2123() {
         "(bw k (or (bw k (and (bw k var_A) (bw k (xor (bw k var_B) (bw k -1))))) (bw k (xor (bw k var_A) (bw k var_B)))))",
         "(bw k (xor (bw k var_A) (bw k var_B)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -239,7 +239,7 @@ fn alive_bitwise_AndOrXor_2284() {
         "(bw k (or (bw k var_A) (bw k (xor (bw k (or (bw k var_A) (bw k var_B))) (bw k -1)))))",
         "(bw k (or (bw k var_A) (bw k (xor (bw k var_B) (bw k -1)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -263,7 +263,7 @@ fn alive_bitwise_AndOrXor_2118() {
         "(bw k (or (bw k (and (bw k var_A) (bw k var_B))) (bw k (xor (bw k var_A) (bw k -1)))))",
         "(bw k (or (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -287,7 +287,7 @@ fn alive_bitwise_AndOrXor_2265() {
         "(bw k (or (bw k (and (bw k var_A) (bw k var_B))) (bw k (xor (bw k var_A) (bw k var_B)))))",
         "(bw k (or (bw k var_A) (bw k var_B)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -311,7 +311,7 @@ fn alive_bitwise_AndOrXor_1230() {
         "(bw k (and (bw k (xor (bw k var_notOp0) (bw k -1))) (bw k (xor (bw k var_notOp1) (bw k -1)))))",
         "(bw k (xor (bw k (or (bw k var_notOp0) (bw k var_notOp1))) (bw k -1)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -335,7 +335,7 @@ fn alive_bitwise_AndOrXor_2113() {
         "(bw k (or (bw k (and (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B))) (bw k var_A)))",
         "(bw k (or (bw k var_A) (bw k var_B)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -359,7 +359,7 @@ fn alive_bitwise_AndOrXor_2063() {
         "(bw k (or (bw k (xor (bw k var_x) (bw k C1))) (bw k C)))",
         "(bw k (xor (bw k (or (bw k var_x) (bw k C))) (bw k (and (bw k C1) (bw k (not (bw k C)))))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -383,7 +383,7 @@ fn alive_bitwise_AndOrXor_135() {
         "(bw k (and (bw k (xor (bw k var_X) (bw k C1))) (bw k C2)))",
         "(bw k (xor (bw k (and (bw k var_X) (bw k C2))) (bw k (and (bw k C1) (bw k C2)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -407,7 +407,7 @@ fn alive_bitwise_AndOrXor_2416() {
         "(bw k (xor (bw k (and (bw k (xor (bw k var_nx) (bw k -1))) (bw k var_y))) (bw k -1)))",
         "(bw k (or (bw k var_nx) (bw k (xor (bw k var_y) (bw k -1)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -431,7 +431,7 @@ fn alive_bitwise_AndOrXor_2595() {
         "(bw k (xor (bw k (and (bw k var_a) (bw k var_b))) (bw k (or (bw k var_a) (bw k var_b)))))",
         "(bw k (xor (bw k var_a) (bw k var_b)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -455,7 +455,7 @@ fn alive_bitwise_AndOrXor_1241() {
         "(bw k (and (bw k (or (bw k var_A) (bw k var_B))) (bw k (xor (bw k (and (bw k var_A) (bw k var_B))) (bw k -1)))))",
         "(bw k (xor (bw k var_A) (bw k var_B)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -479,7 +479,7 @@ fn alive_bitwise_AndOrXor_2607() {
         "(bw k (xor (bw k (or (bw k var_a) (bw k (xor (bw k var_b) (bw k -1))))) (bw k (or (bw k (xor (bw k var_a) (bw k -1))) (bw k var_b)))))",
         "(bw k (xor (bw k var_a) (bw k var_b)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -503,7 +503,7 @@ fn alive_bitwise_AndOrXor_2297() {
         "(bw k (or (bw k (and (bw k var_A) (bw k var_B))) (bw k (xor (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B)))))",
         "(bw k (xor (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -527,7 +527,7 @@ fn alive_bitwise_AndOrXor_2627() {
         "(bw k (xor (bw k (xor (bw k var_a) (bw k var_c))) (bw k (or (bw k var_a) (bw k var_b)))))",
         "(bw k (xor (bw k (and (bw k (xor (bw k var_a) (bw k -1))) (bw k var_b))) (bw k var_c)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -551,7 +551,7 @@ fn alive_bitwise_AndOrXor_1280() {
         "(bw k (and (bw k (or (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B))) (bw k var_A)))",
         "(bw k (and (bw k var_A) (bw k var_B)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -575,7 +575,7 @@ fn alive_bitwise_AndOrXor_2430() {
         "(bw k (xor (bw k (or (bw k var_x) (bw k var_y))) (bw k -1)))",
         "(bw k (and (bw k (xor (bw k var_x) (bw k -1))) (bw k (xor (bw k var_y) (bw k -1)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -599,7 +599,7 @@ fn alive_bitwise_AndOrXor_2617() {
         "(bw k (xor (bw k (and (bw k var_a) (bw k (xor (bw k var_b) (bw k -1))))) (bw k (and (bw k (xor (bw k var_a) (bw k -1))) (bw k var_b)))))",
         "(bw k (xor (bw k var_a) (bw k var_b)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -623,7 +623,7 @@ fn alive_bitwise_AndOrXor_1294() {
         "(bw k (and (bw k (or (bw k var_A) (bw k var_B))) (bw k (xor (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B)))))",
         "(bw k (and (bw k var_A) (bw k var_B)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -647,7 +647,7 @@ fn alive_bitwise_AndOrXor_2647() {
         "(bw k (xor (bw k (and (bw k var_a) (bw k var_b))) (bw k (xor (bw k var_a) (bw k var_b)))))",
         "(bw k (or (bw k var_a) (bw k var_b)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -671,7 +671,7 @@ fn alive_bitwise_AndOrXor_2263() {
         "(bw k (or (bw k var_op0) (bw k (xor (bw k var_op0) (bw k var_B)))))",
         "(bw k (or (bw k var_op0) (bw k var_B)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -695,7 +695,7 @@ fn alive_bitwise_AndOrXor_2188() {
         "(bw k (or (bw k (and (bw k var_A) (bw k (xor (bw k var_D) (bw k -1))))) (bw k (and (bw k (xor (bw k var_A) (bw k -1))) (bw k var_D)))))",
         "(bw k (xor (bw k var_A) (bw k var_D)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -719,7 +719,7 @@ fn alive_bitwise_AndOrXor_2429() {
         "(bw k (xor (bw k (and (bw k var_x) (bw k var_y))) (bw k -1)))",
         "(bw k (or (bw k (xor (bw k var_x) (bw k -1))) (bw k (xor (bw k var_y) (bw k -1)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -743,7 +743,7 @@ fn alive_bitwise_AndOrXor_2264() {
         "(bw k (or (bw k var_A) (bw k (xor (bw k (xor (bw k var_A) (bw k -1))) (bw k var_B)))))",
         "(bw k (or (bw k var_A) (bw k (xor (bw k var_B) (bw k -1)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -767,7 +767,7 @@ fn alive_bitwise_AndOrXor_1247() {
         "(bw k (and (bw k (xor (bw k (and (bw k var_A) (bw k var_B))) (bw k -1))) (bw k (or (bw k var_A) (bw k var_B)))))",
         "(bw k (xor (bw k var_A) (bw k var_B)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -791,7 +791,7 @@ fn alive_bitwise_AndOrXor_2658() {
         "(bw k (xor (bw k (and (bw k var_a) (bw k (xor (bw k var_b) (bw k -1))))) (bw k (xor (bw k var_a) (bw k -1)))))",
         "(bw k (xor (bw k (and (bw k var_a) (bw k var_b))) (bw k -1)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -815,7 +815,7 @@ fn alive_bitwise_AndOrXor_1253() {
         "(bw k (and (bw k (xor (bw k var_A) (bw k var_B))) (bw k var_A)))",
         "(bw k (and (bw k var_A) (bw k (xor (bw k var_B) (bw k -1)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -839,7 +839,7 @@ fn alive_bitwise_AndOrXor_144() {
         "(bw k (and (bw k (or (bw k var_X) (bw k C1))) (bw k C2)))",
         "(bw k (and (bw k (or (bw k var_X) (bw k (and (bw k C1) (bw k C2))))) (bw k C2)))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
@@ -863,7 +863,7 @@ fn alive_bitwise_AndOrXor_1288() {
         "(bw k (and (bw k (xor (bw k var_A) (bw k var_B))) (bw k (xor (bw k (xor (bw k var_B) (bw k var_C))) (bw k var_A)))))",
         "(bw k (and (bw k (xor (bw k var_A) (bw k var_B))) (bw k (xor (bw k var_C) (bw k -1)))))",
     );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
     eq.to_isabelle(&output_dir, true);
     #[cfg(feature = "isabelle-check")]
