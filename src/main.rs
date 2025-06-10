@@ -107,10 +107,9 @@ fn main() -> Result<(), std::io::Error> {
                 });
                 let mut total: Duration = Duration::from_millis(0);
                 let mut count = 0;
-                let mut egg_time: f64 = 0.0;
                 #[cfg(feature = "get-heap-info")]
                 let mut bytes = 0;
-                while total < Duration::from_secs(1) {
+                while total < Duration::from_secs(1) && count < 100 {
                     #[cfg(feature = "get-heap-info")]
                     let _profiler = dhat::Profiler::new_heap();
                     #[cfg(feature = "get-heap-info")]
@@ -126,21 +125,13 @@ fn main() -> Result<(), std::io::Error> {
                         let after_stats = dhat::HeapStats::get();
                         bytes += after_stats.total_bytes - before_stats.total_bytes;
                     }
-                    egg_time += equiv.runner.report().total_time;
                     count += 1;
                     total += elapsed;
                 }
-                println!(
-                    "crude: {:.3?} egg: {:3?}, count: {}",
-                    total / count,
-                    1000.0 * (egg_time / f64::from(count)),
-                    count
-                );
                 let average_dur = Some(total / count);
                 #[cfg(feature = "get-heap-info")]
                 {
                     let avg_bytes = bytes / u64::from(count);
-                    println!("Average memory: {:#?}", avg_bytes);
                     (Some(avg_bytes), average_dur)
                 }
                 #[cfg(not(feature = "get-heap-info"))]
@@ -167,11 +158,6 @@ fn main() -> Result<(), std::io::Error> {
             let stats: HashMap<String, EquivRunnerInfo> = checked_equivs
                 .iter()
                 .map(|(e, mem, dur)| {
-                    println!(
-                        "egg time: {:?}, crude time: {:?}",
-                        e.runner.report().total_time,
-                        dur.map(|d| d.as_secs_f64())
-                    );
                     (
                         e.name.clone(),
                         EquivRunnerInfo {
