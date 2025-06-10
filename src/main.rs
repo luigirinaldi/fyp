@@ -81,11 +81,6 @@ fn main() -> Result<(), std::io::Error> {
 
     let checked_equivs: Vec<(Equivalence, Option<u64>, Option<Duration>)> = tqdm(test_cases.iter())
         .map(|case| {
-            #[cfg(feature = "get-heap-info")]
-            let _profiler = dhat::Profiler::new_heap();
-            #[cfg(feature = "get-heap-info")]
-            let before_stats = dhat::HeapStats::get();
-
             let mut equiv = Equivalence::new(
                 &case.name,
                 &case
@@ -97,7 +92,7 @@ fn main() -> Result<(), std::io::Error> {
                 &case.rhs,
             );
 
-            let duration = if !cli.skip_equiv {
+            let stats = if !cli.skip_equiv {
                 // === Construct case-specific dot_path and expl_path ===
                 let dot_path = cli.dot_path.as_ref().map(|base| {
                     let path = base.join(&case.name);
@@ -113,13 +108,24 @@ fn main() -> Result<(), std::io::Error> {
                 let mut total: Duration = Duration::from_millis(0);
                 let mut count = 0;
                 let mut egg_time: f64 = 0.0;
+                #[cfg(feature = "get-heap-info")]
+                let mut bytes = 0;
                 while total < Duration::from_secs(1) {
+                    #[cfg(feature = "get-heap-info")]
+                    let _profiler = dhat::Profiler::new_heap();
+                    #[cfg(feature = "get-heap-info")]
+                    let before_stats = dhat::HeapStats::get();
                     equiv = equiv.reset_runner();
                     let now = Instant::now();
                     {
                         equiv = equiv.find_equivalence(&dot_path, &expl_path);
                     }
                     let elapsed = now.elapsed();
+                    #[cfg(feature = "get-heap-info")]
+                    {
+                        let after_stats = dhat::HeapStats::get();
+                        bytes += after_stats.total_bytes - before_stats.total_bytes;
+                    }
                     egg_time += equiv.runner.report().total_time;
                     count += 1;
                     total += elapsed;
@@ -130,24 +136,23 @@ fn main() -> Result<(), std::io::Error> {
                     1000.0 * (egg_time / f64::from(count)),
                     count
                 );
-                Some(total / count)
+                let average_dur = Some(total / count);
+                #[cfg(feature = "get-heap-info")]
+                {
+                    let avg_bytes = bytes / u64::from(count);
+                    println!("Average memory: {:#?}", avg_bytes);
+                    (Some(avg_bytes), average_dur)
+                }
+                #[cfg(not(feature = "get-heap-info"))]
+                (None, average_dur)
             } else {
-                None
+                (None, None)
             };
 
             if let Some(th_path) = &cli.theorem_path {
                 equiv.to_isabelle(th_path, !cli.def_only);
             }
-            #[cfg(feature = "get-heap-info")]
-            {
-                let after_stats = dhat::HeapStats::get();
-                let bytes_used = after_stats.total_bytes - before_stats.total_bytes;
-                println!("bytes used: {:?}", bytes_used,);
-
-                (equiv, Some(bytes_used), duration)
-            }
-            #[cfg(not(feature = "get-heap-info"))]
-            (equiv, None, duration)
+            (equiv, stats.0, stats.1)
         })
         .collect();
 
