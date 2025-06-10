@@ -7,7 +7,6 @@ use std::fs::File;
 use std::io::Write;
 use std::time::Duration;
 
-
 mod dot_equiv;
 mod extractor;
 mod language;
@@ -115,15 +114,25 @@ impl Equivalence {
             .join(" and ")
     }
 
+    pub fn reset_runner(mut self) -> Self {
+        self.runner = Runner::<ModIR, ModAnalysis>::default()
+            .with_explanations_enabled()
+            .with_time_limit(Duration::from_secs(10))
+            .with_iter_limit(1000)
+            .with_node_limit(200000)
+            .with_scheduler(SimpleScheduler);
+        self
+    }
+
     pub fn find_equivalence(
         mut self,
-        make_dot: Option<PathBuf>,
-        save_out: Option<PathBuf>,
+        make_dot: &Option<PathBuf>,
+        save_out: &Option<PathBuf>,
     ) -> Self {
         let (lhs_clone, rhs_clone) = (self.lhs.clone(), self.rhs.clone());
         let (lhs_for_dot, rhs_for_dot) = (self.lhs.clone(), self.rhs.clone());
 
-        let make_dot: Option<PathBuf> = make_dot.map(|p| p.to_path_buf());
+        let make_dot: Option<PathBuf> = make_dot.as_ref().map(|p| p.to_path_buf());
 
         // Set up the runner with optional dot file generation
         self.runner = self

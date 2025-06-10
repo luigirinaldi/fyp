@@ -1,10 +1,14 @@
 // use serde::Deserialize;
 use std::{
     collections::HashMap,
+    f32::consts::E,
     fs::{self, File},
     io::Write,
     path::PathBuf,
+    time::Duration,
 };
+
+use std::time::Instant;
 
 use tqdm::tqdm;
 
@@ -21,6 +25,7 @@ static ALLOC: dhat::Alloc = dhat::Alloc;
 struct EquivRunnerInfo {
     summary: Report,
     memory_footprint: Option<u64>,
+    crude_time: Option<u128>,
     iteration_info: Vec<Iteration<()>>,
 }
 
@@ -74,7 +79,7 @@ fn main() -> Result<(), std::io::Error> {
     // println!("{:#?}", test_cases);
     println!("Found {} test-cases", test_cases.len());
 
-    let checked_equivs: Vec<(Equivalence, Option<u64>)> = tqdm(test_cases.iter())
+    let checked_equivs: Vec<(Equivalence, Option<u64>, Option<Duration>)> = tqdm(test_cases.iter())
         .map(|case| {
             #[cfg(feature = "get-heap-info")]
             let _profiler = dhat::Profiler::new_heap();
@@ -92,7 +97,7 @@ fn main() -> Result<(), std::io::Error> {
                 &case.rhs,
             );
 
-            if !cli.skip_equiv {
+            let duration = if !cli.skip_equiv {
                 // === Construct case-specific dot_path and expl_path ===
                 let dot_path = cli.dot_path.as_ref().map(|base| {
                     let path = base.join(&case.name);
@@ -105,8 +110,30 @@ fn main() -> Result<(), std::io::Error> {
                     prepare_output_dir(&path, true);
                     path
                 });
-                equiv = equiv.find_equivalence(dot_path, expl_path);
-            }
+                let mut total: Duration = Duration::from_millis(0);
+                let mut count = 0;
+                let mut egg_time: f64 = 0.0;
+                while total < Duration::from_secs(1) {
+                    equiv = equiv.reset_runner();
+                    let now = Instant::now();
+                    {
+                        equiv = equiv.find_equivalence(&dot_path, &expl_path);
+                    }
+                    let elapsed = now.elapsed();
+                    egg_time += equiv.runner.report().total_time;
+                    count += 1;
+                    total += elapsed;
+                }
+                println!(
+                    "crude: {:.3?} egg: {:3?}, count: {}",
+                    total / count,
+                    1000.0 * (egg_time / f64::from(count)),
+                    count
+                );
+                Some(total / count)
+            } else {
+                None
+            };
 
             if let Some(th_path) = &cli.theorem_path {
                 equiv.to_isabelle(th_path, !cli.def_only);
@@ -117,10 +144,10 @@ fn main() -> Result<(), std::io::Error> {
                 let bytes_used = after_stats.total_bytes - before_stats.total_bytes;
                 println!("bytes used: {:?}", bytes_used,);
 
-                (equiv, Some(bytes_used))
+                (equiv, Some(bytes_used), duration)
             }
             #[cfg(not(feature = "get-heap-info"))]
-            (equiv, None)
+            (equiv, None, duration)
         })
         .collect();
 
@@ -134,12 +161,18 @@ fn main() -> Result<(), std::io::Error> {
 
             let stats: HashMap<String, EquivRunnerInfo> = checked_equivs
                 .iter()
-                .map(|(e, mem)| {
+                .map(|(e, mem, dur)| {
+                    println!(
+                        "egg time: {:?}, crude time: {:?}",
+                        e.runner.report().total_time,
+                        dur.map(|d| d.as_secs_f64())
+                    );
                     (
                         e.name.clone(),
                         EquivRunnerInfo {
                             summary: e.runner.report(),
                             memory_footprint: mem.clone(),
+                            crude_time: dur.map(|d| d.as_millis()),
                             iteration_info: e.runner.iterations.clone(),
                         },
                     )
@@ -152,7 +185,7 @@ fn main() -> Result<(), std::io::Error> {
 
         let (true_equivs, false_equivs): (Vec<_>, Vec<_>) = checked_equivs
             .into_iter()
-            .map(|(e, _m)| e)
+            .map(|(e, _m, _d)| e)
             .partition(|e: &Equivalence| e.equiv.is_some_and(|x| x));
 
         let true_equivs_info = true_equivs
