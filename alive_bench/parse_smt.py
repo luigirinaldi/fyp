@@ -89,7 +89,7 @@ def precond_to_bw_lang(expr: FNode) -> str:
             print(other, str(expr))
             raise ValueError("unsupported node type", expr, op_to_str(other))
 
-def parse_smt(file) -> tuple[tuple[str, str, list[str]], bool]:
+def parse_smt(file) -> tuple[tuple[str, str, list[str]], bool, bool]:
     # Load the SMT-LIB query
     parser = SmtLibParser()
     script = parser.get_script(file)
@@ -111,6 +111,14 @@ def parse_smt(file) -> tuple[tuple[str, str, list[str]], bool]:
         else:
             return any([is_bitwise(e) for e in expr.args()])
 
+    def is_arith(expr: FNode):
+        if expr.node_type() in [BV_ADD, BV_SUB, BV_MUL, BV_NEG, BV_LSHL, BV_LSHR]:
+            return True
+        elif len(expr.args()) == 0:
+            return False
+        else:
+            return any([is_arith(e) for e in expr.args()])
+
     if formula.is_not():
         # This is the case where there are no preconditions necessary for the equality to hold
         # Look for specifically a rewrite of the form (! (lhs = rhs))
@@ -120,7 +128,7 @@ def parse_smt(file) -> tuple[tuple[str, str, list[str]], bool]:
         lhs, rhs = eq.args()
         
         
-        return (to_bw_lang(lhs), to_bw_lang(rhs), []), is_bitwise(lhs) or is_bitwise(rhs)
+        return (to_bw_lang(lhs), to_bw_lang(rhs), []), is_bitwise(eq), is_arith(eq)
     elif formula.is_and():
         # And means there are preconditions
         # print(formula.args())
@@ -132,7 +140,7 @@ def parse_smt(file) -> tuple[tuple[str, str, list[str]], bool]:
             # ignore the ones that are (! (lhs <-> rhs))
             if expr.is_not() and expr.args()[0].is_equals():
                 assert rewrite is None, f"More than one rewrite candidate: {rewrite}, {expr}"
-                rewrite = expr.args()[0].args()
+                rewrite = expr.args()[0]
             else:
                 preconditions.append(expr)
         
@@ -141,11 +149,12 @@ def parse_smt(file) -> tuple[tuple[str, str, list[str]], bool]:
         # print("rewrite", rewrite)
         # print("preconditions", preconditions)
         
+        rw_args = rewrite.args()
         
-        lhs_out, rhs_out = to_bw_lang(rewrite[0]), to_bw_lang(rewrite[1])
+        lhs_out, rhs_out = to_bw_lang(rw_args[0]), to_bw_lang(rw_args[1])
         precond_out = [precond_to_bw_lang(e) for e in preconditions]
         
-        return (lhs_out, rhs_out, precond_out), is_bitwise(rewrite[0]) or is_bitwise(rewrite[1])
+        return (lhs_out, rhs_out, precond_out),  is_bitwise(rewrite), is_arith(rewrite)
     else:
         # print(op_to_str(formula.node_type()))
         # print(formula)

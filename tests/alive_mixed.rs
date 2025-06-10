@@ -11,113 +11,17 @@ use ntest::timeout;
 #[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
-fn alive_AddSub_1164() {
+fn alive_mixed_InstCombineShift476() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("alive")
-        .join("AddSub_1164");
+        .join("alive_mixed")
+        .join("InstCombineShift476");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
-        "AddSub_1164",
-        &[],
-        "(bw k (+ (bw k (- (bw k 0) (bw k var_a))) (bw k var_b)))",
-        "(bw k (- (bw k var_b) (bw k var_a)))",
-    );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
-    eq.to_isabelle(&output_dir, true);
-    #[cfg(feature = "isabelle-check")]
-    eq.check_proof(&output_dir).unwrap();
-}
-
-
-#[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
-#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
-#[allow(non_snake_case)]
-fn alive_AddSub_1574() {
-    let output_dir = PathBuf::from("target")
-        .join("tests")
-        .join("alive")
-        .join("AddSub_1574");
-    prepare_output_dir(&output_dir, true);
-    let mut eq = Equivalence::new(
-        "AddSub_1574",
-        &[],
-        "(bw k (- (bw k C) (bw k (+ (bw k var_X) (bw k C2)))))",
-        "(bw k (- (bw k (- (bw k C) (bw k C2))) (bw k var_X)))",
-    );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
-    eq.to_isabelle(&output_dir, true);
-    #[cfg(feature = "isabelle-check")]
-    eq.check_proof(&output_dir).unwrap();
-}
-
-
-#[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
-#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
-#[allow(non_snake_case)]
-fn alive_AddSub_1165() {
-    let output_dir = PathBuf::from("target")
-        .join("tests")
-        .join("alive")
-        .join("AddSub_1165");
-    prepare_output_dir(&output_dir, true);
-    let mut eq = Equivalence::new(
-        "AddSub_1165",
-        &[],
-        "(bw k (+ (bw k (- (bw k 0) (bw k var_a))) (bw k (- (bw k 0) (bw k var_b)))))",
-        "(bw k (- (bw k 0) (bw k (+ (bw k var_a) (bw k var_b)))))",
-    );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
-    eq.to_isabelle(&output_dir, true);
-    #[cfg(feature = "isabelle-check")]
-    eq.check_proof(&output_dir).unwrap();
-}
-
-
-#[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
-#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
-#[allow(non_snake_case)]
-fn alive_muldivrem_290_292() {
-    let output_dir = PathBuf::from("target")
-        .join("tests")
-        .join("alive")
-        .join("muldivrem_290_292");
-    prepare_output_dir(&output_dir, true);
-    let mut eq = Equivalence::new(
-        "muldivrem_290_292",
-        &["(< (bw k var_Y) (bw k 4))"],
-        "(bw k (* (bw k (<< (bw k 1) (bw k var_Y))) (bw k var_Op1)))",
-        "(bw k (<< (bw k var_Op1) (bw k var_Y)))",
-    );
-    eq = eq.find_equivalence(None, Some(output_dir.clone()));
-    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
-    eq.to_isabelle(&output_dir, true);
-    #[cfg(feature = "isabelle-check")]
-    eq.check_proof(&output_dir).unwrap();
-}
-
-
-#[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
-#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
-#[allow(non_snake_case)]
-fn alive_InstCombineShift497d() {
-    let output_dir = PathBuf::from("target")
-        .join("tests")
-        .join("alive")
-        .join("InstCombineShift497d");
-    prepare_output_dir(&output_dir, true);
-    let mut eq = Equivalence::new(
-        "InstCombineShift497d",
+        "InstCombineShift476",
         &["(< (bw k C) (bw k 4))"],
-        "(bw k (<< (bw k (+ (bw k var_X) (bw k C2))) (bw k C)))",
-        "(bw k (+ (bw k (<< (bw k var_X) (bw k C))) (bw k (<< (bw k C2) (bw k C)))))",
+        "(bw k (<< (bw k (or (bw k (and (bw k (>> (bw k var_X) (bw k C))) (bw k C2))) (bw k var_Y))) (bw k C)))",
+        "(bw k (or (bw k (and (bw k var_X) (bw k (<< (bw k C2) (bw k C))))) (bw k (<< (bw k var_Y) (bw k C)))))",
     );
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
@@ -131,17 +35,17 @@ fn alive_InstCombineShift497d() {
 #[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
-fn alive_muldivrem_152() {
+fn alive_mixed_AddSub_1043() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("alive")
-        .join("muldivrem_152");
+        .join("alive_mixed")
+        .join("AddSub_1043");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
-        "muldivrem_152",
+        "AddSub_1043",
         &[],
-        "(bw k (* (bw k var_x) (bw k -1)))",
-        "(bw k (- (bw k 0) (bw k var_x)))",
+        "(bw k (+ (bw k (+ (bw k (xor (bw k (and (bw k var_Z) (bw k C1))) (bw k C1))) (bw k 1))) (bw k var_RHS)))",
+        "(bw k (- (bw k var_RHS) (bw k (or (bw k var_Z) (bw k (not (bw k C1)))))))",
     );
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
@@ -155,17 +59,17 @@ fn alive_muldivrem_152() {
 #[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
-fn alive_AddSub_1539_2() {
+fn alive_mixed_InstCombineShift440() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("alive")
-        .join("AddSub_1539_2");
+        .join("alive_mixed")
+        .join("InstCombineShift440");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
-        "AddSub_1539_2",
-        &[],
-        "(bw k (- (bw k var_x) (bw k C)))",
-        "(bw k (+ (bw k var_x) (bw k (- (bw k C)))))",
+        "InstCombineShift440",
+        &["(< (bw k C) (bw k 4))"],
+        "(bw k (<< (bw k (xor (bw k var_Y) (bw k (and (bw k (>> (bw k var_X) (bw k C))) (bw k C2))))) (bw k C)))",
+        "(bw k (xor (bw k (and (bw k var_X) (bw k (<< (bw k C2) (bw k C))))) (bw k (<< (bw k var_Y) (bw k C)))))",
     );
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
@@ -179,17 +83,17 @@ fn alive_AddSub_1539_2() {
 #[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
-fn alive_muldivrem_229() {
+fn alive_mixed_AndOrXor_2475() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("alive")
-        .join("muldivrem_229");
+        .join("alive_mixed")
+        .join("AndOrXor_2475");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
-        "muldivrem_229",
+        "AndOrXor_2475",
         &[],
-        "(bw k (* (bw k (+ (bw k var_X) (bw k C1))) (bw k var_Op1)))",
-        "(bw k (+ (bw k (* (bw k var_X) (bw k var_Op1))) (bw k (* (bw k C1) (bw k var_Op1)))))",
+        "(bw k (xor (bw k (- (bw k C) (bw k var_x))) (bw k -1)))",
+        "(bw k (+ (bw k var_x) (bw k (- (bw k -1) (bw k C)))))",
     );
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
@@ -203,17 +107,17 @@ fn alive_muldivrem_229() {
 #[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
-fn alive_muldivrem_239() {
+fn alive_mixed_InstCombineShift239() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("alive")
-        .join("muldivrem_239");
+        .join("alive_mixed")
+        .join("InstCombineShift239");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
-        "muldivrem_239",
-        &[],
-        "(bw k (* (bw k (- (bw k 0) (bw k var_X))) (bw k (- (bw k 0) (bw k var_Y)))))",
-        "(bw k (* (bw k var_X) (bw k var_Y)))",
+        "InstCombineShift239",
+        &["(< (bw k C) (bw k 4))"],
+        "(bw k (>> (bw k (<< (bw k var_X) (bw k C))) (bw k C)))",
+        "(bw k (and (bw k var_X) (bw k (>> (bw k -1) (bw k C)))))",
     );
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
@@ -227,17 +131,17 @@ fn alive_muldivrem_239() {
 #[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
-fn alive_Select_1105() {
+fn alive_mixed_AddSub_1624() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("alive")
-        .join("Select_1105");
+        .join("alive_mixed")
+        .join("AddSub_1624");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
-        "Select_1105",
+        "AddSub_1624",
         &[],
-        "(bw k var_Y)",
-        "(bw k var_Y)",
+        "(bw k (- (bw k (or (bw k var_A) (bw k var_B))) (bw k (xor (bw k var_A) (bw k var_B)))))",
+        "(bw k (and (bw k var_A) (bw k var_B)))",
     );
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
@@ -251,17 +155,17 @@ fn alive_Select_1105() {
 #[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
-fn alive_AddSub_1614() {
+fn alive_mixed_AndOrXor_2515() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("alive")
-        .join("AddSub_1614");
+        .join("alive_mixed")
+        .join("AndOrXor_2515");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
-        "AddSub_1614",
-        &[],
-        "(bw k (- (bw k var_X) (bw k (+ (bw k var_X) (bw k var_Y)))))",
-        "(bw k (- (bw k 0) (bw k var_Y)))",
+        "AndOrXor_2515",
+        &["(< (bw k C2) (bw k 4))"],
+        "(bw k (xor (bw k (>> (bw k (xor (bw k var_x) (bw k C1))) (bw k C2))) (bw k C3)))",
+        "(bw k (xor (bw k (>> (bw k var_x) (bw k C2))) (bw k (xor (bw k (>> (bw k C1) (bw k C2))) (bw k C3)))))",
     );
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
@@ -275,17 +179,17 @@ fn alive_AddSub_1614() {
 #[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
-fn alive_AddSub_1176() {
+fn alive_mixed_AddSub_1202() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("alive")
-        .join("AddSub_1176");
+        .join("alive_mixed")
+        .join("AddSub_1202");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
-        "AddSub_1176",
+        "AddSub_1202",
         &[],
-        "(bw k (+ (bw k var_a) (bw k (- (bw k 0) (bw k var_b)))))",
-        "(bw k (- (bw k var_a) (bw k var_b)))",
+        "(bw k (+ (bw k (xor (bw k var_x) (bw k -1))) (bw k C)))",
+        "(bw k (- (bw k (- (bw k C) (bw k 1))) (bw k var_x)))",
     );
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
@@ -299,17 +203,17 @@ fn alive_AddSub_1176() {
 #[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
-fn alive_AddSub_1619() {
+fn alive_mixed_AddSub_1560() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("alive")
-        .join("AddSub_1619");
+        .join("alive_mixed")
+        .join("AddSub_1560");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
-        "AddSub_1619",
+        "AddSub_1560",
         &[],
-        "(bw k (- (bw k (- (bw k var_X) (bw k var_Y))) (bw k var_X)))",
-        "(bw k (- (bw k 0) (bw k var_Y)))",
+        "(bw k (- (bw k -1) (bw k var_a)))",
+        "(bw k (xor (bw k var_a) (bw k -1)))",
     );
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
@@ -323,17 +227,137 @@ fn alive_AddSub_1619() {
 #[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
-fn alive_Select_1100() {
+fn alive_mixed_InstCombineShift279() {
     let output_dir = PathBuf::from("target")
         .join("tests")
-        .join("alive")
-        .join("Select_1100");
+        .join("alive_mixed")
+        .join("InstCombineShift279");
     prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
-        "Select_1100",
+        "InstCombineShift279",
+        &["(< (bw k C) (bw k 4))"],
+        "(bw k (<< (bw k (>> (bw k var_X) (bw k C))) (bw k C)))",
+        "(bw k (and (bw k var_X) (bw k (<< (bw k -1) (bw k C)))))",
+    );
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
+    #[cfg(feature = "isabelle-check")]
+    eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
+#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
+#[allow(non_snake_case)]
+fn alive_mixed_AndOrXor_2486() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive_mixed")
+        .join("AndOrXor_2486");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AndOrXor_2486",
         &[],
-        "(bw k var_X)",
-        "(bw k var_X)",
+        "(bw k (xor (bw k (+ (bw k var_x) (bw k C))) (bw k -1)))",
+        "(bw k (- (bw k (- (bw k -1) (bw k C))) (bw k var_x)))",
+    );
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
+    #[cfg(feature = "isabelle-check")]
+    eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
+#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
+#[allow(non_snake_case)]
+fn alive_mixed_AddSub_1295() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive_mixed")
+        .join("AddSub_1295");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AddSub_1295",
+        &[],
+        "(bw k (+ (bw k (and (bw k var_a) (bw k var_b))) (bw k (xor (bw k var_a) (bw k var_b)))))",
+        "(bw k (or (bw k var_a) (bw k var_b)))",
+    );
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
+    #[cfg(feature = "isabelle-check")]
+    eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
+#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
+#[allow(non_snake_case)]
+fn alive_mixed_InstCombineShift497a() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive_mixed")
+        .join("InstCombineShift497a");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "InstCombineShift497a",
+        &["(< (bw k C) (bw k 4))"],
+        "(bw k (>> (bw k (xor (bw k var_X) (bw k C2))) (bw k C)))",
+        "(bw k (xor (bw k (>> (bw k var_X) (bw k C))) (bw k (>> (bw k C2) (bw k C)))))",
+    );
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
+    #[cfg(feature = "isabelle-check")]
+    eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
+#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
+#[allow(non_snake_case)]
+fn alive_mixed_AddSub_1564() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive_mixed")
+        .join("AddSub_1564");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "AddSub_1564",
+        &[],
+        "(bw k (- (bw k C) (bw k (xor (bw k var_x) (bw k -1)))))",
+        "(bw k (+ (bw k var_x) (bw k (+ (bw k C) (bw k 1)))))",
+    );
+    eq = eq.find_equivalence(None, Some(output_dir.clone()));
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
+    eq.to_isabelle(&output_dir, true);
+    #[cfg(feature = "isabelle-check")]
+    eq.check_proof(&output_dir).unwrap();
+}
+
+
+#[test]
+#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
+#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
+#[allow(non_snake_case)]
+fn alive_mixed_InstCombineShift582() {
+    let output_dir = PathBuf::from("target")
+        .join("tests")
+        .join("alive_mixed")
+        .join("InstCombineShift582");
+    prepare_output_dir(&output_dir, true);
+    let mut eq = Equivalence::new(
+        "InstCombineShift582",
+        &["(< (bw k C) (bw k 4))"],
+        "(bw k (>> (bw k (<< (bw k var_X) (bw k C))) (bw k C)))",
+        "(bw k (and (bw k var_X) (bw k (>> (bw k -1) (bw k C)))))",
     );
     eq = eq.find_equivalence(None, Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");

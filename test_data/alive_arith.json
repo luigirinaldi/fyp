@@ -58,12 +58,6 @@
     "preconditions": []
   },
   {
-    "name": "Select_1105",
-    "lhs": "(bw k var_Y)",
-    "rhs": "(bw k var_Y)",
-    "preconditions": []
-  },
-  {
     "name": "AddSub_1614",
     "lhs": "(bw k (- (bw k var_X) (bw k (+ (bw k var_X) (bw k var_Y)))))",
     "rhs": "(bw k (- (bw k 0) (bw k var_Y)))",
@@ -79,6 +73,12 @@
     "name": "AddSub_1619",
     "lhs": "(bw k (- (bw k (- (bw k var_X) (bw k var_Y))) (bw k var_X)))",
     "rhs": "(bw k (- (bw k 0) (bw k var_Y)))",
+    "preconditions": []
+  },
+  {
+    "name": "Select_1105",
+    "lhs": "(bw k var_Y)",
+    "rhs": "(bw k var_Y)",
     "preconditions": []
   },
   {

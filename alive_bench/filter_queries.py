@@ -63,15 +63,19 @@ def main():
     # Ensure output directory exists
     os.makedirs(bw_dir, exist_ok=True)
     
-    bitwise_out = []
-    non_bitwise_out = []
+    out_files = {
+        '00': [],
+        '01': [],
+        '10': [],
+        '11': []
+    }
     
     cond_count = 0
     count = 0
     for filename_clean, (filestr, filename) in filtered_files.items():
         # print(filename, filestr)
         try:
-            (lhs, rhs, preconds), is_bitwise = parse_smt(StringIO(filestr))
+            (lhs, rhs, preconds), is_bitwise, is_arith = parse_smt(StringIO(filestr))
             bw_lang_expr = {
                 "name": filename_clean.strip().replace(':', '_').replace('-', '_'),
                 "lhs": lhs,
@@ -79,10 +83,7 @@ def main():
                 "preconditions": preconds
             }
             
-            if is_bitwise:
-                bitwise_out.append(bw_lang_expr)
-            else:
-                non_bitwise_out.append(bw_lang_expr)
+            out_files[f'{is_bitwise:d}{is_arith:d}'].append(bw_lang_expr)
             
             print(filename_clean)
             src = os.path.join(output_dir, filename)
@@ -94,11 +95,15 @@ def main():
         except AssertionError as e:
             print(f"Skipped {filename} because {e}")
     
-    print(f"{count} Total queries, {count - cond_count} are unconditional, {cond_count} are conditional\n{len(bitwise_out)} bitwise expressions, {len(non_bitwise_out)} non bitwise expressions")
-    with open("../test_data/alive.json", "w") as f:
-        json.dump(non_bitwise_out, f, indent=2)
+    print(f"{count} Total queries, {count - cond_count} are unconditional, {cond_count} are conditional")
+    print(f"{len(out_files['10'])} bitwise expressions, {len(out_files['01'])} arithmetic expressions, {len(out_files['11'])} mixed-expressions and {len(out_files['00'])} expression which are neither")
+    
+    
+    with open("../test_data/alive_arith.json", "w") as f:
+        json.dump(out_files["01"] + out_files["00"], f, indent=2)
     with open("../test_data/alive_bitwise.json", "w") as f:
-        json.dump(bitwise_out, f, indent=2)
-
+        json.dump(out_files["10"], f, indent=2)
+    with open("../test_data/alive_mixed.json", "w") as f:
+        json.dump(out_files["11"], f, indent=2)
 if __name__ == "__main__":
     main()
