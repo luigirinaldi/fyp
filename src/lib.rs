@@ -96,7 +96,7 @@ impl Equivalence {
             equiv: None,
             runner: Runner::<ModIR, ModAnalysis>::default()
                 .with_explanations_enabled()
-                .with_time_limit(Duration::from_secs(10))
+                .with_time_limit(Duration::from_secs(1))
                 .with_iter_limit(1000)
                 .with_node_limit(200000)
                 .with_scheduler(SimpleScheduler),
