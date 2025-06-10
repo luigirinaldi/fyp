@@ -17,6 +17,5 @@ find "$SRC_DIR" -type f -name "*.json" | while read -r file; do
 
   echo "Gathering data for $base_name"
 
-  # Execute tool: no lemma
   "$BIN_PATH" "$file" --runner-stats "$OUT_DIR/egraph_stats.json" > /dev/null
 done
