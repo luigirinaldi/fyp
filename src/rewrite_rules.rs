@@ -72,17 +72,47 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
                                  => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"
                                     if precondition(&["(>= ?s (+ ?p (- (^ 2 ?q) 1)))"])),
         // shift operations
-        rewrite!("shl_def"; "(<< ?a (bw ?q ?b))" => "(* ?a (^ 2 (bw ?q ?b)))"),
-        rewrite!("shr_def"; "(>> ?a (bw ?q ?b))" => "(div ?a (^ 2 (bw ?q ?b)))"),
-        // bitwise ops
-        rewrite!("add_as_xor_and";     "(+ (bw ?p ?a) (bw ?p ?b))" 
-                                 => "(+ (xor (bw ?p ?a) (bw ?p ?b)) (* 2 (and (bw ?p ?a) (bw ?p ?b))))"),
-        rewrite!("xor_as_or_and";      "(xor (bw ?p ?a) (bw ?p ?b))"
-                                 => "(- (or (bw ?p ?a) (bw ?p ?b)) (and (bw ?p ?a) (bw ?p ?b)))"),
-        rewrite!("and_allones"; "(and (bw ?p ?a) (bw ?p -1))" => "(bw ?p ?a)"),
-        rewrite!("or_allones";  "(or (bw ?p ?a) (bw ?p -1))" => "(bw ?p -1)"),
-        // rewrite!("xor_allones"; "(bw ?p (xor (bw ?p ?a) (bw ?p -1)))" => "(bw ?p (not (bw ?p ?a)))"),
+        rewrite!("shl_def"; "(<< (bw ?p ?a) (bw ?q ?b))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
+        rewrite!("shr_def"; "(>> (bw ?p ?a) (bw ?q ?b))" => "(div (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
+        // bitwise ring? properties
+        rewrite!("or.commute";     "(or ?a ?b)" => "(or ?b ?a)"),
+        rewrite!("or_assoc";       "(or (or ?a ?b) ?c)" => "(or ?a (or ?b ?c))"),
+        rewrite!("and.commute";    "(and ?a ?b)" => "(and ?b ?a)"),
+        rewrite!("and_assoc";      "(and (and ?a ?b) ?c)" => "(and ?a (and ?b ?c))"),
+        // bitwise identities
+        rewrite!("and_allones";     "(and (bw ?p ?a) (bw ?p -1))" => "(bw ?p ?a)"),
+        rewrite!("or_allones";      "(or (bw ?p ?a) (bw ?p -1))" => "(bw ?p -1)"),
+        rewrite!("xor_allones";     "(bw ?p (xor (bw ?p ?a) (bw ?p -1)))" => "(bw ?p (not (bw ?p ?a)))"),
+        rewrite!("and_self";        "(and ?a ?a)" => "?a"),
+        rewrite!("or_self";         "(or ?a ?a)" =>  "?a"),
+        rewrite!("and_not_self";    "(and (bw ?p ?a) (bw ?p (not (bw ?p ?a))))" => "0"),
+        rewrite!("or_not_self";     "(or (bw ?p ?a) (not (bw ?p ?a)))" => "(bw ?p -1)"),
+        rewrite!("and_zero";        "(and ?a 0)" => "0"),
+        rewrite!("or_zero";         "(or ?a 0)" => "?a"),
+        // bitwise remove prec
+        rewrite!("and_remove"; "(bw ?p (and (bw ?p ?a) (bw ?p ?b)))" => "(and (bw ?p ?a) (bw ?p ?b))"),
+        rewrite!("or_remove";  "(bw ?p (or (bw ?p ?a) (bw ?p ?b)))" => "(or (bw ?p ?a) (bw ?p ?b))"),
+        rewrite!("xor_remove"; "(bw ?p (xor (bw ?p ?a) (bw ?p ?b)))" => "(xor (bw ?p ?a) (bw ?p ?b))"),
+        rewrite!("demorg_and"; "(bw ?p (not (and (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
+        rewrite!("demorg_or";  "(bw ?p (not (or (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (and (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
     ];
+    rules.extend(rewrite!("xor_and_or";      "(and (or (bw ?p ?a) (bw ?p ?b)) (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))" <=> "(xor (bw ?p ?a) (bw ?p ?b))"));
+    // bitwise to arith
+    rules.extend(rewrite!("neg_not"; "(- (bw ?p ?a))" <=> "(+ (not (bw ?p ?a)) 1)"));
+    rules.extend(rewrite!("add_as_xor_and";
+        "(+ (bw ?p ?a) (bw ?p ?b))"
+            <=>
+        "(+ (xor (bw ?p ?a) (bw ?p ?b)) (* 2 (and (bw ?p ?a) (bw ?p ?b))))"
+    ));
+    rules.extend(rewrite!("xor_as_or_and";
+        "(xor (bw ?p ?a) (bw ?p ?b))"
+        <=>
+        "(- (or (bw ?p ?a) (bw ?p ?b)) (and (bw ?p ?a) (bw ?p ?b)))"
+    ));
+    rules.extend(rewrite!("and_distrib"; "(and ?a (or ?b ?c))" <=> "(or (and ?a ?b) (and ?a ?c))"));
+    rules
+        .extend(rewrite!("not_bw_not"; "(bw ?p (not (bw ?p (not (bw ?p ?a)))))" <=> "(bw ?p ?a)" ));
+
     rules.extend(rewrite!("int_distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     rules.extend(rewrite!("Num.ring_1_class.mult_minus1"; "(- ?b)" <=> "(* -1 ?b)"));
     rules.extend(rewrite!("sub_to_neg"; "(- ?a ?b)" <=> "(+ ?a (* -1 ?b))"));
