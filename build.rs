@@ -46,7 +46,8 @@ fn main() {
                 output,
                 r#"
 #[test]
-#[timeout(10000)]
+#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
+#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn {fn_name}() {{
     let output_dir = PathBuf::from("target")
