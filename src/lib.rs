@@ -7,6 +7,7 @@ use std::fs::File;
 use std::io::Write;
 use std::time::Duration;
 
+
 mod dot_equiv;
 mod extractor;
 mod language;

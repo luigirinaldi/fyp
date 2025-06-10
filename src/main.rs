@@ -9,12 +9,18 @@ use std::{
 use tqdm::tqdm;
 
 use clap::Parser;
+#[cfg(feature = "get-heap-info")]
+use dhat;
 use egg::{Iteration, Report};
 use hello_world::{check_isabelle_proof, prepare_output_dir, Equivalence, EquivalenceString};
+#[cfg(feature = "get-heap-info")]
+#[global_allocator]
+static ALLOC: dhat::Alloc = dhat::Alloc;
 
 #[derive(serde::Serialize)]
 struct EquivRunnerInfo {
     summary: Report,
+    memory_footprint: Option<u64>,
     iteration_info: Vec<Iteration<()>>,
 }
 
@@ -68,8 +74,13 @@ fn main() -> Result<(), std::io::Error> {
     // println!("{:#?}", test_cases);
     println!("Found {} test-cases", test_cases.len());
 
-    let checked_equivs: Vec<Equivalence> = tqdm(test_cases.iter())
+    let checked_equivs: Vec<(Equivalence, Option<u64>)> = tqdm(test_cases.iter())
         .map(|case| {
+            #[cfg(feature = "get-heap-info")]
+            let _profiler = dhat::Profiler::new_heap();
+            #[cfg(feature = "get-heap-info")]
+            let before_stats = dhat::HeapStats::get();
+
             let mut equiv = Equivalence::new(
                 &case.name,
                 &case
@@ -100,7 +111,16 @@ fn main() -> Result<(), std::io::Error> {
             if let Some(th_path) = &cli.theorem_path {
                 equiv.to_isabelle(th_path, !cli.def_only);
             }
-            equiv
+            #[cfg(feature = "get-heap-info")]
+            {
+                let after_stats = dhat::HeapStats::get();
+                let bytes_used = after_stats.total_bytes - before_stats.total_bytes;
+                println!("bytes used: {:?}", bytes_used,);
+
+                (equiv, Some(bytes_used))
+            }
+            #[cfg(not(feature = "get-heap-info"))]
+            (equiv, None)
         })
         .collect();
 
@@ -114,11 +134,12 @@ fn main() -> Result<(), std::io::Error> {
 
             let stats: HashMap<String, EquivRunnerInfo> = checked_equivs
                 .iter()
-                .map(|e| {
+                .map(|(e, mem)| {
                     (
                         e.name.clone(),
                         EquivRunnerInfo {
                             summary: e.runner.report(),
+                            memory_footprint: mem.clone(),
                             iteration_info: e.runner.iterations.clone(),
                         },
                     )
@@ -131,6 +152,7 @@ fn main() -> Result<(), std::io::Error> {
 
         let (true_equivs, false_equivs): (Vec<_>, Vec<_>) = checked_equivs
             .into_iter()
+            .map(|(e, _m)| e)
             .partition(|e: &Equivalence| e.equiv.is_some_and(|x| x));
 
         let true_equivs_info = true_equivs

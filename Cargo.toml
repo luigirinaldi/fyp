@@ -12,6 +12,7 @@ clap = { version = "4.5.38", features = ["derive"] }
 tqdm = "0.7.0"
 regex = "1.11.1"
 ntest = "0.9.3"
+dhat = "0.3.3"
 
 [build-dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -19,3 +20,4 @@ serde_json = "1.0"
 
 [features]
 isabelle-check = []
+get-heap-info = []
