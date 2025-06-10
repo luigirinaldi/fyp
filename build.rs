@@ -46,7 +46,7 @@ fn main() {
                 output,
                 r#"
 #[test]
-#[timeout(30000)]
+#[timeout(10000)]
 #[allow(non_snake_case)]
 fn {fn_name}() {{
     let output_dir = PathBuf::from("target")
