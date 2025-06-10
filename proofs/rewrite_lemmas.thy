@@ -165,8 +165,8 @@ lemma xor_remove: "(bw p (xor (bw p a) (bw p b))) = (xor (bw p a) (bw p b))" by 
 lemma demorg_and: "(bw p (not (and (bw p a) (bw p b)))) = bw p (or (bw p (not (bw p a))) (bw p (not (bw p b))))" using bw_def by (metis bit.de_Morgan_conj or_remove take_bit_eq_mod take_bit_or)
 lemma demorg_or: "(bw p (not (or (bw p a) (bw p b)))) = bw p (and (bw p (not (bw p a))) (bw p (not (bw p b))))" using bw_def by (metis and_remove bit.de_Morgan_disj take_bit_and take_bit_eq_mod)
 
-lemma and_assoc: "(and (and a b) c) = (and c (and b a))" by (simp add: and.commute)
-lemma or_assoc: "(or (or a b) c) = (or c (or b a))" by (simp add: or.commute)
+lemma and_assoc: "(and (and a b) c) = (and a (and b c))" by (simp only: and.assoc)
+lemma or_assoc: "(or (or a b) c) = (or a (or b c))" by (simp only: or.assoc)
 lemma not_bw_not: "bw p (not (bw p (not (bw p a)))) = (bw p a)" if "p>0" by (metis bit.double_compl bw_def take_bit_int_def take_bit_not_take_bit)
 
 lemma and_distrib: "and a (or b c) = or (and a b) (and a c)" for a b c :: int by (simp only: Bit_Operations.ring_bit_operations_class.bit.conj_disj_distrib and.commute)
