@@ -57,9 +57,14 @@ run_mirabelle() {
     echo "  $name_only" >> "$ROOT_FILE"
     echo "Mirabelle running for $name_only ($MODE)"
 
+    export ISABELLE_TOOL_JAVA_OPTIONS="-Xmx12g"
+    export ML_OPTIONS="--max-heap 2g"
+
+    # large 15g limit on how much many the process can take up
+    ulimit -v 16106127360
     stdbuf -oL /usr/bin/time --output="$sys_data" -a --format="{\"name\":\"$name_only\", \"cpu\":\"%P\", \"mem\":%M}," \
       "$ISABELLE_PATH" mirabelle -d "$DIR" -O "$DIR/mirabelle_out" \
-      -A "try0" -A "sledgehammer[timeout=$SLEDGEHAMMER_TIMEOUT]" \
+      -A "try0" -A "sledgehammer[timeout=$SLEDGEHAMMER_TIMEOUT, max_proofs=1]" \
       -T "$name_only" LemmaSledge | sed 's/^/[mirabelle] /'
   done
 
