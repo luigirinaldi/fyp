@@ -1,0 +1,155 @@
+{
+  "left_shift_add_2": {
+    "method": "cvc5",
+    "total_time": 286321,
+    "sh_time": 286321,
+    "atp_time": 5613,
+    "proof": "by (smt (verit) add.commute add_full_prec add_remove_prec int_distrib(1) shl_def that(1,2,3)) (77 ms)"
+  },
+  "mul_two": {
+    "method": "cvc5",
+    "total_time": 264968,
+    "sh_time": 264968,
+    "atp_time": 1355,
+    "proof": "by (simp add: shl_def) (0.4 ms)"
+  },
+  "commutativity_mult": {
+    "method": "cvc5",
+    "total_time": 1573,
+    "sh_time": 1573,
+    "atp_time": 261,
+    "proof": "by (simp add: mult.commute) (2 ms)"
+  },
+  "merge_right_shift": {
+    "method": "timeout",
+    "total_time": 278372
+  },
+  "mult_assoc_4": {
+    "method": "cvc5",
+    "total_time": 6283,
+    "sh_time": 6283,
+    "atp_time": 299,
+    "proof": "by (simp add: ab_semigroup_mult_class.mult_ac(1) mul_full_prec that(1,2)) (2 ms)"
+  },
+  "left_shift_add_1": {
+    "method": "cvc5",
+    "total_time": 278555,
+    "sh_time": 278555,
+    "atp_time": 5717,
+    "proof": "by (metis add.commute add_remove_prec comm_semiring_class.distrib mul_remove_prec shl_def that(1,2)) (543 ms)"
+  },
+  "mult_sum_same": {
+    "method": "cvc5",
+    "total_time": 129755,
+    "sh_time": 129755,
+    "atp_time": 1465,
+    "proof": "by (metis (no_types, lifting) add_full_prec bw_1 int_distrib(1) mul_full_prec mult_1 that(1,2,3) zero_less_one) (307 ms)"
+  },
+  "merge_left_shift": {
+    "method": "timeout",
+    "total_time": 279395
+  },
+  "add_zero": {
+    "method": "cvc5",
+    "total_time": 27127,
+    "sh_time": 27126,
+    "atp_time": 189,
+    "proof": "by (simp add: bw_0 mod_eq) (0.4 ms)"
+  },
+  "mult_assoc_1": {
+    "method": "cvc5",
+    "total_time": 73536,
+    "sh_time": 73536,
+    "atp_time": 712,
+    "proof": "by (smt (verit, ccfv_threshold) mul_remove_prec mult.commute mult.left_commute that(1,2)) (65 ms)"
+  },
+  "mult_assoc_2": {
+    "method": "cvc5",
+    "total_time": 59926,
+    "sh_time": 59926,
+    "atp_time": 678,
+    "proof": "by (smt (verit, ccfv_SIG) ab_semigroup_mult_class.mult_ac(1) mul_full_prec mul_remove_prec mult.commute that(1,2)) (40 ms)"
+  },
+  "add_assoc_4": {
+    "method": "cvc5",
+    "total_time": 31809,
+    "sh_time": 31809,
+    "atp_time": 1432,
+    "proof": "by (simp add: add.commute add.left_commute add_full_prec that(1,2,3,4)) (3 ms)"
+  },
+  "left_shift_mult": {
+    "method": "timeout",
+    "total_time": 280937
+  },
+  "add_right_shift": {
+    "method": "timeout",
+    "total_time": 278268
+  },
+  "dist_over_add": {
+    "method": "cvc5",
+    "total_time": 38749,
+    "sh_time": 38749,
+    "atp_time": 1658,
+    "proof": "by (metis add.commute add_remove_prec int_distrib(2) that(2,3)) (66 ms)"
+  },
+  "one_to_two_mult": {
+    "method": "timeout",
+    "total_time": 278448
+  },
+  "mul_one": {
+    "method": "cvc5",
+    "total_time": 7586,
+    "sh_time": 7585,
+    "atp_time": 238,
+    "proof": "by (simp add: bw_1 mod_eq that(1)) (0.3 ms)"
+  },
+  "sub_to_neg": {
+    "method": "cvc5",
+    "total_time": 2463,
+    "sh_time": 2463,
+    "atp_time": 250,
+    "proof": "by auto (0.5 ms)"
+  },
+  "add_assoc_2": {
+    "method": "cvc5",
+    "total_time": 62475,
+    "sh_time": 62475,
+    "atp_time": 1692,
+    "proof": "by (smt (verit) add_full_prec add_remove_prec that(1,2,3)) (55 ms)"
+  },
+  "add_assoc_1": {
+    "method": "cvc5",
+    "total_time": 103963,
+    "sh_time": 103963,
+    "atp_time": 764,
+    "proof": "by (smt (verit) add.commute add_remove_prec that(1,2)) (72 ms)"
+  },
+  "mult_assoc_3": {
+    "method": "cvc5",
+    "total_time": 37558,
+    "sh_time": 37558,
+    "atp_time": 333,
+    "proof": "by (simp add: ab_semigroup_mult_class.mult_ac(1) mul_full_prec mul_remove_prec that(1,2)) (9 ms)"
+  },
+  "commutativity_add": {
+    "method": "cvc5",
+    "total_time": 1308,
+    "sh_time": 1308,
+    "atp_time": 231,
+    "proof": "by (smt (verit)) (57 ms)"
+  },
+  "sum_same": {
+    "method": "cvc5",
+    "total_time": 279087,
+    "sh_time": 279087,
+    "atp_time": 5118,
+    "proof": "by (metis (no_types, lifting) add_full_prec bw_1 less_2_cases_iff mult.commute mult_2_right numeral_1_eq_Suc_0 one_add_one zero_less_numeral) (62 ms)"
+  },
+  "add_assoc_3": {
+    "method": "cvc5",
+    "total_time": 74964,
+    "sh_time": 74964,
+    "atp_time": 1647,
+    "proof": "by (smt (verit) add.commute add_full_prec add_remove_prec that(1,2,3)) (66 ms)"
+  }
+}
