@@ -8,7 +8,6 @@ use ntest::timeout;
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_InstCombineShift476() {
@@ -32,7 +31,6 @@ fn alive_mixed_InstCombineShift476() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_AddSub_1043() {
@@ -56,7 +54,6 @@ fn alive_mixed_AddSub_1043() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_InstCombineShift440() {
@@ -80,7 +77,6 @@ fn alive_mixed_InstCombineShift440() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_AndOrXor_2475() {
@@ -104,7 +100,6 @@ fn alive_mixed_AndOrXor_2475() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_InstCombineShift239() {
@@ -128,7 +123,6 @@ fn alive_mixed_InstCombineShift239() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_AddSub_1624() {
@@ -152,7 +146,6 @@ fn alive_mixed_AddSub_1624() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_AndOrXor_2515() {
@@ -176,7 +169,6 @@ fn alive_mixed_AndOrXor_2515() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_AddSub_1202() {
@@ -200,7 +192,6 @@ fn alive_mixed_AddSub_1202() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_AddSub_1560() {
@@ -224,7 +215,6 @@ fn alive_mixed_AddSub_1560() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_InstCombineShift279() {
@@ -248,7 +238,6 @@ fn alive_mixed_InstCombineShift279() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_AndOrXor_2486() {
@@ -272,7 +261,6 @@ fn alive_mixed_AndOrXor_2486() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_AddSub_1295() {
@@ -296,7 +284,6 @@ fn alive_mixed_AddSub_1295() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_InstCombineShift497a() {
@@ -320,7 +307,6 @@ fn alive_mixed_InstCombineShift497a() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_AddSub_1564() {
@@ -344,7 +330,6 @@ fn alive_mixed_AddSub_1564() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_InstCombineShift582() {

@@ -8,7 +8,6 @@ use ntest::timeout;
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_arith_AddSub_1164() {
@@ -32,7 +31,6 @@ fn alive_arith_AddSub_1164() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_arith_AddSub_1574() {
@@ -56,7 +54,6 @@ fn alive_arith_AddSub_1574() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_arith_AddSub_1165() {
@@ -80,7 +77,6 @@ fn alive_arith_AddSub_1165() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_arith_muldivrem_290_292() {
@@ -104,7 +100,6 @@ fn alive_arith_muldivrem_290_292() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_arith_InstCombineShift497d() {
@@ -128,7 +123,6 @@ fn alive_arith_InstCombineShift497d() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_arith_muldivrem_152() {
@@ -152,7 +146,6 @@ fn alive_arith_muldivrem_152() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_arith_AddSub_1539_2() {
@@ -176,7 +169,6 @@ fn alive_arith_AddSub_1539_2() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_arith_muldivrem_229() {
@@ -200,7 +192,6 @@ fn alive_arith_muldivrem_229() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_arith_muldivrem_239() {
@@ -224,7 +215,6 @@ fn alive_arith_muldivrem_239() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_arith_AddSub_1614() {
@@ -248,7 +238,6 @@ fn alive_arith_AddSub_1614() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_arith_AddSub_1176() {
@@ -272,7 +261,6 @@ fn alive_arith_AddSub_1176() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_arith_AddSub_1619() {
@@ -296,7 +284,6 @@ fn alive_arith_AddSub_1619() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_arith_Select_1105() {
@@ -320,7 +307,6 @@ fn alive_arith_Select_1105() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_arith_Select_1100() {

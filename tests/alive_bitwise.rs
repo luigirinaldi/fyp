@@ -8,7 +8,6 @@ use ntest::timeout;
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2417() {
@@ -32,7 +31,6 @@ fn alive_bitwise_AndOrXor_2417() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2587() {
@@ -56,7 +54,6 @@ fn alive_bitwise_AndOrXor_2587() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2581() {
@@ -80,7 +77,6 @@ fn alive_bitwise_AndOrXor_2581() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2243() {
@@ -104,7 +100,6 @@ fn alive_bitwise_AndOrXor_2243() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2367() {
@@ -128,7 +123,6 @@ fn alive_bitwise_AndOrXor_2367() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2247() {
@@ -152,7 +146,6 @@ fn alive_bitwise_AndOrXor_2247() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2285() {
@@ -176,7 +169,6 @@ fn alive_bitwise_AndOrXor_2285() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2231() {
@@ -200,7 +192,6 @@ fn alive_bitwise_AndOrXor_2231() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2123() {
@@ -224,7 +215,6 @@ fn alive_bitwise_AndOrXor_2123() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2284() {
@@ -248,7 +238,6 @@ fn alive_bitwise_AndOrXor_2284() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2118() {
@@ -272,7 +261,6 @@ fn alive_bitwise_AndOrXor_2118() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2265() {
@@ -296,7 +284,6 @@ fn alive_bitwise_AndOrXor_2265() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_1230() {
@@ -320,7 +307,6 @@ fn alive_bitwise_AndOrXor_1230() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2113() {
@@ -344,7 +330,6 @@ fn alive_bitwise_AndOrXor_2113() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2063() {
@@ -368,7 +353,6 @@ fn alive_bitwise_AndOrXor_2063() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_135() {
@@ -392,7 +376,6 @@ fn alive_bitwise_AndOrXor_135() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2416() {
@@ -416,7 +399,6 @@ fn alive_bitwise_AndOrXor_2416() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2595() {
@@ -440,7 +422,6 @@ fn alive_bitwise_AndOrXor_2595() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_1241() {
@@ -464,7 +445,6 @@ fn alive_bitwise_AndOrXor_1241() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2607() {
@@ -488,7 +468,6 @@ fn alive_bitwise_AndOrXor_2607() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2297() {
@@ -512,7 +491,6 @@ fn alive_bitwise_AndOrXor_2297() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2627() {
@@ -536,7 +514,6 @@ fn alive_bitwise_AndOrXor_2627() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_1280() {
@@ -560,7 +537,6 @@ fn alive_bitwise_AndOrXor_1280() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2430() {
@@ -584,7 +560,6 @@ fn alive_bitwise_AndOrXor_2430() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2617() {
@@ -608,7 +583,6 @@ fn alive_bitwise_AndOrXor_2617() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_1294() {
@@ -632,7 +606,6 @@ fn alive_bitwise_AndOrXor_1294() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2647() {
@@ -656,7 +629,6 @@ fn alive_bitwise_AndOrXor_2647() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2263() {
@@ -680,7 +652,6 @@ fn alive_bitwise_AndOrXor_2263() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2188() {
@@ -704,7 +675,6 @@ fn alive_bitwise_AndOrXor_2188() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2429() {
@@ -728,7 +698,6 @@ fn alive_bitwise_AndOrXor_2429() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2264() {
@@ -752,7 +721,6 @@ fn alive_bitwise_AndOrXor_2264() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_1247() {
@@ -776,7 +744,6 @@ fn alive_bitwise_AndOrXor_1247() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2658() {
@@ -800,7 +767,6 @@ fn alive_bitwise_AndOrXor_2658() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_1253() {
@@ -824,7 +790,6 @@ fn alive_bitwise_AndOrXor_1253() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_144() {
@@ -848,7 +813,6 @@ fn alive_bitwise_AndOrXor_144() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_1288() {

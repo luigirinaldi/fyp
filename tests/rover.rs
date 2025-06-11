@@ -8,7 +8,6 @@ use ntest::timeout;
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_commutativity_add() {
@@ -32,7 +31,6 @@ fn rover_commutativity_add() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_commutativity_mult() {
@@ -56,7 +54,6 @@ fn rover_commutativity_mult() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_mult_assoc_1() {
@@ -80,7 +77,6 @@ fn rover_mult_assoc_1() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_mult_assoc_2() {
@@ -104,7 +100,6 @@ fn rover_mult_assoc_2() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_mult_assoc_3() {
@@ -128,7 +123,6 @@ fn rover_mult_assoc_3() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_mult_assoc_4() {
@@ -152,7 +146,6 @@ fn rover_mult_assoc_4() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_add_assoc_1() {
@@ -176,7 +169,6 @@ fn rover_add_assoc_1() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_add_assoc_2() {
@@ -200,7 +192,6 @@ fn rover_add_assoc_2() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_add_assoc_3() {
@@ -224,7 +215,6 @@ fn rover_add_assoc_3() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_add_assoc_4() {
@@ -248,7 +238,6 @@ fn rover_add_assoc_4() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_dist_over_add() {
@@ -272,7 +261,6 @@ fn rover_dist_over_add() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_sum_same() {
@@ -296,7 +284,6 @@ fn rover_sum_same() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_mult_sum_same() {
@@ -320,7 +307,6 @@ fn rover_mult_sum_same() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_add_zero() {
@@ -344,7 +330,6 @@ fn rover_add_zero() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_sub_to_neg() {
@@ -368,7 +353,6 @@ fn rover_sub_to_neg() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_mul_one() {
@@ -392,7 +376,6 @@ fn rover_mul_one() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_mul_two() {
@@ -416,7 +399,6 @@ fn rover_mul_two() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_merge_left_shift() {
@@ -440,7 +422,6 @@ fn rover_merge_left_shift() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_merge_right_shift() {
@@ -464,7 +445,6 @@ fn rover_merge_right_shift() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_left_shift_add_1() {
@@ -488,7 +468,6 @@ fn rover_left_shift_add_1() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_left_shift_add_2() {
@@ -512,7 +491,6 @@ fn rover_left_shift_add_2() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_add_right_shift() {
@@ -536,7 +514,6 @@ fn rover_add_right_shift() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_left_shift_mult() {
@@ -560,7 +537,6 @@ fn rover_left_shift_mult() {
 
 
 #[test]
-#[cfg_attr(feature = "isabelle-check", timeout(90000))]  // 90 seconds to allow for isabelle to verify
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn rover_one_to_two_mult() {
