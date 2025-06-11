@@ -71,7 +71,7 @@ run_mirabelle() {
   echo "]" >> "$sys_data"
 
   cp "$DIR/mirabelle_out/mirabelle.log" "$DATA_OUT_DIR/mirabelle.log"
-  python ./gen_graphs/parse_mirabelle.py "$DIR/mirabelle_out/mirabelle.log" "$DATA_OUT_DIR/parsed.json"
+  python ./gen_graphs/scripts/get_data/parse_mirabelle.py "$DIR/mirabelle_out/mirabelle.log" "$DATA_OUT_DIR/parsed.json"
 }
 
 # --- Main Processing Loop ---
