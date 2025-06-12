@@ -70,8 +70,11 @@ def load_sledge_data(filename):
 
     times = {}
     for theorem, entry in data.items():
-        if entry['method'] == 'cvc5':
-            times[theorem] = entry['total_time'] # time is in ms
+        if (meth:=entry['method']) != 'timeout':
+            if meth == 'cvc5':
+                times[theorem] = entry['atp_time']
+            else:
+                raise NotImplementedError('not supporting other solver yet')
         else:
             times[theorem] = None
     return times
