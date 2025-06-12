@@ -1,0 +1,65 @@
+{
+  "AddSub_1624": {
+    "method": "timeout",
+    "total_time": 278155
+  },
+  "InstCombineShift440": {
+    "method": "timeout",
+    "total_time": 278055
+  },
+  "InstCombineShift279": {
+    "method": "timeout",
+    "total_time": 278154
+  },
+  "AddSub_1560": {
+    "method": "timeout",
+    "total_time": 277827
+  },
+  "AddSub_1043": {
+    "method": "timeout",
+    "total_time": 278840
+  },
+  "AddSub_1202": {
+    "method": "timeout",
+    "total_time": 276770
+  },
+  "InstCombineShift476": {
+    "method": "timeout",
+    "total_time": 278021
+  },
+  "AndOrXor_2475": {
+    "method": "timeout",
+    "total_time": 276689
+  },
+  "InstCombineShift239": {
+    "method": "timeout",
+    "total_time": 277981
+  },
+  "AddSub_1295": {
+    "method": "timeout",
+    "total_time": 278082
+  },
+  "InstCombineShift582": {
+    "method": "timeout",
+    "total_time": 278000
+  },
+  "AddSub_1564": {
+    "method": "timeout",
+    "total_time": 276337
+  },
+  "AndOrXor_2486": {
+    "method": "timeout",
+    "total_time": 276593
+  },
+  "InstCombineShift497a": {
+    "method": "cvc5",
+    "total_time": 239819,
+    "sh_time": 239819,
+    "atp_time": 17961,
+    "proof": "by (metis bw_def concat_bit_of_zero_2 concat_bit_take_bit_eq drop_bit_int_def drop_bit_xor shr_def take_bit_eq_mod take_bit_xor) (87 ms)"
+  },
+  "AndOrXor_2515": {
+    "method": "timeout",
+    "total_time": 277929
+  }
+}

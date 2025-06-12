@@ -1,0 +1,97 @@
+{
+  "AddSub_1614": {
+    "method": "cvc5",
+    "total_time": 27133,
+    "sh_time": 27133,
+    "atp_time": 197,
+    "proof": "by (metis diff_diff_eq diff_left_eq_prec diff_right_eq_prec diff_self) (33 ms)"
+  },
+  "muldivrem_152": {
+    "method": "cvc5",
+    "total_time": 27041,
+    "sh_time": 27041,
+    "atp_time": 416,
+    "proof": "by (metis bw_0 mul_eq_prec mult.commute mult_minus1 verit_minus_simplify(3)) (31 ms)"
+  },
+  "Select_1105": {
+    "method": "cvc5",
+    "total_time": 1199,
+    "sh_time": 1199,
+    "atp_time": 222,
+    "proof": "by simp (0.3 ms)"
+  },
+  "InstCombineShift497d": {
+    "method": "timeout",
+    "total_time": 279204
+  },
+  "AddSub_1164": {
+    "method": "cvc5",
+    "total_time": 27124,
+    "sh_time": 27124,
+    "atp_time": 54,
+    "proof": "by (simp add: add_eq_prec bw_0) (0.8 ms)"
+  },
+  "AddSub_1574": {
+    "method": "cvc5",
+    "total_time": 27081,
+    "sh_time": 27081,
+    "atp_time": 1574,
+    "proof": "by (metis diff_diff_eq diff_left_eq_prec diff_right_commute diff_right_eq_prec) (29 ms)"
+  },
+  "muldivrem_239": {
+    "method": "cvc5",
+    "total_time": 27177,
+    "sh_time": 27177,
+    "atp_time": 4674,
+    "proof": "by (metis diff_eq_diff_eq diff_left_eq_prec diff_right_commute int_distrib(4) mul_eq_prec mult.commute times_int_code(1)) (109 ms)"
+  },
+  "AddSub_1176": {
+    "method": "cvc5",
+    "total_time": 27132,
+    "sh_time": 27132,
+    "atp_time": 93,
+    "proof": "by (metis (no_types, opaque_lifting) diff_diff_eq2 diff_right_eq_prec eq_iff_diff_eq_0) (74 ms)"
+  },
+  "Select_1100": {
+    "method": "cvc5",
+    "total_time": 1184,
+    "sh_time": 1184,
+    "atp_time": 244,
+    "proof": "by auto (0.2 ms)"
+  },
+  "AddSub_1539_2": {
+    "method": "cvc5",
+    "total_time": 27042,
+    "sh_time": 27042,
+    "atp_time": 477,
+    "proof": "by (metis ab_group_add_class.ab_diff_conv_add_uminus add.commute add_eq_prec) (31 ms)"
+  },
+  "muldivrem_290_292": {
+    "method": "cvc5",
+    "total_time": 75627,
+    "sh_time": 75627,
+    "atp_time": 629,
+    "proof": "by (metis mul_eq_prec mult.commute mult_numeral_1 numeral_One shl_def) (28 ms)"
+  },
+  "muldivrem_229": {
+    "method": "cvc5",
+    "total_time": 27085,
+    "sh_time": 27085,
+    "atp_time": 89,
+    "proof": "by (metis add.commute add_eq_prec mul_eq_prec ring_class.ring_distribs(2)) (36 ms)"
+  },
+  "AddSub_1165": {
+    "method": "cvc5",
+    "total_time": 27155,
+    "sh_time": 27155,
+    "atp_time": 49,
+    "proof": "by (metis add_0 add_eq_prec diff_add_eq diff_add_eq_diff_diff_swap diff_left_eq_prec diff_right_eq_prec) (45 ms)"
+  },
+  "AddSub_1619": {
+    "method": "cvc5",
+    "total_time": 27142,
+    "sh_time": 27142,
+    "atp_time": 144,
+    "proof": "by (simp add: diff_left_eq_prec diff_right_eq_prec) (3 ms)"
+  }
+}

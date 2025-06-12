@@ -1,0 +1,241 @@
+{
+  "AndOrXor_2063": {
+    "method": "cvc5",
+    "total_time": 476819,
+    "sh_time": 476819,
+    "atp_time": 7208,
+    "proof": "by (smt (verit) and.commute and_assoc and_remove bit.conj_cancel_right bit.conj_disj_distrib bit.conj_disj_distrib2 bit.disj_conj_distrib bit.xor_left_self demorg_or nat_zero_as_int not_bw_not or.commute or.left_commute or.left_neutral or_assoc or_remove or_self that xor_and_or xor_as_or_and xor_remove) (> 1.0 s, timed out)"
+  },
+  "AndOrXor_2429": {
+    "method": "cvc5",
+    "total_time": 32453,
+    "sh_time": 32453,
+    "atp_time": 334,
+    "proof": "using and_remove demorg_and xor_allones by presburger (6 ms)"
+  },
+  "AndOrXor_2284": {
+    "method": "cvc5",
+    "total_time": 44584,
+    "sh_time": 44584,
+    "atp_time": 727,
+    "proof": "by (metis (no_types, lifting) and_remove bit.disj_conj_distrib demorg_or or_allones or_not_self or_remove xor_allones xor_and_or) (293 ms)"
+  },
+  "AndOrXor_2367": {
+    "method": "cvc5",
+    "total_time": 6243,
+    "sh_time": 6243,
+    "atp_time": 301,
+    "proof": "by (metis or.commute or_assoc or_remove) (268 ms)"
+  },
+  "AndOrXor_1247": {
+    "method": "cvc5",
+    "total_time": 84743,
+    "sh_time": 84743,
+    "atp_time": 988,
+    "proof": "by (metis and.commute and_remove demorg_and or_remove xor_allones xor_and_or) (382 ms)"
+  },
+  "AndOrXor_1288": {
+    "method": "cvc5",
+    "total_time": 38804,
+    "sh_time": 38804,
+    "atp_time": 286,
+    "proof": "by (metis and_allones and_self bit.conj_xor_distrib xor.commute xor.left_commute xor_remove) (1.0 s)"
+  },
+  "AndOrXor_144": {
+    "method": "cvc5",
+    "total_time": 26081,
+    "sh_time": 26081,
+    "atp_time": 510,
+    "proof": "by (metis and.right_idem and_remove bit.conj_disj_distrib2 or_remove) (237 ms)"
+  },
+  "AndOrXor_2263": {
+    "method": "timeout",
+    "total_time": 279576
+  },
+  "AndOrXor_2658": {
+    "method": "cvc5",
+    "total_time": 439337,
+    "sh_time": 439337,
+    "atp_time": 455,
+    "proof": "by (metis and_allones and_remove bit.conj_xor_distrib bit.xor_self xor.assoc xor.right_neutral xor_remove) (79 ms)"
+  },
+  "AndOrXor_2595": {
+    "method": "cvc5",
+    "total_time": 77547,
+    "sh_time": 77547,
+    "atp_time": 630,
+    "proof": "by (smt (verit) and_assoc and_remove and_self bit.disj_conj_distrib2 demorg_and or.commute or.left_idem or_remove or_self xor_and_or) (635 ms)"
+  },
+  "AndOrXor_135": {
+    "method": "cvc5",
+    "total_time": 4158,
+    "sh_time": 4158,
+    "atp_time": 348,
+    "proof": "by (simp add: and_remove bit.conj_xor_distrib2 xor_remove) (2 ms)"
+  },
+  "AndOrXor_2188": {
+    "method": "cvc5",
+    "total_time": 26014,
+    "sh_time": 26014,
+    "atp_time": 1445,
+    "proof": "by (metis and.commute and.left_commute and_allones and_remove bit.de_Morgan_conj bit.xor_def bit.xor_def2 or_allones xor_remove) (203 ms)"
+  },
+  "AndOrXor_2607": {
+    "method": "cvc5",
+    "total_time": 382667,
+    "sh_time": 382667,
+    "atp_time": 1175,
+    "proof": "by (smt (verit) and_remove bit.conj_disj_distrib bit.conj_disj_distrib2 bit.conj_xor_distrib bit.xor_self demorg_or neg_not not_bw_not or.left_commute or_allones or_not_self or_remove or_zero that xor_allones xor_and_or xor_remove) (> 1.0 s, timed out)"
+  },
+  "AndOrXor_1241": {
+    "method": "cvc5",
+    "total_time": 56461,
+    "sh_time": 56461,
+    "atp_time": 333,
+    "proof": "by (metis and.right_neutral and_allones and_remove bit.conj_xor_distrib bit.de_Morgan_conj bit.xor_def2 bit.xor_one_right or_remove xor_remove) (2.3 s)"
+  },
+  "AndOrXor_2264": {
+    "method": "cvc5",
+    "total_time": 333773,
+    "sh_time": 333773,
+    "atp_time": 383,
+    "proof": "by (smt (verit, del_insts) bit.xor_left_self plus_and_or xor.assoc xor.commute xor_as_or_and xor_remove) (149 ms)"
+  },
+  "AndOrXor_2231": {
+    "method": "timeout",
+    "total_time": 279167
+  },
+  "AndOrXor_2123": {
+    "method": "cvc5",
+    "total_time": 67480,
+    "sh_time": 67480,
+    "atp_time": 845,
+    "proof": "by (metis and.right_neutral and_allones and_remove bit.conj_xor_distrib bit.xor_def bit.xor_one_right or.left_idem xor_remove) (283 ms)"
+  },
+  "AndOrXor_2247": {
+    "method": "cvc5",
+    "total_time": 32879,
+    "sh_time": 32879,
+    "atp_time": 430,
+    "proof": "using and_remove demorg_and xor_allones by presburger (3 ms)"
+  },
+  "AndOrXor_2243": {
+    "method": "cvc5",
+    "total_time": 26119,
+    "sh_time": 26119,
+    "atp_time": 490,
+    "proof": "by (metis (no_types, lifting) and.commute and_remove bit.disj_conj_distrib2 or.commute or.right_idem or_remove) (79 ms)"
+  },
+  "AndOrXor_2430": {
+    "method": "cvc5",
+    "total_time": 13365,
+    "sh_time": 13365,
+    "atp_time": 366,
+    "proof": "using demorg_or or_remove xor_allones by presburger (3 ms)"
+  },
+  "AndOrXor_2297": {
+    "method": "cvc5",
+    "total_time": 76056,
+    "sh_time": 76056,
+    "atp_time": 193,
+    "proof": "by (smt (verit) and.left_commute and_allones and_remove and_self bit.conj_disj_distrib2 bit.conj_xor_distrib bit.xor_left_self or_allones xor.commute xor_remove) (172 ms)"
+  },
+  "AndOrXor_2417": {
+    "method": "cvc5",
+    "total_time": 13415,
+    "sh_time": 13415,
+    "atp_time": 1838,
+    "proof": "using demorg_or not_bw_not or_remove that xor_allones by presburger (7 ms)"
+  },
+  "AndOrXor_2285": {
+    "method": "cvc5",
+    "total_time": 317973,
+    "sh_time": 317973,
+    "atp_time": 380,
+    "proof": "by (smt (verit, ccfv_threshold) bit.xor_left_self plus_and_or xor.assoc xor_as_or_and xor_remove) (129 ms)"
+  },
+  "AndOrXor_2627": {
+    "method": "cvc5",
+    "total_time": 365287,
+    "sh_time": 365287,
+    "atp_time": 3131,
+    "proof": "by (smt (verit) and.left_commute and_allones and_remove bit.conj_disj_distrib bit.conj_disj_distrib2 bit.conj_xor_distrib bit.conj_xor_distrib2 bit.disj_conj_distrib2 bit.xor_left_self or.commute or.left_commute or_allones or_remove xor.assoc xor.commute xor.left_commute xor_remove) (> 1.0 s, timed out)"
+  },
+  "AndOrXor_1253": {
+    "method": "cvc5",
+    "total_time": 53367,
+    "sh_time": 53367,
+    "atp_time": 343,
+    "proof": "by (simp add: and.commute and_allones bit.conj_xor_distrib xor.commute xor_remove) (2 ms)"
+  },
+  "AndOrXor_2587": {
+    "method": "cvc5",
+    "total_time": 13794,
+    "sh_time": 13793,
+    "atp_time": 501,
+    "proof": "by (simp add: and.commute and_allones and_remove bit.conj_xor_distrib xor_remove) (1 ms)"
+  },
+  "AndOrXor_2113": {
+    "method": "cvc5",
+    "total_time": 193428,
+    "sh_time": 193428,
+    "atp_time": 442,
+    "proof": "by (metis and.commute and_allones and_remove bit.disj_conj_distrib or.commute or_not_self or_remove xor_allones) (49 ms)"
+  },
+  "AndOrXor_1230": {
+    "method": "cvc5",
+    "total_time": 13410,
+    "sh_time": 13410,
+    "atp_time": 431,
+    "proof": "using demorg_or or_remove xor_allones by presburger (4 ms)"
+  },
+  "AndOrXor_1280": {
+    "method": "cvc5",
+    "total_time": 13367,
+    "sh_time": 13367,
+    "atp_time": 1096,
+    "proof": "by (metis and.commute and_not_self bit.conj_disj_distrib2 monoid.left_neutral or.monoid_axioms or_remove xor_allones) (153 ms)"
+  },
+  "AndOrXor_2416": {
+    "method": "cvc5",
+    "total_time": 34950,
+    "sh_time": 34950,
+    "atp_time": 2049,
+    "proof": "using and_remove demorg_and not_bw_not that xor_allones by presburger (6 ms)"
+  },
+  "AndOrXor_2647": {
+    "method": "cvc5",
+    "total_time": 127352,
+    "sh_time": 127352,
+    "atp_time": 498,
+    "proof": "by (smt (verit) and.commute and.right_idem and_remove bit.conj_xor_distrib plus_and_or xor_as_or_and xor_remove) (452 ms)"
+  },
+  "AndOrXor_1294": {
+    "method": "cvc5",
+    "total_time": 197789,
+    "sh_time": 197789,
+    "atp_time": 5319,
+    "proof": "by (metis and.commute and.left_idem and_allones bit.conj_xor_distrib bit.conj_xor_distrib2 bit.de_Morgan_conj bit.xor_def2 bit.xor_left_self bit.xor_one_left or_remove xor.assoc xor.commute xor.left_commute xor_remove) (> 1.0 s, timed out)"
+  },
+  "AndOrXor_2581": {
+    "method": "cvc5",
+    "total_time": 54201,
+    "sh_time": 54201,
+    "atp_time": 1931,
+    "proof": "by (smt (verit) and.left_commute and_allones and_assoc bit.conj_cancel_left bit.conj_disj_distrib bit.conj_zero_right bit.de_Morgan_disj disjunctive_and_not_eq_xor or_remove or_zero xor.commute xor_remove) (222 ms)"
+  },
+  "AndOrXor_2265": {
+    "method": "cvc5",
+    "total_time": 86664,
+    "sh_time": 86664,
+    "atp_time": 440,
+    "proof": "by (smt (verit, del_insts) and.left_commute and_remove bit.conj_cancel_right bit.conj_zero_right bit.de_Morgan_conj plus_and_or xor_and_or_help xor_as_or_and xor_remove) (804 ms)"
+  },
+  "AndOrXor_2118": {
+    "method": "cvc5",
+    "total_time": 90035,
+    "sh_time": 90035,
+    "atp_time": 1136,
+    "proof": "by (metis (no_types, lifting) and.left_commute and_allones and_remove bit.disj_conj_distrib2 or.commute or_not_self or_remove xor_allones) (1.3 s)"
+  }
+}

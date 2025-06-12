@@ -1,0 +1,16 @@
+[
+{"name":"AddSub_1614", "cpu":"208%", "mem":1084792},
+{"name":"muldivrem_152", "cpu":"201%", "mem":10510904},
+{"name":"Select_1105", "cpu":"159%", "mem":1084860},
+{"name":"InstCombineShift497d", "cpu":"310%", "mem":3856760},
+{"name":"AddSub_1164", "cpu":"203%", "mem":1084836},
+{"name":"AddSub_1574", "cpu":"194%", "mem":1084964},
+{"name":"muldivrem_239", "cpu":"229%", "mem":1084752},
+{"name":"AddSub_1176", "cpu":"222%", "mem":1229424},
+{"name":"Select_1100", "cpu":"164%", "mem":1084664},
+{"name":"AddSub_1539_2", "cpu":"198%", "mem":1413104},
+{"name":"muldivrem_290_292", "cpu":"254%", "mem":1084832},
+{"name":"muldivrem_229", "cpu":"203%", "mem":1084964},
+{"name":"AddSub_1165", "cpu":"211%", "mem":1084696},
+{"name":"AddSub_1619", "cpu":"198%", "mem":1084864},
+]

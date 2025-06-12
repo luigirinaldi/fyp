@@ -1,0 +1,17 @@
+[
+{"name":"AddSub_1624", "cpu":"306%", "mem":1513388},
+{"name":"InstCombineShift440", "cpu":"305%", "mem":1568632},
+{"name":"InstCombineShift279", "cpu":"305%", "mem":3561908},
+{"name":"AddSub_1560", "cpu":"287%", "mem":8439464},
+{"name":"AddSub_1043", "cpu":"313%", "mem":3028316},
+{"name":"AddSub_1202", "cpu":"311%", "mem":10226940},
+{"name":"InstCombineShift476", "cpu":"305%", "mem":2040972},
+{"name":"AndOrXor_2475", "cpu":"302%", "mem":10087908},
+{"name":"InstCombineShift239", "cpu":"305%", "mem":3487736},
+{"name":"AddSub_1295", "cpu":"307%", "mem":1505136},
+{"name":"InstCombineShift582", "cpu":"305%", "mem":3489168},
+{"name":"AddSub_1564", "cpu":"303%", "mem":10284688},
+{"name":"AndOrXor_2486", "cpu":"302%", "mem":10226540},
+{"name":"InstCombineShift497a", "cpu":"303%", "mem":1607464},
+{"name":"AndOrXor_2515", "cpu":"306%", "mem":10275700},
+]

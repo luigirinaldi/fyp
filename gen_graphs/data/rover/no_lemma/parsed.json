@@ -1,0 +1,110 @@
+{
+  "left_shift_add_2": {
+    "method": "timeout",
+    "total_time": 278861
+  },
+  "mul_two": {
+    "method": "timeout",
+    "total_time": 277993
+  },
+  "commutativity_mult": {
+    "method": "cvc5",
+    "total_time": 1464,
+    "sh_time": 1464,
+    "atp_time": 319,
+    "proof": "by (simp add: mult.commute) (2 ms)"
+  },
+  "merge_right_shift": {
+    "method": "timeout",
+    "total_time": 278189
+  },
+  "mult_assoc_4": {
+    "method": "timeout",
+    "total_time": 281781
+  },
+  "left_shift_add_1": {
+    "method": "timeout",
+    "total_time": 278711
+  },
+  "mult_sum_same": {
+    "method": "timeout",
+    "total_time": 280373
+  },
+  "merge_left_shift": {
+    "method": "timeout",
+    "total_time": 278218
+  },
+  "add_zero": {
+    "method": "timeout",
+    "total_time": 277690
+  },
+  "mult_assoc_1": {
+    "method": "timeout",
+    "total_time": 277543
+  },
+  "mult_assoc_2": {
+    "method": "timeout",
+    "total_time": 278250
+  },
+  "add_assoc_4": {
+    "method": "timeout",
+    "total_time": 278197
+  },
+  "left_shift_mult": {
+    "method": "timeout",
+    "total_time": 277674
+  },
+  "add_right_shift": {
+    "method": "timeout",
+    "total_time": 278209
+  },
+  "dist_over_add": {
+    "method": "timeout",
+    "total_time": 278190
+  },
+  "one_to_two_mult": {
+    "method": "timeout",
+    "total_time": 278002
+  },
+  "mul_one": {
+    "method": "timeout",
+    "total_time": 278219
+  },
+  "sub_to_neg": {
+    "method": "cvc5",
+    "total_time": 2414,
+    "sh_time": 2414,
+    "atp_time": 169,
+    "proof": "by simp (0.8 ms)"
+  },
+  "add_assoc_2": {
+    "method": "timeout",
+    "total_time": 278141
+  },
+  "add_assoc_1": {
+    "method": "timeout",
+    "total_time": 278134
+  },
+  "mult_assoc_3": {
+    "method": "timeout",
+    "total_time": 278037
+  },
+  "commutativity_add": {
+    "method": "cvc5",
+    "total_time": 1323,
+    "sh_time": 1323,
+    "atp_time": 209,
+    "proof": "by (smt (verit, ccfv_threshold)) (76 ms)"
+  },
+  "sum_same": {
+    "method": "cvc5",
+    "total_time": 75519,
+    "sh_time": 75519,
+    "atp_time": 1356,
+    "proof": "using bw_def by auto (19 ms)"
+  },
+  "add_assoc_3": {
+    "method": "timeout",
+    "total_time": 277998
+  }
+}

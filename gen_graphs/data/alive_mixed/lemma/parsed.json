@@ -1,0 +1,83 @@
+{
+  "AddSub_1624": {
+    "method": "cvc5",
+    "total_time": 26943,
+    "sh_time": 26943,
+    "atp_time": 14659,
+    "proof": "using or_remove xor_as_or_and xor_remove by auto (3 ms)"
+  },
+  "InstCombineShift440": {
+    "method": "timeout",
+    "total_time": 278251
+  },
+  "InstCombineShift279": {
+    "method": "timeout",
+    "total_time": 277451
+  },
+  "AddSub_1560": {
+    "method": "cvc5",
+    "total_time": 27042,
+    "sh_time": 27042,
+    "atp_time": 1839,
+    "proof": "by (simp add: diff_left_eq_prec minus_diff_commute not_eq_complement xor_allones) (0.8 ms)"
+  },
+  "AddSub_1043": {
+    "method": "timeout",
+    "total_time": 278085
+  },
+  "AddSub_1202": {
+    "method": "cvc5",
+    "total_time": 27204,
+    "sh_time": 27204,
+    "atp_time": 1378,
+    "proof": "by (metis add.commute add_eq_prec diff_add_eq diff_conv_add_uminus diff_right_eq_prec not_eq_complement xor_allones) (75 ms)"
+  },
+  "InstCombineShift476": {
+    "method": "timeout",
+    "total_time": 278219
+  },
+  "AndOrXor_2475": {
+    "method": "cvc5",
+    "total_time": 75764,
+    "sh_time": 75764,
+    "atp_time": 5175,
+    "proof": "by (metis (no_types, opaque_lifting) ab_group_add_class.ab_diff_conv_add_uminus add.commute add_diff_eq add_eq_prec diff_right_eq_prec eq_neg_iff_add_eq_0 is_num_normalize(8) not_int_def xor_allones) (460 ms)"
+  },
+  "InstCombineShift239": {
+    "method": "timeout",
+    "total_time": 277885
+  },
+  "AddSub_1295": {
+    "method": "cvc5",
+    "total_time": 26972,
+    "sh_time": 26972,
+    "atp_time": 1169,
+    "proof": "using and_remove xor_as_or_and xor_remove by force (4 ms)"
+  },
+  "InstCombineShift582": {
+    "method": "timeout",
+    "total_time": 279011
+  },
+  "AddSub_1564": {
+    "method": "cvc5",
+    "total_time": 139214,
+    "sh_time": 139214,
+    "atp_time": 7043,
+    "proof": "by (metis add.inverse_inverse diff_diff_eq2 diff_left_eq_prec diff_right_eq_prec not_int_def uminus_add_conv_diff xor_allones) (274 ms)"
+  },
+  "AndOrXor_2486": {
+    "method": "cvc5",
+    "total_time": 89613,
+    "sh_time": 89613,
+    "atp_time": 18747,
+    "proof": "by (metis ab_group_add_class.ab_diff_conv_add_uminus add.assoc add.commute add.inverse_distrib_swap add_eq_prec diff_right_eq_prec not_eq_complement xor_allones) (218 ms)"
+  },
+  "InstCombineShift497a": {
+    "method": "timeout",
+    "total_time": 277993
+  },
+  "AndOrXor_2515": {
+    "method": "timeout",
+    "total_time": 277925
+  }
+}

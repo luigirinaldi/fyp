@@ -1,0 +1,79 @@
+{
+  "AddSub_1614": {
+    "method": "cvc5",
+    "total_time": 75764,
+    "sh_time": 75764,
+    "atp_time": 5443,
+    "proof": "by (metis ab_group_add_class.ab_diff_conv_add_uminus add_diff_cancel_left bw_def group_cancel.sub1 minus_int_code(2) mod_0 mod_diff_right_eq) (86 ms)"
+  },
+  "muldivrem_152": {
+    "method": "timeout",
+    "total_time": 278172
+  },
+  "Select_1105": {
+    "method": "cvc5",
+    "total_time": 1078,
+    "sh_time": 1078,
+    "atp_time": 182,
+    "proof": "by simp (0.3 ms)"
+  },
+  "InstCombineShift497d": {
+    "method": "timeout",
+    "total_time": 278129
+  },
+  "AddSub_1164": {
+    "method": "cvc5",
+    "total_time": 75759,
+    "sh_time": 75759,
+    "atp_time": 5912,
+    "proof": "by (metis ab_group_add_class.ab_diff_conv_add_uminus add.commute bw_def minus_int_code(2) mod_add_right_eq) (179 ms)"
+  },
+  "AddSub_1574": {
+    "method": "timeout",
+    "total_time": 277407
+  },
+  "muldivrem_239": {
+    "method": "timeout",
+    "total_time": 279082
+  },
+  "AddSub_1176": {
+    "method": "cvc5",
+    "total_time": 75794,
+    "sh_time": 75794,
+    "atp_time": 5912,
+    "proof": "by (metis bw_def diff_0 diff_conv_add_uminus mod_0 mod_add_right_eq) (42 ms)"
+  },
+  "Select_1100": {
+    "method": "cvc5",
+    "total_time": 1074,
+    "sh_time": 1074,
+    "atp_time": 193,
+    "proof": "by auto (0.5 ms)"
+  },
+  "AddSub_1539_2": {
+    "method": "cvc5",
+    "total_time": 75733,
+    "sh_time": 75733,
+    "atp_time": 134,
+    "proof": "by (metis ab_group_add_class.ab_diff_conv_add_uminus bw_def mod_add_right_eq) (12 ms)"
+  },
+  "muldivrem_290_292": {
+    "method": "timeout",
+    "total_time": 277099
+  },
+  "muldivrem_229": {
+    "method": "timeout",
+    "total_time": 278185
+  },
+  "AddSub_1165": {
+    "method": "cvc5",
+    "total_time": 90207,
+    "sh_time": 90206,
+    "atp_time": 12258,
+    "proof": "by (metis ab_group_add_class.ab_diff_conv_add_uminus add.commute bw_def diff_add_eq_diff_diff_swap mod_add_right_eq mod_diff_right_eq verit_minus_simplify(3)) (194 ms)"
+  },
+  "AddSub_1619": {
+    "method": "timeout",
+    "total_time": 278519
+  }
+}
