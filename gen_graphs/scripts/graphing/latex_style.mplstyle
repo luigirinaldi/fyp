@@ -1,0 +1,24 @@
+# latex_style.mplstyle
+
+# Use LaTeX for text rendering
+text.usetex : True
+text.latex.preamble: \usepackage{tgschola}
+
+# Font
+font.family : serif
+font.serif : Computer Modern Roman
+# Font size
+font.size : 12
+axes.labelsize : 12
+xtick.labelsize : 10
+ytick.labelsize : 10
+legend.fontsize : 10
+figure.titlesize : 14
+
+# Line width and markers
+lines.linewidth : 1.2
+lines.markersize : 5
+
+# Other styling
+# axes.grid : True
+# grid.linestyle : :
