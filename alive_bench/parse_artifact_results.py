@@ -33,16 +33,20 @@ def main():
             status = None
             time_taken = None
 
+            def check_status(string, linelist):
+                return any([string == line for line in linelist])
+
             assert os.path.exists(log_path)
             with open(log_path, 'r') as f:
-                log_content = f.read()
-                if "unsat" in log_content:
+                log_content = f.readlines()
+                log_content = [l.strip() for l in log_content]
+                if check_status("unsat",log_content):
                     status = "unsat"
-                elif "sat" in log_content:
+                elif check_status("sat", log_content):
                     status = "sat"
-                elif "unknown" in log_content:
+                elif check_status("unknown",log_content):
                     status = "unknown"
-
+                print(status, log_content)
 
             assert os.path.exists(err_path)
             with open(err_path, 'r') as f:
@@ -58,7 +62,7 @@ def main():
             }
 
     # print(f"{len(results.keys())} smt queries found")
-    assert len(results.keys()) == 180
+    assert len(results.keys()) == 180, print(results.keys(),results)
 
     with open(output_json, "w") as out_file:
         json.dump(results, out_file, indent=2)
