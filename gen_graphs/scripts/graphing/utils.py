@@ -32,8 +32,6 @@ def format_bytes(size_bytes: int) -> str:
     # convert to MB
     return f"{size_bytes / 2**20:.2f}"
 
-
-
 def parse_stop(stop):
     match stop:
         case "Saturated":
@@ -66,6 +64,17 @@ def get_dataframes(egraph_data):
         dataframes[test_set] = df
     return dataframes
 
+def load_sledge_data(filename):
+    with open(filename, 'r') as f:
+        data = json.load(f)
+
+    times = {}
+    for theorem, entry in data.items():
+        if entry['method'] == 'cvc5':
+            times[theorem] = entry['total_time'] # time is in ms
+        else:
+            times[theorem] = None
+    return times
 
 # Load times from E-Graph file
 def load_egraph_data(filename) -> dict:
@@ -74,3 +83,13 @@ def load_egraph_data(filename) -> dict:
 
 
     return data
+
+
+def prepare_step_data(series):
+    times = sorted(series)
+    x = [0]
+    y = [0]
+    for i, t in enumerate(times, start=1):
+        x.extend([t, t])
+        y.extend([y[-1], i])
+    return x, y
