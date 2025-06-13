@@ -15,7 +15,7 @@ use clap::Parser;
 #[cfg(feature = "get-heap-info")]
 use dhat;
 use egg::{Iteration, Report};
-use hello_world::{check_isabelle_proof, prepare_output_dir, Equivalence, EquivalenceString};
+use para_bit::{check_isabelle_proof, prepare_output_dir, Equivalence, EquivalenceString};
 #[cfg(feature = "get-heap-info")]
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
