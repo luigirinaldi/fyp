@@ -753,7 +753,19 @@
 1.sledgehammer initialize  slices = 96, smt_proofs = true, spy = false, strict = false, timeout =
 1.sledgehammer initialize  300.000, try0 = true, type_enc = NONE, uncurried_aliases = NONE, verbose =
 1.sledgehammer initialize  false}
-0.try0 goal.proof         6ms LemmaSledge.AndOrXor_2617 8:331  
+0.try0 goal.proof         6ms LemmaSledge.AndOrXor_2617 8:331
+1.sledgehammer goal.proof     282926ms LemmaSledge.AndOrXor_2617 8:331  some (SH 282926ms, ATP 1199ms) [cvc5]: Try this: by (smt (verit) and.commute and_allones and_assoc and_remove and_self bit.conj_zero_right bit.de_Morgan_conj bit.xor_def bit.xor_def2 bit.xor_self or_allones xor_as_or_and xor_remove) (> 1.0 s, timed out)
+1.sledgehammer finalize   Total number of sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful sledgehammer calls: 1
+1.sledgehammer finalize   Number of sledgehammer lemmas: 13
+1.sledgehammer finalize   Max number of sledgehammer lemmas: 13
+1.sledgehammer finalize   Success rate: 100%
+1.sledgehammer finalize   Total number of nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Number of successful nontrivial sledgehammer calls: 1
+1.sledgehammer finalize   Total time for sledgehammer calls (Isabelle): 282.926
+1.sledgehammer finalize   Total time for successful sledgehammer calls (ATP): 1.199
+1.sledgehammer finalize   Average time for sledgehammer calls (Isabelle): 282.926
+1.sledgehammer finalize   Average time for successful sledgehammer calls (ATP): 1.199
 1.sledgehammer initialize Params for sledgehammer: {abduce = SOME 0, cache_dir = NONE, compress = NONE, debug = false, expect =
 1.sledgehammer initialize  "", fact_filter = NONE, fact_thresholds = (0.45, 0.85), falsify =
 1.sledgehammer initialize  SOME false, induction_rules = NONE, instantiate = NONE, isar_proofs = NONE,

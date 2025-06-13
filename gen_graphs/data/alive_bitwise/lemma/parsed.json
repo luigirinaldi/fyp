@@ -210,6 +210,13 @@
     "atp_time": 498,
     "proof": "by (smt (verit) and.commute and.right_idem and_remove bit.conj_xor_distrib plus_and_or xor_as_or_and xor_remove) (452 ms)"
   },
+  "AndOrXor_2617": {
+    "method": "cvc5",
+    "total_time": 282926,
+    "sh_time": 282926,
+    "atp_time": 1199,
+    "proof": "by (smt (verit) and.commute and_allones and_assoc and_remove and_self bit.conj_zero_right bit.de_Morgan_conj bit.xor_def bit.xor_def2 bit.xor_self or_allones xor_as_or_and xor_remove) (> 1.0 s, timed out)"
+  },
   "AndOrXor_1294": {
     "method": "cvc5",
     "total_time": 197789,

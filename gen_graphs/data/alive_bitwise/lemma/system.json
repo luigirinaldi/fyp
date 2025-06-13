@@ -30,7 +30,6 @@
 {"name":"AndOrXor_1280", "cpu":"185%", "mem":1084960},
 {"name":"AndOrXor_2416", "cpu":"179%", "mem":1588176},
 {"name":"AndOrXor_2647", "cpu":"206%", "mem":2879928},
-Command exited with non-zero status 1
 {"name":"AndOrXor_2617", "cpu":"252%", "mem":4911848},
 {"name":"AndOrXor_1294", "cpu":"148%", "mem":1324820},
 {"name":"AndOrXor_2581", "cpu":"213%", "mem":2262864},
