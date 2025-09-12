@@ -2,3 +2,8 @@
 /test_proofs
 *~
 dhat-heap.json
+alive_bench/cluster_results_alive/cvc4_tplanes
+alive_bench/cluster_results_alive
+alive_bench/processed_artifact
+alive_bench/cluster_results.tar.xz
+**/**/__pycache__
