@@ -1,5 +1,8 @@
 bv_to_bool_bench/
 filtered_values/
 valid_queries/
+cluster_results_alive/
+cluster_results.tar.xz
+processed_artifact/
 __pycache__/
 bv_to_bool_bench.tar.gz
