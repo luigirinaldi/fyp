@@ -1,5 +1,7 @@
+use crate::language::SmtPBV;
 use crate::Symbol;
 use egg::*;
+use itertools::Itertools;
 use language::ModAnalysis;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -365,6 +367,43 @@ for {nat_string} :: nat and {int_string} :: int\n",
         }
 
         proof_file.write("\nend\n".as_bytes()).unwrap();
+    }
+
+    pub fn to_smt2(&self) -> Option<String> {
+        let prefix = String::from("(set-logic ALL)");
+
+        // let lhs_smt = self.lhs.to_smt2();
+        if let Some(lhs_smt) = self.lhs.to_smt2(None) {
+            if let Some(rhs_smt) = self.rhs.to_smt2(None) {
+                println!("{:#?}\n{:#?}", lhs_smt, rhs_smt);
+
+                let pbv_widths = lhs_smt
+                    .pbv_widths
+                    .into_iter()
+                    .chain(rhs_smt.pbv_widths)
+                    .collect::<HashSet<_>>();
+
+                let pbv_vars = lhs_smt
+                    .pbv_vars
+                    .into_iter()
+                    .chain(rhs_smt.pbv_vars)
+                    .collect::<HashSet<_>>();
+
+                return Some(format!(
+                    "{prefix}\n{}\n{}\n(assert (= {} {}))",
+                    itertools::join(pbv_widths, "\n"),
+                    itertools::join(pbv_vars, "\n"),
+                    lhs_smt.expr,
+                    rhs_smt.expr
+                ));
+            } else {
+                println!("rhs couldn't be converted to smt: {}", self.rhs);
+                return None;
+            }
+        } else {
+            println!("lhs couldn't be converted to smt: {}", self.lhs);
+            return None;
+        }
     }
 
     pub fn check_proof(

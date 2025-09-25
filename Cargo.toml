@@ -13,6 +13,7 @@ tqdm = "0.7.0"
 regex = "1.11.1"
 ntest = "0.9.3"
 dhat = "0.3.3"
+itertools = "0.14.0"
 
 [build-dependencies]
 serde = { version = "1.0", features = ["derive"] }

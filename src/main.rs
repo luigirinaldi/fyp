@@ -61,6 +61,10 @@ struct Cli {
     /// Store generated dot-files in this path
     #[arg(long, value_name = "FILE")]
     runner_stats: Option<PathBuf>,
+
+    /// Generate SMT2 PBV-Theory queries
+    #[arg(long, default_value = "false")]
+    smt2_convert: bool,
 }
 
 fn main() -> Result<(), std::io::Error> {
@@ -90,6 +94,14 @@ fn main() -> Result<(), std::io::Error> {
                 &case.lhs,
                 &case.rhs,
             );
+
+            if cli.smt2_convert {
+                if let Some(smt2) = equiv.to_smt2() {
+                    println!("{}:\n{}\n", equiv.name, smt2);
+                } else {
+                    println!("conversion to smt2 pbv failed!\n{}", equiv.name)
+                }
+            }
 
             let stats = if !cli.skip_equiv {
                 // === Construct case-specific dot_path and expl_path ===
