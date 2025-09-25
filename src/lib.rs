@@ -381,7 +381,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
 (declare-const unrelated-A Int)
 (declare-const unrelated-B Int)
 ; lemma to make sure it knows max is commutative
-(assert (distinct (max2 unrelated-A unrelated-B) (max2 unrelated-B unrelated-A)))
+(assert (= (max2 unrelated-A unrelated-B) (max2 unrelated-B unrelated-A)))
 
 (define-fun max3 ((a Int) (b Int) (c Int)) Int
     (max2 (max2 a b) (max2 b c))
