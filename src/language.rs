@@ -156,9 +156,10 @@ impl SmtPBV for RecExpr<ModIR> {
     fn to_smt2(&self, outer_width: Option<String>) -> Option<SmtPBVInfo> {
         let get_recexpr = |id: &Id| self[*id].build_recexpr(|id1| self[id1].clone());
 
-        match self[self.root()] {
-            ModIR::Add([a, b]) => {
-                // let out_width = outer_width.clone().unwrap();
+        let root = &self[self.root()];
+
+        match root {
+            ModIR::Add([a, b]) | ModIR::Sub([a, b]) => {
                 let a_info = get_recexpr(&a).to_smt2(outer_width.clone()).unwrap();
                 let b_info = get_recexpr(&b).to_smt2(outer_width.clone()).unwrap();
 
@@ -185,46 +186,106 @@ impl SmtPBV for RecExpr<ModIR> {
                     pbv_widths: widths,
                 });
             }
-            ModIR::Mod([width, term]) => {
-                let width_str = get_recexpr(&width).to_string();
-                if let ModIR::Var(symb) = self[term] {
-                    // this is the case where the bw symbol identifies a parametric bitvector variable
-                    let label = format!("pbv_{symb}");
-                    return Some(SmtPBVInfo {
-                        expr: label.clone(),
-                        pbv_vars: HashSet::<String>::from([format!(
-                            "(declare-fun {} () (_ BitVec {}))",
-                            label.clone(),
-                            width_str // get the string version of the width
-                        )]),
-                        pbv_widths: HashSet::from([format!(
-                            "(declare-const {} Int)",
-                            width_str.clone()
-                        )]),
-                        width: width_str,
-                    });
+            ModIR::Mul([a, b]) => {
+                let a_info = get_recexpr(&a).to_smt2(outer_width.clone()).unwrap();
+                let b_info = get_recexpr(&b).to_smt2(outer_width.clone()).unwrap();
+
+                let max_width: String = if let Some(out_width) = outer_width {
+                    // this is the case where the outerwidth is provided
+                    // here the width of each operand is extended to the max of the width of both operands or the outerwidth
+                    format!("(max3 {} {} {out_width})", a_info.width, b_info.width)
                 } else {
-                    // otherwise do nothing, pass the width downstream
-                    let mut child_smt =
-                        get_recexpr(&term).to_smt2(Some(width_str.clone())).unwrap();
-                    child_smt
-                        .pbv_widths
-                        .insert(format!("(declare-const {} Int)", width_str.clone()));
-                    return Some(SmtPBVInfo {
-                        expr: format!(
-                            "(pextract (- {} 1) 0 {})",
-                            width_str.clone(),
-                            child_smt.expr
-                        ),
-                        pbv_vars: child_smt.pbv_vars,
-                        pbv_widths: child_smt.pbv_widths,
-                        width: width_str,
-                    });
+                    format!("(max2 {} {})", a_info.width, b_info.width)
+                };
+
+                let ret_smt = format!(
+                    "(bvmul {} {})",
+                    a_info.zero_extend(&max_width),
+                    b_info.zero_extend(&max_width)
+                );
+
+                let (vars, widths) = a_info.merge_pbvs(b_info);
+
+                return Some(SmtPBVInfo {
+                    expr: ret_smt,
+                    width: max_width,
+                    pbv_vars: vars,
+                    pbv_widths: widths,
+                });
+            }
+            ModIR::Mod([width, term]) => {
+                // let width_rec_expr = get_recexpr(&width);
+                let width_str = match self[width] {
+                    ModIR::Num(num) => Some(num.to_string()),
+                    ModIR::Var(symb) => Some(symb.to_string()),
+                    _ => None,
                 }
-                // let (str_width, w_width, pbv_w) = get_recexpr(&width).to_smt2(None).unwrap();
-                // let (str_term, w_term, pbv_t) =
-                //     get_recexpr(&term).to_smt2(Some(self[width])).unwrap();
-                // return Some(format!("(pzero_extend (- {str_width} ?) {str_term})"));
+                .unwrap();
+                match self[term] {
+                    ModIR::Var(symb) => {
+                        // this is the case where the bw symbol identifies a parametric bitvector variable
+                        let label = format!("pbv_{symb}");
+                        return Some(SmtPBVInfo {
+                            expr: label.clone(),
+                            pbv_vars: HashSet::<String>::from([format!(
+                                "(declare-fun {} () (_ BitVec {}))",
+                                label.clone(),
+                                width_str // get the string version of the width
+                            )]),
+                            pbv_widths: HashSet::from([format!(
+                                "(declare-const {} Int)",
+                                width_str.clone()
+                            )]),
+                            width: width_str,
+                        });
+                    }
+                    ModIR::Num(num) => {
+                        if let ModIR::Num(_) = self[width] {
+                            // the width and the value are constant, hence this is in no way parametric
+                            return Some(SmtPBVInfo {
+                                expr: format!("(_ bv{num} {})", width_str),
+                                pbv_vars: HashSet::<String>::from([]),
+                                pbv_widths: HashSet::<String>::from([]),
+                                width: width_str,
+                            });
+                        } else {
+                            // width is parametric but value isn't hence create the variable and add assert to make it equal to some val
+                            let label = format!("pbv_{num}");
+                            return Some(SmtPBVInfo {
+                                expr: label.clone(),
+                                pbv_vars: HashSet::<String>::from([format!(
+                                    "(declare-fun {lab} () (_ BitVec {w}))\n(assert (= {lab} (int_to_pbv {num} {w})))",
+                                    lab = label.clone(),
+                                    w = width_str // get the string version of the width
+                                )]),
+                                pbv_widths: HashSet::from([format!(
+                                    "(declare-const {} Int)",
+                                    width_str.clone()
+                                )]),
+                                width: width_str,
+                            });
+                        }
+                        // return None;
+                    }
+                    _ => {
+                        // otherwise do nothing, pass the width downstream
+                        let mut child_smt =
+                            get_recexpr(&term).to_smt2(Some(width_str.clone())).unwrap();
+                        child_smt
+                            .pbv_widths
+                            .insert(format!("(declare-const {} Int)", width_str.clone()));
+                        return Some(SmtPBVInfo {
+                            expr: format!(
+                                "(pextract (- {} 1) 0 {})",
+                                width_str.clone(),
+                                child_smt.expr
+                            ),
+                            pbv_vars: child_smt.pbv_vars,
+                            pbv_widths: child_smt.pbv_widths,
+                            width: width_str,
+                        });
+                    }
+                }
             }
             _ => {
                 return None;
