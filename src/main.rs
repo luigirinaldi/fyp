@@ -65,6 +65,9 @@ struct Cli {
     /// Generate SMT2 PBV-Theory queries
     #[arg(long, default_value = "false")]
     smt2_convert: bool,
+    /// Output directory for SMT2 files
+    #[arg(long, value_name = "DIR")]
+    smt2_out_dir: Option<PathBuf>,
 }
 
 fn main() -> Result<(), std::io::Error> {
@@ -98,6 +101,19 @@ fn main() -> Result<(), std::io::Error> {
             if cli.smt2_convert {
                 if let Some(smt2) = equiv.to_smt2() {
                     println!("{}:\n{}\n", equiv.name, smt2);
+                    if let Some(out_dir) = &cli.smt2_out_dir {
+                        // Ensure output directory exists
+                        if !out_dir.exists() {
+                            std::fs::create_dir_all(out_dir)
+                                .expect("Failed to create SMT2 output directory");
+                        }
+                        let mut file_path = out_dir.clone();
+                        file_path.push(format!("{}.smt2", equiv.name));
+                        let mut file = std::fs::File::create(&file_path)
+                            .expect("Failed to create SMT2 output file");
+                        std::io::Write::write_all(&mut file, smt2.as_bytes())
+                            .expect("Failed to write SMT2 output");
+                    }
                 } else {
                     println!("conversion to smt2 pbv failed!\n{}", equiv.name)
                 }
