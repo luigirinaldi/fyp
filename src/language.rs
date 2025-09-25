@@ -168,6 +168,7 @@ impl SmtPBV for RecExpr<ModIR> {
                     // here the width of each operand is extended to the max of the width of both operands or the outerwidth
                     format!("(max3 {} {} {out_width})", a_info.width, b_info.width)
                 } else {
+                    assert!(false);
                     format!("(max2 {} {})", a_info.width, b_info.width)
                 };
 
@@ -192,6 +193,32 @@ impl SmtPBV for RecExpr<ModIR> {
                     pbv_vars: vars,
                     pbv_widths: widths,
                 });
+            }
+            ModIR::Neg(a) => {
+                let child_info = get_recexpr(a).to_smt2(outer_width.clone()).unwrap();
+
+                if let Some(out_width) = outer_width {
+                    // if outerwidth, need to extend before negating to preserve sign bits that would otherwise be zeroed when later zeroextending
+                    return Some(SmtPBVInfo {
+                        expr: format!(
+                            "(bvneg (pzero_extend (- (max2 {o} {w}) {w}) {e}))",
+                            e = child_info.expr,
+                            w = child_info.width,
+                            o = out_width
+                        ),
+                        width: child_info.width,
+                        pbv_vars: child_info.pbv_vars,
+                        pbv_widths: child_info.pbv_widths,
+                    });
+                } else {
+                    // if no outerwidth is provided no need to extend before negating
+                    return Some(SmtPBVInfo {
+                        expr: format!("(bvneg {})", child_info.expr),
+                        width: child_info.width,
+                        pbv_vars: child_info.pbv_vars,
+                        pbv_widths: child_info.pbv_widths,
+                    });
+                }
             }
             ModIR::Mod([width, term]) => {
                 // let width_rec_expr = get_recexpr(&width);
@@ -234,7 +261,7 @@ impl SmtPBV for RecExpr<ModIR> {
                             return Some(SmtPBVInfo {
                                 expr: label.clone(),
                                 pbv_vars: HashSet::<String>::from([format!(
-                                    "(declare-fun {lab} () (_ BitVec {w}))\n(assert (= {lab} (int_to_pbv {num} {w})))",
+                                    "(declare-fun {lab} () (_ BitVec {w}))\n(assert (= {lab} (int_to_pbv {w} {num})))",
                                     lab = label.clone(),
                                     w = width_str // get the string version of the width
                                 )]),
