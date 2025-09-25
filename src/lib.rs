@@ -372,6 +372,8 @@ for {nat_string} :: nat and {int_string} :: int\n",
     pub fn to_smt2(&self) -> Option<String> {
         let prefix = String::from(
             "(set-logic ALL)
+
+;; Utility functions
 (define-fun max2 ((a Int) (b Int)) Int
     (ite (> a b) a b)
 )
@@ -404,7 +406,18 @@ for {nat_string} :: nat and {int_string} :: int\n",
                     .collect::<HashSet<_>>();
 
                 return Some(format!(
-                    "{prefix}\n{}\n{}\n(assert (distinct {} {}))\n(check-sat)",
+                    "{prefix}
+
+;; Parametric Bitwidth variables
+{}
+
+;; Parametric Bitwidth BitVectors
+{}
+
+;; Disequality assertion 
+(assert (distinct {} {}))
+
+(check-sat)",
                     itertools::join(pbv_widths, "\n"),
                     itertools::join(pbv_vars, "\n"),
                     lhs_smt.expr,
