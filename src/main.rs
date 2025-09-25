@@ -111,6 +111,17 @@ fn main() -> Result<(), std::io::Error> {
                         file_path.push(format!("{}.smt2", equiv.name));
                         let mut file = std::fs::File::create(&file_path)
                             .expect("Failed to create SMT2 output file");
+                        // Prepare comment header
+                        let comment_header = format!(
+                            ";; Equivalence Name: {}\n;; Preconditions: {}\n;; LHS: {}\n;; RHS: {}\n\n",
+                            equiv.name,
+                            equiv.preconditions.iter().map(|s| s.to_string()).collect::<Vec<String>>().join(", "),
+                            equiv.lhs,
+                            equiv.rhs
+                        );
+                        // Write header and SMT2 body
+                        std::io::Write::write_all(&mut file, comment_header.as_bytes())
+                            .expect("Failed to write SMT2 comment header");
                         std::io::Write::write_all(&mut file, smt2.as_bytes())
                             .expect("Failed to write SMT2 output");
                     }
