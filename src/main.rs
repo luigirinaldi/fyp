@@ -99,8 +99,8 @@ fn main() -> Result<(), std::io::Error> {
             );
 
             if cli.smt2_convert {
+                println!("Trying to convert {} to smt2", equiv.name);
                 if let Some(smt2) = equiv.to_smt2() {
-                    println!("{}:\n{}\n", equiv.name, smt2);
                     if let Some(out_dir) = &cli.smt2_out_dir {
                         // Ensure output directory exists
                         if !out_dir.exists() {

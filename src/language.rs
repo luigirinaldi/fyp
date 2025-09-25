@@ -159,7 +159,7 @@ impl SmtPBV for RecExpr<ModIR> {
         let root = &self[self.root()];
 
         match root {
-            ModIR::Add([a, b]) | ModIR::Sub([a, b]) => {
+            ModIR::Add([a, b]) | ModIR::Sub([a, b]) | ModIR::Mul([a, b]) => {
                 let a_info = get_recexpr(&a).to_smt2(outer_width.clone()).unwrap();
                 let b_info = get_recexpr(&b).to_smt2(outer_width.clone()).unwrap();
 
@@ -171,35 +171,15 @@ impl SmtPBV for RecExpr<ModIR> {
                     format!("(max2 {} {})", a_info.width, b_info.width)
                 };
 
-                let ret_smt = format!(
-                    "(bvadd {} {})",
-                    a_info.zero_extend(&max_width),
-                    b_info.zero_extend(&max_width)
-                );
-
-                let (vars, widths) = a_info.merge_pbvs(b_info);
-
-                return Some(SmtPBVInfo {
-                    expr: ret_smt,
-                    width: max_width,
-                    pbv_vars: vars,
-                    pbv_widths: widths,
-                });
-            }
-            ModIR::Mul([a, b]) => {
-                let a_info = get_recexpr(&a).to_smt2(outer_width.clone()).unwrap();
-                let b_info = get_recexpr(&b).to_smt2(outer_width.clone()).unwrap();
-
-                let max_width: String = if let Some(out_width) = outer_width {
-                    // this is the case where the outerwidth is provided
-                    // here the width of each operand is extended to the max of the width of both operands or the outerwidth
-                    format!("(max3 {} {} {out_width})", a_info.width, b_info.width)
-                } else {
-                    format!("(max2 {} {})", a_info.width, b_info.width)
+                let operator = match root {
+                    ModIR::Add(_) => "bvadd",
+                    ModIR::Mul(_) => "bvmul",
+                    ModIR::Sub(_) => "bvsub",
+                    _ => unreachable!("Something went wrong, proof with 0 length flat terms"),
                 };
 
                 let ret_smt = format!(
-                    "(bvmul {} {})",
+                    "({operator} {} {})",
                     a_info.zero_extend(&max_width),
                     b_info.zero_extend(&max_width)
                 );

@@ -391,8 +391,6 @@ for {nat_string} :: nat and {int_string} :: int\n",
         // let lhs_smt = self.lhs.to_smt2();
         if let Some(lhs_smt) = self.lhs.to_smt2(None) {
             if let Some(rhs_smt) = self.rhs.to_smt2(None) {
-                println!("{:#?}\n{:#?}", lhs_smt, rhs_smt);
-
                 let pbv_widths = lhs_smt
                     .pbv_widths
                     .into_iter()
