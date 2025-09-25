@@ -129,6 +129,25 @@ pub struct SmtPBVInfo {
     pub width: String,
 }
 
+impl SmtPBVInfo {
+    pub fn zero_extend(&self, max_width: &String) -> String {
+        return format!(
+            "(pzero_extend (- {max_width} {}) {})",
+            self.width, self.expr
+        );
+    }
+
+    pub fn merge_pbvs(self, other: SmtPBVInfo) -> (HashSet<String>, HashSet<String>) {
+        return (
+            self.pbv_vars.into_iter().chain(other.pbv_vars).collect(),
+            self.pbv_widths
+                .into_iter()
+                .chain(other.pbv_widths)
+                .collect(),
+        );
+    }
+}
+
 pub trait SmtPBV {
     fn to_smt2(&self, outer_width: Option<String>) -> Option<SmtPBVInfo>;
 }
@@ -151,17 +170,19 @@ impl SmtPBV for RecExpr<ModIR> {
                     format!("(max2 {} {})", a_info.width, b_info.width)
                 };
 
-                let ret_smt = format!("(bvadd (pzero_extend (- {max_width} {}) {}) (pzero_extend (- {max_width} {}) {}))", a_info.width, a_info.expr, b_info.width, b_info.expr);
+                let ret_smt = format!(
+                    "(bvadd {} {})",
+                    a_info.zero_extend(&max_width),
+                    b_info.zero_extend(&max_width)
+                );
+
+                let (vars, widths) = a_info.merge_pbvs(b_info);
 
                 return Some(SmtPBVInfo {
                     expr: ret_smt,
                     width: max_width,
-                    pbv_vars: a_info.pbv_vars.into_iter().chain(b_info.pbv_vars).collect(),
-                    pbv_widths: a_info
-                        .pbv_widths
-                        .into_iter()
-                        .chain(b_info.pbv_widths)
-                        .collect(),
+                    pbv_vars: vars,
+                    pbv_widths: widths,
                 });
             }
             ModIR::Mod([width, term]) => {
@@ -184,7 +205,11 @@ impl SmtPBV for RecExpr<ModIR> {
                     });
                 } else {
                     // otherwise do nothing, pass the width downstream
-                    let child_smt = get_recexpr(&term).to_smt2(Some(width_str.clone())).unwrap();
+                    let mut child_smt =
+                        get_recexpr(&term).to_smt2(Some(width_str.clone())).unwrap();
+                    child_smt
+                        .pbv_widths
+                        .insert(format!("(declare-const {} Int)", width_str.clone()));
                     return Some(SmtPBVInfo {
                         expr: format!(
                             "(pextract (- {} 1) 0 {})",

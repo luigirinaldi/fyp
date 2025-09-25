@@ -370,7 +370,21 @@ for {nat_string} :: nat and {int_string} :: int\n",
     }
 
     pub fn to_smt2(&self) -> Option<String> {
-        let prefix = String::from("(set-logic ALL)");
+        let prefix = String::from(
+            "(set-logic ALL)
+(define-fun max2 ((a Int) (b Int)) Int
+    (ite (> a b) a b)
+)
+
+(declare-const unrelated-A Int)
+(declare-const unrelated-B Int)
+; lemma to make sure it knows max is commutative
+(assert (distinct (max2 unrelated-A unrelated-B) (max2 unrelated-B unrelated-A)))
+
+(define-fun max3 ((a Int) (b Int) (c Int)) Int
+    (max2 (max2 a b) (max2 b c))
+)",
+        );
 
         // let lhs_smt = self.lhs.to_smt2();
         if let Some(lhs_smt) = self.lhs.to_smt2(None) {
@@ -390,7 +404,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
                     .collect::<HashSet<_>>();
 
                 return Some(format!(
-                    "{prefix}\n{}\n{}\n(assert (= {} {}))",
+                    "{prefix}\n{}\n{}\n(assert (distinct {} {}))\n(check-sat)",
                     itertools::join(pbv_widths, "\n"),
                     itertools::join(pbv_vars, "\n"),
                     lhs_smt.expr,
