@@ -405,6 +405,14 @@ for {nat_string} :: nat and {int_string} :: int\n",
                     .chain(rhs_smt.pbv_vars)
                     .collect::<HashSet<_>>();
 
+                // Generate assertions for preconditions
+                let precond_assertions = self
+                    .preconditions
+                    .iter()
+                    .map(|pre| format!("(assert {})", pre.to_string()))
+                    .collect::<Vec<_>>()
+                    .join("\n");
+
                 return Some(format!(
                     "{prefix}
 
@@ -414,12 +422,16 @@ for {nat_string} :: nat and {int_string} :: int\n",
 ;; Parametric Bitwidth BitVectors
 {}
 
+;; Preconditions
+{}
+
 ;; Disequality assertion 
 (assert (distinct {} {}))
 
 (check-sat)",
                     itertools::join(pbv_widths, "\n"),
                     itertools::join(pbv_vars, "\n"),
+                    precond_assertions,
                     lhs_smt.expr,
                     rhs_smt.expr
                 ));
