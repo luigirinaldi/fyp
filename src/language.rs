@@ -215,13 +215,13 @@ impl SmtPBV for RecExpr<ModIR> {
             }
             ModIR::Mod([width, term]) => {
                 // let width_rec_expr = get_recexpr(&width);
-                let width_str = match self[width] {
+                let width_str = match self[*width] {
                     ModIR::Num(num) => Some(num.to_string()),
                     ModIR::Var(symb) => Some(symb.to_string()),
                     _ => None,
                 }
                 .unwrap();
-                match self[term] {
+                match self[*term] {
                     ModIR::Var(symb) => {
                         // this is the case where the bw symbol identifies a parametric bitvector variable
                         let label = format!("pbv_{symb}");
@@ -240,7 +240,7 @@ impl SmtPBV for RecExpr<ModIR> {
                         });
                     }
                     ModIR::Num(num) => {
-                        if let ModIR::Num(_) = self[width] {
+                        if let ModIR::Num(_) = self[*width] {
                             // the width and the value are constant, hence this is in no way parametric
                             return Some(SmtPBVInfo {
                                 expr: format!("(_ bv{num} {})", width_str),
