@@ -370,69 +370,79 @@ for {nat_string} :: nat and {int_string} :: int\n",
     }
 
     pub fn to_smt2(&self) -> Option<String> {
-        let prefix = String::from(
-            "(set-logic ALL)
-
-;; Utility functions
-(define-fun max2 ((a Int) (b Int)) Int
-    (ite (> a b) a b)
-)
-
-(declare-const unrelated-A Int)
-(declare-const unrelated-B Int)
-; lemma to make sure it knows max is commutative
-(assert (= (max2 unrelated-A unrelated-B) (max2 unrelated-B unrelated-A)))
-
-(define-fun max3 ((a Int) (b Int) (c Int)) Int
-    (max2 (max2 a b) (max2 b c))
-)",
-        );
+        let prefix = String::from("(set-logic ALL)");
 
         // let lhs_smt = self.lhs.to_smt2();
         if let Some(lhs_smt) = self.lhs.to_smt_pbv(None) {
             if let Some(rhs_smt) = self.rhs.to_smt_pbv(None) {
-                let pbv_widths = lhs_smt
-                    .pbv_widths
+                let (mut cl, mut cr, mut c) = (0, 0, 0);
+
+                lhs_smt
                     .into_iter()
-                    .chain(rhs_smt.pbv_widths)
-                    .collect::<HashSet<_>>();
+                    .cartesian_product(rhs_smt.into_iter())
+                    .for_each(|(lsmt, rsmt)| {
+                        c += 1;
+                        println!(
+                            "{} l:{cl} r: {cr} total: {c}\n{}\n{}",
+                            self.name, lsmt.expr, rsmt.expr
+                        )
+                    });
 
-                let pbv_vars = lhs_smt
-                    .pbv_vars
-                    .into_iter()
-                    .chain(rhs_smt.pbv_vars)
-                    .collect::<HashSet<_>>();
+                // for lsmt in lhs_smt {
+                //     cl += 1;
+                //     for rsmt in rhs_smt {
+                //         cr += 1;
+                //         c += 1;
+                //         println!(
+                //             "{} l:{cl} r: {cr} total: {c}\n{}\n{}",
+                //             self.name, lsmt.expr, rsmt.expr
+                //         );
+                //     }
+                //     cr = 0;
+                // }
+                //                 let pbv_widths = lhs_smt
+                //                     .pbv_widths
+                //                     .into_iter()
+                //                     .chain(rhs_smt.pbv_widths)
+                //                     .collect::<HashSet<_>>();
 
-                // Generate assertions for preconditions
-                let precond_assertions = self
-                    .preconditions
-                    .iter()
-                    .map(|pre| format!("(assert {})", pre.to_string()))
-                    .collect::<Vec<_>>()
-                    .join("\n");
+                //                 let pbv_vars = lhs_smt
+                //                     .pbv_vars
+                //                     .into_iter()
+                //                     .chain(rhs_smt.pbv_vars)
+                //                     .collect::<HashSet<_>>();
 
-                return Some(format!(
-                    "{prefix}
+                //                 // Generate assertions for preconditions
+                //                 let precond_assertions = self
+                //                     .preconditions
+                //                     .iter()
+                //                     .map(|pre| format!("(assert {})", pre.to_string()))
+                //                     .collect::<Vec<_>>()
+                //                     .join("\n");
 
-;; Parametric Bitwidth variables
-{}
+                //                 return Some(format!(
+                //                     "{prefix}
 
-;; Parametric Bitwidth BitVectors
-{}
+                // ;; Parametric Bitwidth variables
+                // {}
 
-;; Preconditions
-{}
+                // ;; Parametric Bitwidth BitVectors
+                // {}
 
-;; Disequality assertion 
-(assert (distinct {} {}))
+                // ;; Preconditions
+                // {}
 
-(check-sat)",
-                    itertools::join(pbv_widths, "\n"),
-                    itertools::join(pbv_vars, "\n"),
-                    precond_assertions,
-                    lhs_smt.expr,
-                    rhs_smt.expr
-                ));
+                // ;; Disequality assertion
+                // (assert (distinct {} {}))
+
+                // (check-sat)",
+                //                     itertools::join(pbv_widths, "\n"),
+                //                     itertools::join(pbv_vars, "\n"),
+                //                     precond_assertions,
+                //                     lhs_smt.expr,
+                //                     rhs_smt.expr
+                //                 ));
+                return None;
             } else {
                 println!("rhs couldn't be converted to smt: {}", self.rhs);
                 return None;

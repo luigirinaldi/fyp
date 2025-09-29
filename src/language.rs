@@ -1,4 +1,5 @@
 use egg::*;
+use itertools::Itertools;
 use num::ToPrimitive;
 use std::fmt::Debug;
 type Num = i32;
@@ -121,7 +122,7 @@ impl Analysis<ModIR> for ModAnalysis {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SmtPBVInfo {
     pub pbv_vars: HashSet<String>,
     pub pbv_widths: HashSet<String>,
@@ -130,9 +131,9 @@ pub struct SmtPBVInfo {
 }
 
 impl SmtPBVInfo {
-    pub fn zero_extend(&self, max_width: &String) -> String {
+    pub fn zero_extend(&self, new_width: &String) -> String {
         return format!(
-            "(pzero_extend (- {max_width} {}) {})",
+            "(pzero_extend (- {new_width} {}) {})",
             self.width, self.expr
         );
     }
@@ -149,28 +150,19 @@ impl SmtPBVInfo {
 }
 
 pub trait SmtPBV {
-    fn to_smt_pbv(&self, outer_width: Option<String>) -> Option<SmtPBVInfo>;
+    fn to_smt_pbv(&self, outer_width: Option<String>) -> Option<Vec<SmtPBVInfo>>;
 }
 
 impl SmtPBV for RecExpr<ModIR> {
-    fn to_smt_pbv(&self, outer_width: Option<String>) -> Option<SmtPBVInfo> {
+    fn to_smt_pbv(&self, outer_width: Option<String>) -> Option<Vec<SmtPBVInfo>> {
         let get_recexpr = |id: &Id| self[*id].build_recexpr(|id1| self[id1].clone());
 
         let root = &self[self.root()];
 
         match root {
             ModIR::Add([a, b]) | ModIR::Sub([a, b]) | ModIR::Mul([a, b]) => {
-                let a_info = get_recexpr(&a).to_smt_pbv(outer_width.clone()).unwrap();
-                let b_info = get_recexpr(&b).to_smt_pbv(outer_width.clone()).unwrap();
-
-                let max_width: String = if let Some(out_width) = outer_width {
-                    // this is the case where the outerwidth is provided
-                    // here the width of each operand is extended to the max of the width of both operands or the outerwidth
-                    format!("(max3 {} {} {out_width})", a_info.width, b_info.width)
-                } else {
-                    assert!(false);
-                    format!("(max2 {} {})", a_info.width, b_info.width)
-                };
+                let a_infos = get_recexpr(&a).to_smt_pbv(outer_width.clone()).unwrap();
+                let b_infos = get_recexpr(&b).to_smt_pbv(outer_width.clone()).unwrap();
 
                 let operator = match root {
                     ModIR::Add(_) => "bvadd",
@@ -178,48 +170,69 @@ impl SmtPBV for RecExpr<ModIR> {
                     ModIR::Sub(_) => "bvsub",
                     _ => unreachable!("Something went wrong, proof with 0 length flat terms"),
                 };
+                let ret_smt = |x, y| format!("({operator} {} {})", x, y);
+                let out_exprs: Vec<SmtPBVInfo> = a_infos
+                    .into_iter()
+                    .cartesian_product(b_infos.into_iter())
+                    .flat_map(|(a_info, b_info)| {
+                        let (vars, widths) = a_info.clone().merge_pbvs(b_info.clone());
 
-                let ret_smt = format!(
-                    "({operator} {} {})",
-                    a_info.zero_extend(&max_width),
-                    b_info.zero_extend(&max_width)
-                );
-
-                let (vars, widths) = a_info.merge_pbvs(b_info);
-
-                return Some(SmtPBVInfo {
-                    expr: ret_smt,
-                    width: max_width,
-                    pbv_vars: vars,
-                    pbv_widths: widths,
-                });
+                        vec![
+                            SmtPBVInfo {
+                                expr: ret_smt(a_info.expr.to_string(), b_info.expr.to_string()),
+                                width: a_info.width.clone(), // case where a and b are assumed to be the same width
+                                pbv_vars: vars.clone(),
+                                pbv_widths: widths.clone(),
+                            },
+                            SmtPBVInfo {
+                                expr: ret_smt(
+                                    a_info.zero_extend(&b_info.width),
+                                    b_info.expr.to_string(),
+                                ),
+                                width: b_info.width.clone(), // w(b) > w(a)
+                                pbv_vars: vars.clone(),
+                                pbv_widths: widths.clone(),
+                            },
+                            SmtPBVInfo {
+                                expr: ret_smt(
+                                    a_info.expr.to_string(),
+                                    b_info.zero_extend(&b_info.width),
+                                ),
+                                width: a_info.width, // w(a) > w(b)
+                                pbv_vars: vars,
+                                pbv_widths: widths,
+                            },
+                        ]
+                    })
+                    .collect_vec();
+                return Some(out_exprs);
             }
-            ModIR::Neg(a) => {
-                let child_info = get_recexpr(a).to_smt_pbv(outer_width.clone()).unwrap();
+            // ModIR::Neg(a) => {
+            //     let child_info = get_recexpr(a).to_smt_pbv(outer_width.clone()).unwrap();
 
-                if let Some(out_width) = outer_width {
-                    // if outerwidth, need to extend before negating to preserve sign bits that would otherwise be zeroed when later zeroextending
-                    return Some(SmtPBVInfo {
-                        expr: format!(
-                            "(bvneg (pzero_extend (- (max2 {o} {w}) {w}) {e}))",
-                            e = child_info.expr,
-                            w = child_info.width,
-                            o = out_width
-                        ),
-                        width: child_info.width,
-                        pbv_vars: child_info.pbv_vars,
-                        pbv_widths: child_info.pbv_widths,
-                    });
-                } else {
-                    // if no outerwidth is provided no need to extend before negating
-                    return Some(SmtPBVInfo {
-                        expr: format!("(bvneg {})", child_info.expr),
-                        width: child_info.width,
-                        pbv_vars: child_info.pbv_vars,
-                        pbv_widths: child_info.pbv_widths,
-                    });
-                }
-            }
+            //     if let Some(out_width) = outer_width {
+            //         // if outerwidth, need to extend before negating to preserve sign bits that would otherwise be zeroed when later zeroextending
+            //         return Some(SmtPBVInfo {
+            //             expr: format!(
+            //                 "(bvneg (pzero_extend (- (max2 {o} {w}) {w}) {e}))",
+            //                 e = child_info.expr,
+            //                 w = child_info.width,
+            //                 o = out_width
+            //             ),
+            //             width: child_info.width,
+            //             pbv_vars: child_info.pbv_vars,
+            //             pbv_widths: child_info.pbv_widths,
+            //         });
+            //     } else {
+            //         // if no outerwidth is provided no need to extend before negating
+            //         return Some(SmtPBVInfo {
+            //             expr: format!("(bvneg {})", child_info.expr),
+            //             width: child_info.width,
+            //             pbv_vars: child_info.pbv_vars,
+            //             pbv_widths: child_info.pbv_widths,
+            //         });
+            //     }
+            // }
             ModIR::Mod([width, term]) => {
                 // let width_rec_expr = get_recexpr(&width);
                 let width_str = match self[*width] {
@@ -232,7 +245,7 @@ impl SmtPBV for RecExpr<ModIR> {
                     ModIR::Var(symb) => {
                         // this is the case where the bw symbol identifies a parametric bitvector variable
                         let label = format!("pbv_{symb}");
-                        return Some(SmtPBVInfo {
+                        return Some(vec![SmtPBVInfo {
                             expr: label.clone(),
                             pbv_vars: HashSet::<String>::from([format!(
                                 "(declare-fun {} () (_ BitVec {}))",
@@ -244,21 +257,21 @@ impl SmtPBV for RecExpr<ModIR> {
                                 width_str.clone()
                             )]),
                             width: width_str,
-                        });
+                        }]);
                     }
                     ModIR::Num(num) => {
                         if let ModIR::Num(_) = self[*width] {
                             // the width and the value are constant, hence this is in no way parametric
-                            return Some(SmtPBVInfo {
+                            return Some(vec![SmtPBVInfo {
                                 expr: format!("(_ bv{num} {})", width_str),
                                 pbv_vars: HashSet::<String>::from([]),
                                 pbv_widths: HashSet::<String>::from([]),
                                 width: width_str,
-                            });
+                            }]);
                         } else {
                             // width is parametric but value isn't hence create the variable and add assert to make it equal to some val
                             let label = format!("pbv_{num}");
-                            return Some(SmtPBVInfo {
+                            return Some(vec![SmtPBVInfo {
                                 expr: label.clone(),
                                 pbv_vars: HashSet::<String>::from([format!(
                                     "(declare-fun {lab} () (_ BitVec {w}))\n(assert (= {lab} (int_to_pbv {w} {num})))",
@@ -270,28 +283,55 @@ impl SmtPBV for RecExpr<ModIR> {
                                     width_str.clone()
                                 )]),
                                 width: width_str,
-                            });
+                            }]);
                         }
-                        // return None;
                     }
                     _ => {
-                        // otherwise do nothing, pass the width downstream
-                        let mut child_smt = get_recexpr(&term)
+                        let child_smt = get_recexpr(&term)
                             .to_smt_pbv(Some(width_str.clone()))
                             .unwrap();
-                        child_smt
-                            .pbv_widths
-                            .insert(format!("(declare-const {} Int)", width_str.clone()));
-                        return Some(SmtPBVInfo {
-                            expr: format!(
-                                "(pextract (- {} 1) 0 {})",
-                                width_str.clone(),
-                                child_smt.expr
-                            ),
-                            pbv_vars: child_smt.pbv_vars,
-                            pbv_widths: child_smt.pbv_widths,
-                            width: width_str,
-                        });
+
+                        let ret_array: Vec<SmtPBVInfo> = child_smt
+                            .into_iter()
+                            .flat_map(|mut child: SmtPBVInfo| {
+                                child
+                                    .pbv_widths
+                                    .insert(format!("(declare-const {} Int)", width_str.clone()));
+
+                                return vec![
+                                    SmtPBVInfo {
+                                        // case where the mod width is smaller than the inner width
+                                        expr: format!(
+                                            "(pextract (- {} 1) 0 {})",
+                                            width_str.clone(),
+                                            child.expr
+                                        ),
+                                        pbv_vars: child.pbv_vars.clone(),
+                                        pbv_widths: child.pbv_widths.clone(),
+                                        width: width_str.clone(),
+                                    },
+                                    SmtPBVInfo {
+                                        // case where the mod width is the same as the inner width
+                                        expr: format!(
+                                            "(pextract (- {} 1) 0 {})",
+                                            width_str.clone(),
+                                            child.expr
+                                        ),
+                                        pbv_vars: child.pbv_vars.clone(),
+                                        pbv_widths: child.pbv_widths.clone(),
+                                        width: width_str.clone(),
+                                    },
+                                    SmtPBVInfo {
+                                        // case where the mod width is greater than inner
+                                        expr: child.zero_extend(&width_str),
+                                        pbv_vars: child.pbv_vars,
+                                        pbv_widths: child.pbv_widths,
+                                        width: width_str.clone(),
+                                    },
+                                ];
+                            })
+                            .collect_vec();
+                        return Some(ret_array);
                     }
                 }
             }
