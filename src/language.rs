@@ -149,19 +149,19 @@ impl SmtPBVInfo {
 }
 
 pub trait SmtPBV {
-    fn to_smt2(&self, outer_width: Option<String>) -> Option<SmtPBVInfo>;
+    fn to_smt_pbv(&self, outer_width: Option<String>) -> Option<SmtPBVInfo>;
 }
 
 impl SmtPBV for RecExpr<ModIR> {
-    fn to_smt2(&self, outer_width: Option<String>) -> Option<SmtPBVInfo> {
+    fn to_smt_pbv(&self, outer_width: Option<String>) -> Option<SmtPBVInfo> {
         let get_recexpr = |id: &Id| self[*id].build_recexpr(|id1| self[id1].clone());
 
         let root = &self[self.root()];
 
         match root {
             ModIR::Add([a, b]) | ModIR::Sub([a, b]) | ModIR::Mul([a, b]) => {
-                let a_info = get_recexpr(&a).to_smt2(outer_width.clone()).unwrap();
-                let b_info = get_recexpr(&b).to_smt2(outer_width.clone()).unwrap();
+                let a_info = get_recexpr(&a).to_smt_pbv(outer_width.clone()).unwrap();
+                let b_info = get_recexpr(&b).to_smt_pbv(outer_width.clone()).unwrap();
 
                 let max_width: String = if let Some(out_width) = outer_width {
                     // this is the case where the outerwidth is provided
@@ -195,7 +195,7 @@ impl SmtPBV for RecExpr<ModIR> {
                 });
             }
             ModIR::Neg(a) => {
-                let child_info = get_recexpr(a).to_smt2(outer_width.clone()).unwrap();
+                let child_info = get_recexpr(a).to_smt_pbv(outer_width.clone()).unwrap();
 
                 if let Some(out_width) = outer_width {
                     // if outerwidth, need to extend before negating to preserve sign bits that would otherwise be zeroed when later zeroextending
@@ -276,8 +276,9 @@ impl SmtPBV for RecExpr<ModIR> {
                     }
                     _ => {
                         // otherwise do nothing, pass the width downstream
-                        let mut child_smt =
-                            get_recexpr(&term).to_smt2(Some(width_str.clone())).unwrap();
+                        let mut child_smt = get_recexpr(&term)
+                            .to_smt_pbv(Some(width_str.clone()))
+                            .unwrap();
                         child_smt
                             .pbv_widths
                             .insert(format!("(declare-const {} Int)", width_str.clone()));
