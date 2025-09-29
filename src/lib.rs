@@ -375,7 +375,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
         // let lhs_smt = self.lhs.to_smt2();
         if let Some(lhs_smt) = self.lhs.to_smt_pbv(None) {
             if let Some(rhs_smt) = self.rhs.to_smt_pbv(None) {
-                let (mut cl, mut cr, mut c) = (0, 0, 0);
+                let mut c = 0;
 
                 lhs_smt
                     .into_iter()
@@ -383,8 +383,12 @@ for {nat_string} :: nat and {int_string} :: int\n",
                     .for_each(|(lsmt, rsmt)| {
                         c += 1;
                         println!(
-                            "{} l:{cl} r: {cr} total: {c}\n{}\n{}",
-                            self.name, lsmt.expr, rsmt.expr
+                            "{} total: {c}\n{}{:#?}\n{}{:#?}",
+                            self.name,
+                            lsmt.expr,
+                            lsmt.width_constraints,
+                            rsmt.expr,
+                            rsmt.width_constraints
                         )
                     });
 

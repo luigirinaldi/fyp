@@ -126,6 +126,7 @@ impl Analysis<ModIR> for ModAnalysis {
 pub struct SmtPBVInfo {
     pub pbv_vars: HashSet<String>,
     pub pbv_widths: HashSet<String>,
+    pub width_constraints: HashSet<String>,
     pub expr: String,
     pub width: String,
 }
@@ -138,12 +139,19 @@ impl SmtPBVInfo {
         );
     }
 
-    pub fn merge_pbvs(self, other: SmtPBVInfo) -> (HashSet<String>, HashSet<String>) {
+    pub fn merge_infos(
+        self,
+        other: SmtPBVInfo,
+    ) -> (HashSet<String>, HashSet<String>, HashSet<String>) {
         return (
             self.pbv_vars.into_iter().chain(other.pbv_vars).collect(),
             self.pbv_widths
                 .into_iter()
                 .chain(other.pbv_widths)
+                .collect(),
+            self.width_constraints
+                .into_iter()
+                .chain(other.width_constraints)
                 .collect(),
         );
     }
@@ -156,6 +164,12 @@ pub trait SmtPBV {
 impl SmtPBV for RecExpr<ModIR> {
     fn to_smt_pbv(&self, outer_width: Option<String>) -> Option<Vec<SmtPBVInfo>> {
         let get_recexpr = |id: &Id| self[*id].build_recexpr(|id1| self[id1].clone());
+
+        let insert_constr = |constr: &HashSet<String>, new: &String| {
+            let mut c = constr.clone();
+            c.insert(new.to_string());
+            c
+        };
 
         let root = &self[self.root()];
 
@@ -175,7 +189,7 @@ impl SmtPBV for RecExpr<ModIR> {
                     .into_iter()
                     .cartesian_product(b_infos.into_iter())
                     .flat_map(|(a_info, b_info)| {
-                        let (vars, widths) = a_info.clone().merge_pbvs(b_info.clone());
+                        let (vars, widths, constr) = a_info.clone().merge_infos(b_info.clone());
 
                         vec![
                             SmtPBVInfo {
@@ -183,6 +197,10 @@ impl SmtPBV for RecExpr<ModIR> {
                                 width: a_info.width.clone(), // case where a and b are assumed to be the same width
                                 pbv_vars: vars.clone(),
                                 pbv_widths: widths.clone(),
+                                width_constraints: insert_constr(
+                                    &constr,
+                                    &format!("(= {} {})", &a_info.width, &b_info.width),
+                                ),
                             },
                             SmtPBVInfo {
                                 expr: ret_smt(
@@ -192,15 +210,23 @@ impl SmtPBV for RecExpr<ModIR> {
                                 width: b_info.width.clone(), // w(b) > w(a)
                                 pbv_vars: vars.clone(),
                                 pbv_widths: widths.clone(),
+                                width_constraints: insert_constr(
+                                    &constr,
+                                    &format!("(> {} {})", &a_info.width, &b_info.width),
+                                ),
                             },
                             SmtPBVInfo {
                                 expr: ret_smt(
                                     a_info.expr.to_string(),
                                     b_info.zero_extend(&b_info.width),
                                 ),
-                                width: a_info.width, // w(a) > w(b)
+                                width: a_info.width.clone(), // w(a) > w(b)
                                 pbv_vars: vars,
                                 pbv_widths: widths,
+                                width_constraints: insert_constr(
+                                    &constr,
+                                    &format!("(< {} {})", &a_info.width, &b_info.width),
+                                ),
                             },
                         ]
                     })
@@ -256,7 +282,11 @@ impl SmtPBV for RecExpr<ModIR> {
                                 "(declare-const {} Int)",
                                 width_str.clone()
                             )]),
-                            width: width_str,
+                            width: width_str.clone(),
+                            width_constraints: HashSet::<String>::from([format!(
+                                "(> {} 0)",
+                                width_str.clone()
+                            )]),
                         }]);
                     }
                     ModIR::Num(num) => {
@@ -266,6 +296,7 @@ impl SmtPBV for RecExpr<ModIR> {
                                 expr: format!("(_ bv{num} {})", width_str),
                                 pbv_vars: HashSet::<String>::from([]),
                                 pbv_widths: HashSet::<String>::from([]),
+                                width_constraints: HashSet::<String>::from([]),
                                 width: width_str,
                             }]);
                         } else {
@@ -282,7 +313,11 @@ impl SmtPBV for RecExpr<ModIR> {
                                     "(declare-const {} Int)",
                                     width_str.clone()
                                 )]),
-                                width: width_str,
+                                width: width_str.clone(),
+                                width_constraints: HashSet::<String>::from([format!(
+                                "(> {} 0)",
+                                width_str.clone()
+                            )]),
                             }]);
                         }
                     }
@@ -294,9 +329,14 @@ impl SmtPBV for RecExpr<ModIR> {
                         let ret_array: Vec<SmtPBVInfo> = child_smt
                             .into_iter()
                             .flat_map(|mut child: SmtPBVInfo| {
+                                // add the new width parameter
                                 child
                                     .pbv_widths
                                     .insert(format!("(declare-const {} Int)", width_str.clone()));
+                                // set it to be greater than 0
+                                child
+                                    .width_constraints
+                                    .insert(format!("(> {} 0)", width_str.clone()));
 
                                 return vec![
                                     SmtPBVInfo {
@@ -309,6 +349,10 @@ impl SmtPBV for RecExpr<ModIR> {
                                         pbv_vars: child.pbv_vars.clone(),
                                         pbv_widths: child.pbv_widths.clone(),
                                         width: width_str.clone(),
+                                        width_constraints: insert_constr(
+                                            &child.width_constraints,
+                                            &format!("(< {} {})", width_str.clone(), child.width),
+                                        ),
                                     },
                                     SmtPBVInfo {
                                         // case where the mod width is the same as the inner width
@@ -320,6 +364,10 @@ impl SmtPBV for RecExpr<ModIR> {
                                         pbv_vars: child.pbv_vars.clone(),
                                         pbv_widths: child.pbv_widths.clone(),
                                         width: width_str.clone(),
+                                        width_constraints: insert_constr(
+                                            &child.width_constraints,
+                                            &format!("(= {} {})", width_str.clone(), child.width),
+                                        ),
                                     },
                                     SmtPBVInfo {
                                         // case where the mod width is greater than inner
@@ -327,6 +375,10 @@ impl SmtPBV for RecExpr<ModIR> {
                                         pbv_vars: child.pbv_vars,
                                         pbv_widths: child.pbv_widths,
                                         width: width_str.clone(),
+                                        width_constraints: insert_constr(
+                                            &child.width_constraints,
+                                            &format!("(> {} {})", width_str.clone(), child.width),
+                                        ),
                                     },
                                 ];
                             })
