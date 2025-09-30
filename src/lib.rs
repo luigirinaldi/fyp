@@ -373,27 +373,46 @@ for {nat_string} :: nat and {int_string} :: int\n",
         let prefix = String::from("(set-logic ALL)");
 
         // let lhs_smt = self.lhs.to_smt2();
-        if let Some(lhs_smt) = self.lhs.to_smt_pbv(None) {
-            if let Some(rhs_smt) = self.rhs.to_smt_pbv(None) {
+        if let Some(lhs_smt) = self.lhs.to_smt_pbv() {
+            if let Some(rhs_smt) = self.rhs.to_smt_pbv() {
                 let mut c = 0;
+
+                let (r_len, l_len) = (lhs_smt.len(), rhs_smt.len());
 
                 lhs_smt
                     .into_iter()
                     .cartesian_product(rhs_smt.into_iter())
                     .for_each(|(lsmt, rsmt)| {
-                        lsmt.check_constraints(&rsmt);
-                        c += 1;
-                        if lsmt.check_constraints(&rsmt) {
-                            println!(
-                                "{} total: {c}\n{}{:#?}\n{}{:#?}",
-                                self.name,
-                                lsmt.expr,
-                                lsmt.width_constraints,
-                                rsmt.expr,
-                                rsmt.width_constraints
-                            )
+                        let res = lsmt.check_constraints(
+                            &rsmt,
+                            Some(
+                                self.preconditions
+                                    .clone()
+                                    .into_iter()
+                                    .map(|p| p.to_string())
+                                    .collect(),
+                            ),
+                        );
+                        if res {
+                            c += 1;
+                            // println!(
+                            //     "{} total: {c}\n{}{:#?}\n{}{:#?}",
+                            //     self.name,
+                            //     lsmt.expr,
+                            //     lsmt.width_constraints,
+                            //     rsmt.expr,
+                            //     rsmt.width_constraints
+                            // )
                         }
                     });
+                println!(
+                    "{}: left: {} right: {} product: {}. valid: {}",
+                    self.name,
+                    r_len,
+                    l_len,
+                    l_len * r_len,
+                    c
+                );
 
                 // for lsmt in lhs_smt {
                 //     cl += 1;

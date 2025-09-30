@@ -163,13 +163,19 @@ impl SmtPBVInfo {
         );
     }
 
-    pub fn check_constraints(&self, other: &SmtPBVInfo) -> bool {
+    pub fn check_constraints(
+        &self,
+        other: &SmtPBVInfo,
+        extra_constraints: Option<Vec<String>>,
+    ) -> bool {
         let solver = Solver::new();
 
-        let (vars, widths, _constraints) = self.merge_infos(other);
+        let (_vars, widths, _constraints) = self.merge_infos(other);
+
+        let extra_string = extra_constraints.unwrap().join("\n");
 
         let string = format!(
-            "{}\n(define-fun A () Bool\n(and {}))\n(define-fun B () Bool\n(and {}))\n(assert (not (= A B)))",
+            "{}\n(define-fun A () Bool\n(and {}\n{extra_string}))\n(define-fun B () Bool\n(and {}\n{extra_string}))\n(assert (not (= A B)))",
             itertools::join(widths, "\n"),
             itertools::join(&self.width_constraints, "\n"),
             itertools::join(&other.width_constraints, "\n")
@@ -178,7 +184,7 @@ impl SmtPBVInfo {
         // add one of the constraints
         // println!("{}", &string);
         solver.from_string(string);
-        // println!("{:#?}", solver.to_string());
+        // println!("{}", solver.to_string());
         let result = solver.check();
         // println!("{:#?}", result);
 
@@ -188,11 +194,11 @@ impl SmtPBVInfo {
 }
 
 pub trait SmtPBV {
-    fn to_smt_pbv(&self, outer_width: Option<String>) -> Option<Vec<SmtPBVInfo>>;
+    fn to_smt_pbv(&self) -> Option<Vec<SmtPBVInfo>>;
 }
 
 impl SmtPBV for RecExpr<ModIR> {
-    fn to_smt_pbv(&self, outer_width: Option<String>) -> Option<Vec<SmtPBVInfo>> {
+    fn to_smt_pbv(&self) -> Option<Vec<SmtPBVInfo>> {
         let get_recexpr = |id: &Id| self[*id].build_recexpr(|id1| self[id1].clone());
 
         let insert_constr = |constr: &HashSet<String>, new: &String| {
@@ -205,8 +211,8 @@ impl SmtPBV for RecExpr<ModIR> {
 
         match root {
             ModIR::Add([a, b]) | ModIR::Sub([a, b]) | ModIR::Mul([a, b]) => {
-                let a_infos = get_recexpr(&a).to_smt_pbv(outer_width.clone()).unwrap();
-                let b_infos = get_recexpr(&b).to_smt_pbv(outer_width.clone()).unwrap();
+                let a_infos = get_recexpr(&a).to_smt_pbv().unwrap();
+                let b_infos = get_recexpr(&b).to_smt_pbv().unwrap();
 
                 let operator = match root {
                     ModIR::Add(_) => "bvadd",
@@ -237,25 +243,25 @@ impl SmtPBV for RecExpr<ModIR> {
                                     a_info.zero_extend(&b_info.width),
                                     b_info.expr.to_string(),
                                 ),
-                                width: b_info.width.clone(), // w(b) > w(a)
+                                width: b_info.width.clone(), // w(a) < w(b)
                                 pbv_vars: vars.clone(),
                                 pbv_widths: widths.clone(),
                                 width_constraints: insert_constr(
                                     &constr,
-                                    &format!("(> {} {})", &a_info.width, &b_info.width),
+                                    &format!("(< {} {})", &a_info.width, &b_info.width),
                                 ),
                             },
                             SmtPBVInfo {
                                 expr: ret_smt(
                                     a_info.expr.to_string(),
-                                    b_info.zero_extend(&b_info.width),
+                                    b_info.zero_extend(&a_info.width),
                                 ),
-                                width: a_info.width.clone(), // w(a) > w(b)
+                                width: a_info.width.clone(), // w(b) < w(a)
                                 pbv_vars: vars,
                                 pbv_widths: widths,
                                 width_constraints: insert_constr(
                                     &constr,
-                                    &format!("(< {} {})", &a_info.width, &b_info.width),
+                                    &format!("(< {} {})", &b_info.width, &a_info.width),
                                 ),
                             },
                         ]
@@ -352,9 +358,7 @@ impl SmtPBV for RecExpr<ModIR> {
                         }
                     }
                     _ => {
-                        let child_smt = get_recexpr(&term)
-                            .to_smt_pbv(Some(width_str.clone()))
-                            .unwrap();
+                        let child_smt = get_recexpr(&term).to_smt_pbv().unwrap();
 
                         let ret_array: Vec<SmtPBVInfo> = child_smt
                             .into_iter()
