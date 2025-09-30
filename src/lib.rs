@@ -381,15 +381,18 @@ for {nat_string} :: nat and {int_string} :: int\n",
                     .into_iter()
                     .cartesian_product(rhs_smt.into_iter())
                     .for_each(|(lsmt, rsmt)| {
+                        lsmt.check_constraints(&rsmt);
                         c += 1;
-                        println!(
-                            "{} total: {c}\n{}{:#?}\n{}{:#?}",
-                            self.name,
-                            lsmt.expr,
-                            lsmt.width_constraints,
-                            rsmt.expr,
-                            rsmt.width_constraints
-                        )
+                        if lsmt.check_constraints(&rsmt) {
+                            println!(
+                                "{} total: {c}\n{}{:#?}\n{}{:#?}",
+                                self.name,
+                                lsmt.expr,
+                                lsmt.width_constraints,
+                                rsmt.expr,
+                                rsmt.width_constraints
+                            )
+                        }
                     });
 
                 // for lsmt in lhs_smt {

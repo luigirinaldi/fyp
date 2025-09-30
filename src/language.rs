@@ -4,6 +4,7 @@ use num::ToPrimitive;
 use std::fmt::Debug;
 type Num = i32;
 use std::collections::HashSet;
+use z3::{SatResult, Solver};
 
 define_language! {
     pub enum ModIR {
@@ -140,20 +141,49 @@ impl SmtPBVInfo {
     }
 
     pub fn merge_infos(
-        self,
-        other: SmtPBVInfo,
+        &self,
+        other: &SmtPBVInfo,
     ) -> (HashSet<String>, HashSet<String>, HashSet<String>) {
         return (
-            self.pbv_vars.into_iter().chain(other.pbv_vars).collect(),
-            self.pbv_widths
+            self.pbv_vars
+                .clone()
                 .into_iter()
-                .chain(other.pbv_widths)
+                .chain(other.pbv_vars.clone())
+                .collect(),
+            self.pbv_widths
+                .clone()
+                .into_iter()
+                .chain(other.pbv_widths.clone())
                 .collect(),
             self.width_constraints
+                .clone()
                 .into_iter()
-                .chain(other.width_constraints)
+                .chain(other.width_constraints.clone())
                 .collect(),
         );
+    }
+
+    pub fn check_constraints(&self, other: &SmtPBVInfo) -> bool {
+        let solver = Solver::new();
+
+        let (vars, widths, _constraints) = self.merge_infos(other);
+
+        let string = format!(
+            "{}\n(define-fun A () Bool\n(and {}))\n(define-fun B () Bool\n(and {}))\n(assert (not (= A B)))",
+            itertools::join(widths, "\n"),
+            itertools::join(&self.width_constraints, "\n"),
+            itertools::join(&other.width_constraints, "\n")
+        );
+
+        // add one of the constraints
+        // println!("{}", &string);
+        solver.from_string(string);
+        // println!("{:#?}", solver.to_string());
+        let result = solver.check();
+        // println!("{:#?}", result);
+
+        // Check if the constraints are satisfiable (not contradictory)
+        matches!(result, SatResult::Unsat)
     }
 }
 
@@ -189,7 +219,7 @@ impl SmtPBV for RecExpr<ModIR> {
                     .into_iter()
                     .cartesian_product(b_infos.into_iter())
                     .flat_map(|(a_info, b_info)| {
-                        let (vars, widths, constr) = a_info.clone().merge_infos(b_info.clone());
+                        let (vars, widths, constr) = a_info.clone().merge_infos(&b_info);
 
                         vec![
                             SmtPBVInfo {
