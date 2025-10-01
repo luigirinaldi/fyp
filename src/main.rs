@@ -100,30 +100,34 @@ fn main() -> Result<(), std::io::Error> {
 
             if cli.smt2_convert {
                 println!("Trying to convert {} to smt2", equiv.name);
-                if let Some(smt2) = equiv.to_smt2() {
+                if let Some(smt2_vec) = equiv.to_smt2() {
                     if let Some(out_dir) = &cli.smt2_out_dir {
-                        // Ensure output directory exists
-                        if !out_dir.exists() {
-                            std::fs::create_dir_all(out_dir)
-                                .expect("Failed to create SMT2 output directory");
+                        // Create subdirectory for this equivalence
+                        let mut equiv_dir = out_dir.clone();
+                        equiv_dir.push(&equiv.name);
+                        if !equiv_dir.exists() {
+                            std::fs::create_dir_all(&equiv_dir)
+                                .expect("Failed to create SMT2 equivalence subdirectory");
                         }
-                        let mut file_path = out_dir.clone();
-                        file_path.push(format!("{}.smt2", equiv.name));
-                        let mut file = std::fs::File::create(&file_path)
-                            .expect("Failed to create SMT2 output file");
-                        // Prepare comment header
-                        let comment_header = format!(
-                            ";; Equivalence Name: {}\n;; Preconditions: {}\n;; LHS: {}\n;; RHS: {}\n\n",
-                            equiv.name,
-                            equiv.preconditions.iter().map(|s| s.to_string()).collect::<Vec<String>>().join(", "),
-                            equiv.lhs,
-                            equiv.rhs
-                        );
-                        // Write header and SMT2 body
-                        std::io::Write::write_all(&mut file, comment_header.as_bytes())
-                            .expect("Failed to write SMT2 comment header");
-                        std::io::Write::write_all(&mut file, smt2.as_bytes())
-                            .expect("Failed to write SMT2 output");
+                        // Write each problem to a numbered file
+                        for (i, problem) in smt2_vec.iter().enumerate() {
+                            let mut file_path = equiv_dir.clone();
+                            file_path.push(format!("{}_{}.smt2", equiv.name, i));
+                            let mut file = std::fs::File::create(&file_path)
+                                .expect("Failed to create SMT2 output file");
+                            // Prepare comment header
+                            let comment_header = format!(
+                                ";; Equivalence Name: {}\n;; Preconditions: {}\n;; LHS: {}\n;; RHS: {}\n\n",
+                                equiv.name,
+                                equiv.preconditions.iter().map(|s| s.to_string()).collect::<Vec<String>>().join(", "),
+                                equiv.lhs,
+                                equiv.rhs
+                            );
+                            std::io::Write::write_all(&mut file, comment_header.as_bytes())
+                                .expect("Failed to write SMT2 comment header");
+                            std::io::Write::write_all(&mut file, problem.as_bytes())
+                                .expect("Failed to write SMT2 output");
+                        }
                     }
                 } else {
                     println!("conversion to smt2 pbv failed!\n{}", equiv.name)

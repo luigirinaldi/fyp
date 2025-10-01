@@ -1,4 +1,5 @@
 use crate::language::SmtPBV;
+use crate::language::SmtPBVInfo;
 use crate::Symbol;
 use egg::*;
 use itertools::Itertools;
@@ -369,7 +370,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
         proof_file.write("\nend\n".as_bytes()).unwrap();
     }
 
-    pub fn to_smt2(&self) -> Option<String> {
+    pub fn to_smt2(&self) -> Option<Vec<String>> {
         let prefix = String::from("(set-logic ALL)");
 
         // let lhs_smt = self.lhs.to_smt2();
@@ -379,10 +380,10 @@ for {nat_string} :: nat and {int_string} :: int\n",
 
                 let (r_len, l_len) = (lhs_smt.len(), rhs_smt.len());
 
-                lhs_smt
+                let problems: Vec<_> = lhs_smt
                     .into_iter()
                     .cartesian_product(rhs_smt.into_iter())
-                    .for_each(|(lsmt, rsmt)| {
+                    .filter_map(|(lsmt, rsmt)| {
                         let res = lsmt.constraints_match(
                             &rsmt,
                             Some(
@@ -409,7 +410,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
                                 .map(|pre| pre.to_string())
                                 .join(" ");
 
-                            let out_smt_problem = format!(
+                            Some(format!(
                                 "{prefix}
 
 ;; Parametric Bitwidth variables
@@ -429,7 +430,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
     {}
     {}
 ))
-                                
+
 (check-sat)",
                                 widths_str,
                                 itertools::join(pbv_vars, "\n"),
@@ -437,7 +438,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
                                 precond_assertions,
                                 lsmt.expr,
                                 rsmt.expr
-                            );
+                            ))
                             // println!(
                             //     "{res} {} total: {c}\n{}{:#?}\n{}{:#?}",
                             //     self.name,
@@ -446,9 +447,13 @@ for {nat_string} :: nat and {int_string} :: int\n",
                             //     rsmt.expr,
                             //     rsmt.width_constraints
                             // )
-                            println!("{c}\n{out_smt_problem}");
+                            // println!("{c}\n{out_smt_problem}");
+                        } else {
+                            None
                         }
-                    });
+                    })
+                    .collect();
+
                 println!(
                     "{}: left: {} right: {} product: {}. valid: {}",
                     self.name,
@@ -457,21 +462,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
                     l_len * r_len,
                     c
                 );
-
-                // for lsmt in lhs_smt {
-                //     cl += 1;
-                //     for rsmt in rhs_smt {
-                //         cr += 1;
-                //         c += 1;
-                //         println!(
-                //             "{} l:{cl} r: {cr} total: {c}\n{}\n{}",
-                //             self.name, lsmt.expr, rsmt.expr
-                //         );
-                //     }
-                //     cr = 0;
-                // }
-
-                return None;
+                return Some(problems);
             } else {
                 println!("rhs couldn't be converted to smt: {}", self.rhs);
                 return None;
