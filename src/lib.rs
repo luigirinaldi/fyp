@@ -395,14 +395,14 @@ for {nat_string} :: nat and {int_string} :: int\n",
                         );
                         if res {
                             c += 1;
-                            // println!(
-                            //     "{} total: {c}\n{}{:#?}\n{}{:#?}",
-                            //     self.name,
-                            //     lsmt.expr,
-                            //     lsmt.width_constraints,
-                            //     rsmt.expr,
-                            //     rsmt.width_constraints
-                            // )
+                            println!(
+                                "{} total: {c}\n{}{:#?}\n{}{:#?}",
+                                self.name,
+                                lsmt.expr,
+                                lsmt.width_constraints,
+                                rsmt.expr,
+                                rsmt.width_constraints
+                            )
                         }
                     });
                 println!(

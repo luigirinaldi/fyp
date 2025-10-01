@@ -172,13 +172,40 @@ impl SmtPBVInfo {
 
         let (_vars, widths, _constraints) = self.merge_infos(other);
 
-        let extra_string = extra_constraints.unwrap().join("\n");
+        let width_args = widths
+            .clone()
+            .into_iter()
+            .map(|w| format!("({w} Int)"))
+            .join(" ");
+        let widths_str = widths.into_iter().join(" ");
+        let extra_string = extra_constraints.unwrap().join(" ");
 
         let string = format!(
-            "{}\n(define-fun A () Bool\n(and {}\n{extra_string}))\n(define-fun B () Bool\n(and {}\n{extra_string}))\n(assert (not (= A B)))",
-            itertools::join(widths, "\n"),
-            itertools::join(&self.width_constraints, "\n"),
-            itertools::join(&other.width_constraints, "\n")
+            "
+(define-fun A ({width_args}) Bool
+    (and
+        ;; auto-gen constraints
+        {}
+        ;; provided preconditions
+        {extra_string})
+)
+(define-fun B ({width_args}) Bool
+    (and
+        ;; auto-gen constraints
+        {}
+        ;; provided preconditions
+        {extra_string})
+)
+
+;; check that both functions are satisfiable somehow
+(assert (exists ({width_args}) (A {widths_str})))
+(assert (exists ({width_args}) (B {widths_str})))
+
+;; check that they are identical
+(assert (forall ({width_args}) (= (A {widths_str}) (B {widths_str}))))
+",
+            itertools::join(&self.width_constraints, " "),
+            itertools::join(&other.width_constraints, " ")
         );
 
         // add one of the constraints
@@ -189,7 +216,7 @@ impl SmtPBVInfo {
         // println!("{:#?}", result);
 
         // Check if the constraints are satisfiable (not contradictory)
-        matches!(result, SatResult::Unsat)
+        matches!(result, SatResult::Sat)
     }
 }
 
@@ -314,10 +341,7 @@ impl SmtPBV for RecExpr<ModIR> {
                                 label.clone(),
                                 width_str // get the string version of the width
                             )]),
-                            pbv_widths: HashSet::from([format!(
-                                "(declare-const {} Int)",
-                                width_str.clone()
-                            )]),
+                            pbv_widths: HashSet::from([width_str.clone()]),
                             width: width_str.clone(),
                             width_constraints: HashSet::<String>::from([format!(
                                 "(> {} 0)",
@@ -345,10 +369,8 @@ impl SmtPBV for RecExpr<ModIR> {
                                     lab = label.clone(),
                                     w = width_str // get the string version of the width
                                 )]),
-                                pbv_widths: HashSet::from([format!(
-                                    "(declare-const {} Int)",
-                                    width_str.clone()
-                                )]),
+                                pbv_widths: HashSet::from([                                    width_str.clone()
+                                ]),
                                 width: width_str.clone(),
                                 width_constraints: HashSet::<String>::from([format!(
                                 "(> {} 0)",
@@ -364,9 +386,7 @@ impl SmtPBV for RecExpr<ModIR> {
                             .into_iter()
                             .flat_map(|mut child: SmtPBVInfo| {
                                 // add the new width parameter
-                                child
-                                    .pbv_widths
-                                    .insert(format!("(declare-const {} Int)", width_str.clone()));
+                                child.pbv_widths.insert(width_str.clone());
                                 // set it to be greater than 0
                                 child
                                     .width_constraints
