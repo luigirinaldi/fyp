@@ -4,6 +4,7 @@ use num::ToPrimitive;
 use std::fmt::Debug;
 type Num = i32;
 use std::collections::HashSet;
+use z3::ast::Ast;
 use z3::{SatResult, Solver};
 
 define_language! {
@@ -161,6 +162,30 @@ impl SmtPBVInfo {
                 .chain(other.width_constraints.clone())
                 .collect(),
         );
+    }
+
+    // function to simplify the conditions, might be useful in the future
+    pub fn _simplify_constraints(self) -> Self {
+        let solver = Solver::new();
+
+        let solver_string = format!("{}\n(assert (and {}))", self
+            .pbv_widths
+            .clone()
+            .into_iter()
+            .map(|w| format!("(declare-const {w} Int)"))
+            .join("\n"), itertools::join(&self.width_constraints, " "));
+
+        solver.from_string(solver_string);
+        println!("{}", solver.to_string());
+        let mut assertions = solver.get_assertions();
+        
+        let unsimplified_ast = assertions.pop().unwrap();
+
+        let simplified_ast = unsimplified_ast.simplify();
+
+        println!("{}\n{}", unsimplified_ast.to_string(), simplified_ast.to_string());
+
+        return self
     }
 
     // Check whether the set of width constraints are satisfiable,
