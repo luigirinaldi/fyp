@@ -383,7 +383,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
                     .into_iter()
                     .cartesian_product(rhs_smt.into_iter())
                     .for_each(|(lsmt, rsmt)| {
-                        let res = lsmt.check_constraints(
+                        let res = lsmt.constraints_match(
                             &rsmt,
                             Some(
                                 self.preconditions

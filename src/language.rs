@@ -163,7 +163,44 @@ impl SmtPBVInfo {
         );
     }
 
-    pub fn check_constraints(
+    // Check whether the set of width constraints are satisfiable,
+    // meaning there is a non-empty set of values for which the constraints hold
+    pub fn constraints_sat(&self, extra_constraints: Option<Vec<String>>) -> bool {
+        let extra_string = extra_constraints.unwrap_or(vec!["".to_string()]).join(" ");
+
+        let solver = Solver::new();
+
+        let width_args = self
+            .pbv_widths
+            .clone()
+            .into_iter()
+            .map(|w| format!("({w} Int)"))
+            .join(" ");
+        let widths_str = self.pbv_widths.clone().into_iter().join(" ");
+
+        let solver_string = format!(
+            "
+(define-fun A ({width_args}) Bool
+    (and
+        ;; auto-gen constraints
+        {}
+        ;; extra condition(s)
+        {extra_string})
+)
+(assert (exists ({width_args}) (A ({widths_str})))",
+            itertools::join(&self.width_constraints, " ")
+        );
+
+        solver.from_string(solver_string);
+
+        let res = solver.check();
+
+        matches!(res, SatResult::Sat)
+    }
+
+    // Given two SmtPBVInfo check that the two constraints are both not trivial (not always false) and that they match
+    // Take on optional extra constraints to add to both sides
+    pub fn constraints_match(
         &self,
         other: &SmtPBVInfo,
         extra_constraints: Option<Vec<String>>,
@@ -178,7 +215,7 @@ impl SmtPBVInfo {
             .map(|w| format!("({w} Int)"))
             .join(" ");
         let widths_str = widths.into_iter().join(" ");
-        let extra_string = extra_constraints.unwrap().join(" ");
+        let extra_string = extra_constraints.unwrap_or(vec!["".to_string()]).join(" ");
 
         let string = format!(
             "
@@ -211,7 +248,7 @@ impl SmtPBVInfo {
         // add one of the constraints
         // println!("{}", &string);
         solver.from_string(string);
-        // println!("{}", solver.to_string());
+        println!("{}", solver.to_string());
         let result = solver.check();
         // println!("{:#?}", result);
 
@@ -254,43 +291,39 @@ impl SmtPBV for RecExpr<ModIR> {
                     .flat_map(|(a_info, b_info)| {
                         let (vars, widths, constr) = a_info.clone().merge_infos(&b_info);
 
+                        let make_smtinfo = |expr, width, constr| SmtPBVInfo {
+                            expr: expr,
+                            width: width, // case where a and b are assumed to be the same width
+                            pbv_vars: vars.clone(),
+                            pbv_widths: widths.clone(),
+                            width_constraints: constr,
+                        };
+
                         vec![
-                            SmtPBVInfo {
-                                expr: ret_smt(a_info.expr.to_string(), b_info.expr.to_string()),
-                                width: a_info.width.clone(), // case where a and b are assumed to be the same width
-                                pbv_vars: vars.clone(),
-                                pbv_widths: widths.clone(),
-                                width_constraints: insert_constr(
+                            make_smtinfo(
+                                ret_smt(a_info.expr.to_string(), b_info.expr.to_string()),
+                                a_info.width.clone(), // case where a and b are assumed to be the same width
+                                insert_constr(
                                     &constr,
                                     &format!("(= {} {})", &a_info.width, &b_info.width),
                                 ),
-                            },
-                            SmtPBVInfo {
-                                expr: ret_smt(
-                                    a_info.zero_extend(&b_info.width),
-                                    b_info.expr.to_string(),
-                                ),
-                                width: b_info.width.clone(), // w(a) < w(b)
-                                pbv_vars: vars.clone(),
-                                pbv_widths: widths.clone(),
-                                width_constraints: insert_constr(
+                            ),
+                            make_smtinfo(
+                                ret_smt(a_info.zero_extend(&b_info.width), b_info.expr.to_string()),
+                                b_info.width.clone(), // w(a) < w(b)
+                                insert_constr(
                                     &constr,
                                     &format!("(< {} {})", &a_info.width, &b_info.width),
                                 ),
-                            },
-                            SmtPBVInfo {
-                                expr: ret_smt(
-                                    a_info.expr.to_string(),
-                                    b_info.zero_extend(&a_info.width),
-                                ),
-                                width: a_info.width.clone(), // w(b) < w(a)
-                                pbv_vars: vars,
-                                pbv_widths: widths,
-                                width_constraints: insert_constr(
+                            ),
+                            make_smtinfo(
+                                ret_smt(a_info.expr.to_string(), b_info.zero_extend(&a_info.width)),
+                                a_info.width.clone(), // w(b) < w(a)
+                                insert_constr(
                                     &constr,
                                     &format!("(< {} {})", &b_info.width, &a_info.width),
                                 ),
-                            },
+                            ),
                         ]
                     })
                     .collect_vec();
