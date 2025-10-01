@@ -385,6 +385,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
                     .for_each(|(lsmt, rsmt)| {
                         let res = lsmt.constraints_match(
                             &rsmt,
+                            // None,
                             Some(
                                 self.preconditions
                                     .clone()
@@ -395,14 +396,14 @@ for {nat_string} :: nat and {int_string} :: int\n",
                         );
                         if res {
                             c += 1;
-                            println!(
-                                "{} total: {c}\n{}{:#?}\n{}{:#?}",
-                                self.name,
-                                lsmt.expr,
-                                lsmt.width_constraints,
-                                rsmt.expr,
-                                rsmt.width_constraints
-                            )
+                            // println!(
+                            //     "{res} {} total: {c}\n{}{:#?}\n{}{:#?}",
+                            //     self.name,
+                            //     lsmt.expr,
+                            //     lsmt.width_constraints,
+                            //     rsmt.expr,
+                            //     rsmt.width_constraints
+                            // )
                         }
                     });
                 println!(

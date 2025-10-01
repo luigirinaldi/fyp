@@ -187,11 +187,12 @@ impl SmtPBVInfo {
         ;; extra condition(s)
         {extra_string})
 )
-(assert (exists ({width_args}) (A ({widths_str})))",
+(assert (exists ({width_args}) (A {widths_str})))",
             itertools::join(&self.width_constraints, " ")
         );
-
+        // println!("{solver_string}");
         solver.from_string(solver_string);
+        // print!("{}", solver.to_string());
 
         let res = solver.check();
 
@@ -238,8 +239,8 @@ impl SmtPBVInfo {
 (assert (exists ({width_args}) (A {widths_str})))
 (assert (exists ({width_args}) (B {widths_str})))
 
-;; check that they are identical
-(assert (forall ({width_args}) (= (A {widths_str}) (B {widths_str}))))
+;; check that they are simultaneously satisfiable
+(assert (exists ({width_args}) (and (A {widths_str}) (B {widths_str}))))
 ",
             itertools::join(&self.width_constraints, " "),
             itertools::join(&other.width_constraints, " ")
@@ -248,7 +249,7 @@ impl SmtPBVInfo {
         // add one of the constraints
         // println!("{}", &string);
         solver.from_string(string);
-        println!("{}", solver.to_string());
+        // println!("{}", solver.to_string());
         let result = solver.check();
         // println!("{:#?}", result);
 
@@ -291,16 +292,16 @@ impl SmtPBV for RecExpr<ModIR> {
                     .flat_map(|(a_info, b_info)| {
                         let (vars, widths, constr) = a_info.clone().merge_infos(&b_info);
 
-                        let make_smtinfo = |expr, width, constr| SmtPBVInfo {
+                        let make_smtinfo = |expr, width, constr, vars, widths| SmtPBVInfo {
                             expr: expr,
                             width: width, // case where a and b are assumed to be the same width
-                            pbv_vars: vars.clone(),
-                            pbv_widths: widths.clone(),
+                            pbv_vars: vars,
+                            pbv_widths: widths,
                             width_constraints: constr,
                         };
 
                         vec![
-                            make_smtinfo(
+                            (
                                 ret_smt(a_info.expr.to_string(), b_info.expr.to_string()),
                                 a_info.width.clone(), // case where a and b are assumed to be the same width
                                 insert_constr(
@@ -308,7 +309,7 @@ impl SmtPBV for RecExpr<ModIR> {
                                     &format!("(= {} {})", &a_info.width, &b_info.width),
                                 ),
                             ),
-                            make_smtinfo(
+                            (
                                 ret_smt(a_info.zero_extend(&b_info.width), b_info.expr.to_string()),
                                 b_info.width.clone(), // w(a) < w(b)
                                 insert_constr(
@@ -316,7 +317,7 @@ impl SmtPBV for RecExpr<ModIR> {
                                     &format!("(< {} {})", &a_info.width, &b_info.width),
                                 ),
                             ),
-                            make_smtinfo(
+                            (
                                 ret_smt(a_info.expr.to_string(), b_info.zero_extend(&a_info.width)),
                                 a_info.width.clone(), // w(b) < w(a)
                                 insert_constr(
@@ -325,6 +326,10 @@ impl SmtPBV for RecExpr<ModIR> {
                                 ),
                             ),
                         ]
+                        .into_iter()
+                        .map(move |(e, w, c)| make_smtinfo(e, w, c, vars.clone(), widths.clone()))
+                        .filter(|info| info.constraints_sat(None))
+                        .collect_vec()
                     })
                     .collect_vec();
                 return Some(out_exprs);
@@ -469,6 +474,7 @@ impl SmtPBV for RecExpr<ModIR> {
                                     },
                                 ];
                             })
+                            .filter(|info| info.constraints_sat(None))
                             .collect_vec();
                         return Some(ret_array);
                     }
