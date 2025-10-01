@@ -275,7 +275,9 @@ impl SmtPBV for RecExpr<ModIR> {
         let root = &self[self.root()];
 
         match root {
-            ModIR::Add([a, b]) | ModIR::Sub([a, b]) | ModIR::Mul([a, b]) => {
+            ModIR::Add([a, b]) 
+            // | ModIR::Sub([a, b]) | ModIR::Mul([a, b])
+             => {
                 let a_infos = get_recexpr(&a).to_smt_pbv().unwrap();
                 let b_infos = get_recexpr(&b).to_smt_pbv().unwrap();
 
@@ -303,7 +305,7 @@ impl SmtPBV for RecExpr<ModIR> {
                         vec![
                             (
                                 ret_smt(a_info.expr.to_string(), b_info.expr.to_string()),
-                                a_info.width.clone(), // case where a and b are assumed to be the same width
+                                &format!("(+ {} 1)", a_info.width.clone()), // case where a and b are assumed to be the same width
                                 insert_constr(
                                     &constr,
                                     &format!("(= {} {})", &a_info.width, &b_info.width),
@@ -311,7 +313,7 @@ impl SmtPBV for RecExpr<ModIR> {
                             ),
                             (
                                 ret_smt(a_info.zero_extend(&b_info.width), b_info.expr.to_string()),
-                                b_info.width.clone(), // w(a) < w(b)
+                                &format!("(+ {} 1)", b_info.width.clone()), // w(a) < w(b)
                                 insert_constr(
                                     &constr,
                                     &format!("(< {} {})", &a_info.width, &b_info.width),
@@ -319,7 +321,7 @@ impl SmtPBV for RecExpr<ModIR> {
                             ),
                             (
                                 ret_smt(a_info.expr.to_string(), b_info.zero_extend(&a_info.width)),
-                                a_info.width.clone(), // w(b) < w(a)
+                                &format!("(+ {} 1)", a_info.width.clone()), // w(b) < w(a)
                                 insert_constr(
                                     &constr,
                                     &format!("(< {} {})", &b_info.width, &a_info.width),
@@ -327,7 +329,7 @@ impl SmtPBV for RecExpr<ModIR> {
                             ),
                         ]
                         .into_iter()
-                        .map(move |(e, w, c)| make_smtinfo(e, w, c, vars.clone(), widths.clone()))
+                        .map(move |(e, w, c)| make_smtinfo(e, w.to_string(), c, vars.clone(), widths.clone()))
                         .filter(|info| info.constraints_sat(None))
                         .collect_vec()
                     })

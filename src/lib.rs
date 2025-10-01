@@ -385,7 +385,6 @@ for {nat_string} :: nat and {int_string} :: int\n",
                     .for_each(|(lsmt, rsmt)| {
                         let res = lsmt.constraints_match(
                             &rsmt,
-                            // None,
                             Some(
                                 self.preconditions
                                     .clone()
@@ -396,6 +395,49 @@ for {nat_string} :: nat and {int_string} :: int\n",
                         );
                         if res {
                             c += 1;
+                            let (pbv_vars, pbv_widths, constraints) = lsmt.merge_infos(&rsmt);
+
+                            let widths_str = pbv_widths
+                                .into_iter()
+                                .map(|w| format!("(declare-const {w} Int)"))
+                                .join("\n");
+
+                            // Generate assertions for preconditions
+                            let precond_assertions = self
+                                .preconditions
+                                .iter()
+                                .map(|pre| pre.to_string())
+                                .join(" ");
+
+                            let out_smt_problem = format!(
+                                "{prefix}
+
+;; Parametric Bitwidth variables
+{}
+
+;; Parametric Bitwidth BitVectors
+{}
+
+;; Generated preconditions (to ensure valid pbv formula)
+(assert (and {}))
+
+;; User-provided Preconditions
+(assert (and {}))
+
+;; Disequality assertion
+(assert (distinct 
+    {}
+    {}
+))
+                                
+(check-sat)",
+                                widths_str,
+                                itertools::join(pbv_vars, "\n"),
+                                itertools::join(constraints, " "),
+                                precond_assertions,
+                                lsmt.expr,
+                                rsmt.expr
+                            );
                             // println!(
                             //     "{res} {} total: {c}\n{}{:#?}\n{}{:#?}",
                             //     self.name,
@@ -404,6 +446,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
                             //     rsmt.expr,
                             //     rsmt.width_constraints
                             // )
+                            println!("{c}\n{out_smt_problem}");
                         }
                     });
                 println!(
@@ -427,48 +470,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
                 //     }
                 //     cr = 0;
                 // }
-                //                 let pbv_widths = lhs_smt
-                //                     .pbv_widths
-                //                     .into_iter()
-                //                     .chain(rhs_smt.pbv_widths)
-                //                     .collect::<HashSet<_>>();
 
-                //                 let pbv_vars = lhs_smt
-                //                     .pbv_vars
-                //                     .into_iter()
-                //                     .chain(rhs_smt.pbv_vars)
-                //                     .collect::<HashSet<_>>();
-
-                //                 // Generate assertions for preconditions
-                //                 let precond_assertions = self
-                //                     .preconditions
-                //                     .iter()
-                //                     .map(|pre| format!("(assert {})", pre.to_string()))
-                //                     .collect::<Vec<_>>()
-                //                     .join("\n");
-
-                //                 return Some(format!(
-                //                     "{prefix}
-
-                // ;; Parametric Bitwidth variables
-                // {}
-
-                // ;; Parametric Bitwidth BitVectors
-                // {}
-
-                // ;; Preconditions
-                // {}
-
-                // ;; Disequality assertion
-                // (assert (distinct {} {}))
-
-                // (check-sat)",
-                //                     itertools::join(pbv_widths, "\n"),
-                //                     itertools::join(pbv_vars, "\n"),
-                //                     precond_assertions,
-                //                     lhs_smt.expr,
-                //                     rhs_smt.expr
-                //                 ));
                 return None;
             } else {
                 println!("rhs couldn't be converted to smt: {}", self.rhs);
