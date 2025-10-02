@@ -165,27 +165,36 @@ impl SmtPBVInfo {
     }
 
     // function to simplify the conditions, might be useful in the future
-    pub fn _simplify_constraints(self) -> Self {
+    pub fn simplify_constraints(mut self) -> Self {
         let solver = Solver::new();
-
         let solver_string = format!("{}\n(assert (and {}))", self
             .pbv_widths
             .clone()
             .into_iter()
             .map(|w| format!("(declare-const {w} Int)"))
             .join("\n"), itertools::join(&self.width_constraints, " "));
-
         solver.from_string(solver_string);
-        println!("{}", solver.to_string());
+        // println!("{}", solver.to_string());
         let mut assertions = solver.get_assertions();
-        
         let unsimplified_ast = assertions.pop().unwrap();
-
         let simplified_ast = unsimplified_ast.simplify();
+        // println!("{}\n{:#?}", unsimplified_ast.to_string(), simplified_ast);
 
-        println!("{}\n{}", unsimplified_ast.to_string(), simplified_ast.to_string());
+        // Extract individual expressions if top-level is 'and'
+        let exprs: HashSet<String> = if simplified_ast.kind() == z3::AstKind::App && simplified_ast.decl().name().to_string() == "and" {
+            simplified_ast.children().iter().map(|child| child.to_string()).collect()
+        } else {
+            HashSet::<String>::from([simplified_ast.to_string()])
+        };
+        // println!("Individual expressions:");
 
-        return self
+
+        self.width_constraints = exprs;
+        // for expr_str in &exprs {
+        //     println!("{}", expr_str);
+        // }
+
+        self
     }
 
     // Check whether the set of width constraints are satisfiable,

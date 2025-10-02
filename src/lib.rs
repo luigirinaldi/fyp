@@ -398,6 +398,15 @@ for {nat_string} :: nat and {int_string} :: int\n",
                             c += 1;
                             let (pbv_vars, pbv_widths, constraints) = lsmt.merge_infos(&rsmt);
 
+                            let simplified = SmtPBVInfo {
+                                pbv_vars: pbv_vars.clone(),
+                                pbv_widths: pbv_widths.clone(),
+                                width_constraints: constraints.clone(),
+                                expr: "".to_string(),
+                                width: "".to_string(),
+                            }
+                            .simplify_constraints();
+
                             let widths_str = pbv_widths
                                 .into_iter()
                                 .map(|w| format!("(declare-const {w} Int)"))
@@ -420,10 +429,12 @@ for {nat_string} :: nat and {int_string} :: int\n",
 {}
 
 ;; Generated preconditions (to ensure valid pbv formula)
-(assert (and {}))
+;(assert (and
+;    {}
+;))
 
 ;; User-provided Preconditions
-(assert (and {}))
+;(assert (and {}))
 
 ;; Disequality assertion
 (assert (distinct 
@@ -434,20 +445,11 @@ for {nat_string} :: nat and {int_string} :: int\n",
 (check-sat)",
                                 widths_str,
                                 itertools::join(pbv_vars, "\n"),
-                                itertools::join(constraints, " "),
+                                itertools::join(simplified.width_constraints, "\n;    "),
                                 precond_assertions,
                                 lsmt.expr,
                                 rsmt.expr
                             ))
-                            // println!(
-                            //     "{res} {} total: {c}\n{}{:#?}\n{}{:#?}",
-                            //     self.name,
-                            //     lsmt.expr,
-                            //     lsmt.width_constraints,
-                            //     rsmt.expr,
-                            //     rsmt.width_constraints
-                            // )
-                            // println!("{c}\n{out_smt_problem}");
                         } else {
                             None
                         }
