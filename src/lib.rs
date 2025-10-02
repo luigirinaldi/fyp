@@ -429,12 +429,12 @@ for {nat_string} :: nat and {int_string} :: int\n",
 {}
 
 ;; Generated preconditions (to ensure valid pbv formula)
-;(assert (and
-;    {}
-;))
+(assert (and
+    {}
+))
 
 ;; User-provided Preconditions
-;(assert (and {}))
+(assert (and {}))
 
 ;; Disequality assertion
 (assert (distinct 
@@ -445,7 +445,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
 (check-sat)",
                                 widths_str,
                                 itertools::join(pbv_vars, "\n"),
-                                itertools::join(simplified.width_constraints, "\n;    "),
+                                itertools::join(simplified.width_constraints, "\n    "),
                                 precond_assertions,
                                 lsmt.expr,
                                 rsmt.expr

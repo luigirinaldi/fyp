@@ -339,7 +339,7 @@ impl SmtPBV for RecExpr<ModIR> {
                         vec![
                             (
                                 ret_smt(a_info.expr.to_string(), b_info.expr.to_string()),
-                                &format!("(+ {} 1)", a_info.width.clone()), // case where a and b are assumed to be the same width
+                                a_info.width.clone(), // case where a and b are assumed to be the same width
                                 insert_constr(
                                     &constr,
                                     &format!("(= {} {})", &a_info.width, &b_info.width),
@@ -347,7 +347,7 @@ impl SmtPBV for RecExpr<ModIR> {
                             ),
                             (
                                 ret_smt(a_info.zero_extend(&b_info.width), b_info.expr.to_string()),
-                                &format!("(+ {} 1)", b_info.width.clone()), // w(a) < w(b)
+                                b_info.width.clone(), // w(a) < w(b)
                                 insert_constr(
                                     &constr,
                                     &format!("(< {} {})", &a_info.width, &b_info.width),
@@ -355,7 +355,7 @@ impl SmtPBV for RecExpr<ModIR> {
                             ),
                             (
                                 ret_smt(a_info.expr.to_string(), b_info.zero_extend(&a_info.width)),
-                                &format!("(+ {} 1)", a_info.width.clone()), // w(b) < w(a)
+                                a_info.width.clone(), // w(b) < w(a)
                                 insert_constr(
                                     &constr,
                                     &format!("(< {} {})", &b_info.width, &a_info.width),
