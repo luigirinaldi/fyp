@@ -167,12 +167,15 @@ impl SmtPBVInfo {
     // function to simplify the conditions, might be useful in the future
     pub fn simplify_constraints(mut self) -> Self {
         let solver = Solver::new();
-        let solver_string = format!("{}\n(assert (and {}))", self
-            .pbv_widths
-            .clone()
-            .into_iter()
-            .map(|w| format!("(declare-const {w} Int)"))
-            .join("\n"), itertools::join(&self.width_constraints, " "));
+        let solver_string = format!(
+            "{}\n(assert (and {}))",
+            self.pbv_widths
+                .clone()
+                .into_iter()
+                .map(|w| format!("(declare-const {w} Int)"))
+                .join("\n"),
+            itertools::join(&self.width_constraints, " ")
+        );
         solver.from_string(solver_string);
         // println!("{}", solver.to_string());
         let mut assertions = solver.get_assertions();
@@ -181,13 +184,18 @@ impl SmtPBVInfo {
         // println!("{}\n{:#?}", unsimplified_ast.to_string(), simplified_ast);
 
         // Extract individual expressions if top-level is 'and'
-        let exprs: HashSet<String> = if simplified_ast.kind() == z3::AstKind::App && simplified_ast.decl().name().to_string() == "and" {
-            simplified_ast.children().iter().map(|child| child.to_string()).collect()
+        let exprs: HashSet<String> = if simplified_ast.kind() == z3::AstKind::App
+            && simplified_ast.decl().name().to_string() == "and"
+        {
+            simplified_ast
+                .children()
+                .iter()
+                .map(|child| child.to_string())
+                .collect()
         } else {
             HashSet::<String>::from([simplified_ast.to_string()])
         };
         // println!("Individual expressions:");
-
 
         self.width_constraints = exprs;
         // for expr_str in &exprs {
@@ -330,51 +338,28 @@ impl SmtPBV for RecExpr<ModIR> {
 
                         let make_smtinfo = |expr, width, constr, vars, widths| SmtPBVInfo {
                             expr: expr,
-                            width: width, // case where a and b are assumed to be the same width
+                            width: width,
                             pbv_vars: vars,
                             pbv_widths: widths,
                             width_constraints: constr,
                         };
 
-                        let out_width_condt = vec![
+                        vec![
                             (format!("(+ {} 1)", &a_info.width), format!("(= {} {})", &a_info.width, &b_info.width)),
-                            (format!("(+ {} 1)", &b_info.width), format!("(< {} {})", &a_info.width, &b_info.width)), 
+                            (format!("(+ {} 1)", &b_info.width), format!("(< {} {})", &a_info.width, &b_info.width)),
                             (format!("(+ {} 1)", &a_info.width), format!("(> {} {})", &a_info.width, &b_info.width))
-                        ];
-
-                        // vec![
-                        //     (
-                        //         ret_smt(a_info.expr.to_string(), b_info.expr.to_string()),
-                        //         a_info.width.clone(), // case where a and b are assumed to be the same width
-                        //         insert_constr(
-                        //             &constr,
-                        //             &format!("(= {} {})", &a_info.width, &b_info.width),
-                        //         ),
-                        //     ),
-                        //     (
-                        //         ret_smt(a_info.zero_extend(&b_info.width), b_info.expr.to_string()),
-                        //         b_info.width.clone(), // w(a) < w(b)
-                        //         insert_constr(
-                        //             &constr,
-                        //             &format!("(< {} {})", &a_info.width, &b_info.width),
-                        //         ),
-                        //     ),
-                        //     (
-                        //         ret_smt(a_info.expr.to_string(), b_info.zero_extend(&a_info.width)),
-                        //         a_info.width.clone(), // w(b) < w(a)
-                        //         insert_constr(
-                        //             &constr,
-                        //             &format!("(< {} {})", &b_info.width, &a_info.width),
-                        //         ),
-                        //     ),
-                        // ]
-                        // .into_iter()
-                        out_width_condt.into_iter()
+                        ]
+                        .into_iter()
                         .map(move |(new_width, condition)| 
                             make_smtinfo(
-                                ret_smt(a_info.zero_extend(&new_width), b_info.zero_extend(&new_width)), 
-                                new_width, 
-                                insert_constr(&constr, &condition), vars.clone(), widths.clone()))
+                                ret_smt(
+                                    a_info.zero_extend(&new_width),
+                                    b_info.zero_extend(&new_width)),
+                                new_width,
+                                insert_constr(&constr, &condition),
+                                vars.clone(),
+                                widths.clone()
+                            ))
                         .filter(|info| info.constraints_sat(None))
                         .collect_vec()
                     })
