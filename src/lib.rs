@@ -375,6 +375,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
     }
 
     pub fn to_smt2(&self) -> Option<Vec<String>> {
+        use indicatif::{ProgressBar, ProgressStyle};
         use rayon::prelude::*;
         let prefix = String::from("(set-logic ALL)");
 
@@ -409,6 +410,18 @@ for {nat_string} :: nat and {int_string} :: int\n",
         let rhs_smt = rhs_opt.unwrap();
         let (r_len, l_len) = (lhs_smt.len(), rhs_smt.len());
         let preconditions: Vec<String> = self.preconditions.iter().map(|p| p.to_string()).collect();
+
+        // Set up progress bar
+        let total = (lhs_smt.len() * rhs_smt.len()) as u64;
+        let pb = ProgressBar::new(total);
+        pb.set_style(
+            ProgressStyle::default_bar()
+                .template(
+                    "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})",
+                )
+                .unwrap()
+                .progress_chars("#>-"),
+        );
 
         // Function to generate a single SMT problem
         fn generate_smt_problem(
@@ -468,15 +481,17 @@ for {nat_string} :: nat and {int_string} :: int\n",
             ))
         }
 
-        // Parallelize the SMT problem generation
+        // Parallelize the SMT problem generation with progress bar
         let problems: Vec<_> = lhs_smt
             .par_iter()
             .flat_map_iter(|lsmt| {
-                rhs_smt
-                    .iter()
-                    .filter_map(|rsmt| generate_smt_problem(&prefix, lsmt, rsmt, &preconditions))
+                rhs_smt.iter().filter_map(|rsmt| {
+                    pb.inc(1);
+                    generate_smt_problem(&prefix, lsmt, rsmt, &preconditions)
+                })
             })
             .collect();
+        pb.finish_with_message("done");
         println!(
             "{}: left: {} right: {} product: {}. valid: {}",
             self.name,
