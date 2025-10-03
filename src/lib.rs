@@ -373,54 +373,76 @@ for {nat_string} :: nat and {int_string} :: int\n",
     pub fn to_smt2(&self) -> Option<Vec<String>> {
         let prefix = String::from("(set-logic ALL)");
 
+        let lhs_expr = self.lhs.clone();
+        let rhs_expr = self.rhs.clone();
+
         // let lhs_smt = self.lhs.to_smt2();
-        if let Some(lhs_smt) = self.lhs.to_smt_pbv() {
-            if let Some(rhs_smt) = self.rhs.to_smt_pbv() {
-                let mut c = 0;
-
-                let (r_len, l_len) = (lhs_smt.len(), rhs_smt.len());
-
-                let problems: Vec<_> = lhs_smt
-                    .into_iter()
-                    .cartesian_product(rhs_smt.into_iter())
-                    .filter_map(|(lsmt, rsmt)| {
-                        let res = lsmt.constraints_match(
-                            &rsmt,
-                            Some(
-                                self.preconditions
-                                    .clone()
-                                    .into_iter()
-                                    .map(|p| p.to_string())
-                                    .collect(),
-                            ),
-                        );
-                        if res {
-                            c += 1;
-                            let (pbv_vars, pbv_widths, constraints) = lsmt.merge_infos(&rsmt);
-
-                            let simplified = SmtPBVInfo {
-                                pbv_vars: pbv_vars.clone(),
-                                pbv_widths: pbv_widths.clone(),
-                                width_constraints: constraints.clone(),
-                                expr: "".to_string(),
-                                width: "".to_string(),
-                            }
-                            .simplify_constraints();
-
-                            let widths_str = pbv_widths
-                                .into_iter()
-                                .map(|w| format!("(declare-const {w} Int)"))
-                                .join("\n");
-
-                            // Generate assertions for preconditions
-                            let precond_assertions = self
-                                .preconditions
-                                .iter()
-                                .map(|pre| pre.to_string())
-                                .join(" ");
-
-                            Some(format!(
-                                "{prefix}
+        let lhs_result = std::panic::catch_unwind(|| lhs_expr.to_smt_pbv());
+        let rhs_result = std::panic::catch_unwind(|| rhs_expr.to_smt_pbv());
+        let lhs_opt = match lhs_result {
+            Ok(val) => val,
+            Err(_) => {
+                println!("lhs to_smt_pbv panicked for: {}", self.lhs);
+                return None;
+            }
+        };
+        let rhs_opt = match rhs_result {
+            Ok(val) => val,
+            Err(_) => {
+                println!("rhs to_smt_pbv panicked for: {}", self.rhs);
+                return None;
+            }
+        };
+        if lhs_opt.is_none() {
+            println!("lhs couldn't be converted to smt: {}", self.lhs);
+            return None;
+        }
+        if rhs_opt.is_none() {
+            println!("rhs couldn't be converted to smt: {}", self.rhs);
+            return None;
+        }
+        let lhs_smt = lhs_opt.unwrap();
+        let rhs_smt = rhs_opt.unwrap();
+        // Now safe to use lhs_smt and rhs_smt
+        let mut c = 0;
+        let (r_len, l_len) = (lhs_smt.len(), rhs_smt.len());
+        let problems: Vec<_> = lhs_smt
+            .into_iter()
+            .cartesian_product(rhs_smt.into_iter())
+            .filter_map(|(lsmt, rsmt)| {
+                let res = lsmt.constraints_match(
+                    &rsmt,
+                    Some(
+                        self.preconditions
+                            .clone()
+                            .into_iter()
+                            .map(|p| p.to_string())
+                            .collect(),
+                    ),
+                );
+                if res {
+                    c += 1;
+                    let (pbv_vars, pbv_widths, constraints) = lsmt.merge_infos(&rsmt);
+                    let _simplified = SmtPBVInfo {
+                        pbv_vars: pbv_vars.clone(),
+                        pbv_widths: pbv_widths.clone(),
+                        width_constraints: constraints.clone(),
+                        expr: "".to_string(),
+                        width: "".to_string(),
+                    }
+                    .simplify_constraints();
+                    let widths_str = pbv_widths
+                        .into_iter()
+                        .map(|w| format!("(declare-const {w} Int)"))
+                        .join("\n");
+                    // Generate assertions for preconditions
+                    let precond_assertions = self
+                        .preconditions
+                        .iter()
+                        .map(|pre| pre.to_string())
+                        .join(" ");
+                    Some(format!(
+                        "{prefix}
 
 ;; Parametric Bitwidth variables
 {}
@@ -443,36 +465,27 @@ for {nat_string} :: nat and {int_string} :: int\n",
 ))
 
 (check-sat)",
-                                widths_str,
-                                itertools::join(pbv_vars, "\n"),
-                                itertools::join(constraints, "\n    "),
-                                precond_assertions,
-                                lsmt.expr,
-                                rsmt.expr
-                            ))
-                        } else {
-                            None
-                        }
-                    })
-                    .collect();
-
-                println!(
-                    "{}: left: {} right: {} product: {}. valid: {}",
-                    self.name,
-                    r_len,
-                    l_len,
-                    l_len * r_len,
-                    c
-                );
-                return Some(problems);
-            } else {
-                println!("rhs couldn't be converted to smt: {}", self.rhs);
-                return None;
-            }
-        } else {
-            println!("lhs couldn't be converted to smt: {}", self.lhs);
-            return None;
-        }
+                        widths_str,
+                        itertools::join(pbv_vars, "\n"),
+                        itertools::join(constraints, "\n    "),
+                        precond_assertions,
+                        lsmt.expr,
+                        rsmt.expr
+                    ))
+                } else {
+                    None
+                }
+            })
+            .collect();
+        println!(
+            "{}: left: {} right: {} product: {}. valid: {}",
+            self.name,
+            r_len,
+            l_len,
+            l_len * r_len,
+            c
+        );
+        Some(problems)
     }
 
     pub fn check_proof(
