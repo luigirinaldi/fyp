@@ -15,6 +15,7 @@ ntest = "0.9.3"
 dhat = "0.3.3"
 itertools = "0.14.0"
 z3 = "0.19.1"
+rayon = "1.11.0"
 
 [build-dependencies]
 serde = { version = "1.0", features = ["derive"] }

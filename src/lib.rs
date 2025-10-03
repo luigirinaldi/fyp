@@ -10,6 +10,10 @@ use std::fs::File;
 use std::io::Write;
 use std::time::Duration;
 
+use rayon::prelude::*;
+
+use tqdm::tqdm;
+
 mod dot_equiv;
 mod extractor;
 mod language;
@@ -371,12 +375,12 @@ for {nat_string} :: nat and {int_string} :: int\n",
     }
 
     pub fn to_smt2(&self) -> Option<Vec<String>> {
+        use rayon::prelude::*;
         let prefix = String::from("(set-logic ALL)");
 
         let lhs_expr = self.lhs.clone();
         let rhs_expr = self.rhs.clone();
 
-        // let lhs_smt = self.lhs.to_smt2();
         let lhs_result = std::panic::catch_unwind(|| lhs_expr.to_smt_pbv());
         let rhs_result = std::panic::catch_unwind(|| rhs_expr.to_smt_pbv());
         let lhs_opt = match lhs_result {
@@ -403,46 +407,36 @@ for {nat_string} :: nat and {int_string} :: int\n",
         }
         let lhs_smt = lhs_opt.unwrap();
         let rhs_smt = rhs_opt.unwrap();
-        // Now safe to use lhs_smt and rhs_smt
-        let mut c = 0;
         let (r_len, l_len) = (lhs_smt.len(), rhs_smt.len());
-        let problems: Vec<_> = lhs_smt
-            .into_iter()
-            .cartesian_product(rhs_smt.into_iter())
-            .filter_map(|(lsmt, rsmt)| {
-                let res = lsmt.constraints_match(
-                    &rsmt,
-                    Some(
-                        self.preconditions
-                            .clone()
-                            .into_iter()
-                            .map(|p| p.to_string())
-                            .collect(),
-                    ),
-                );
-                if res {
-                    c += 1;
-                    let (pbv_vars, pbv_widths, constraints) = lsmt.merge_infos(&rsmt);
-                    let _simplified = SmtPBVInfo {
-                        pbv_vars: pbv_vars.clone(),
-                        pbv_widths: pbv_widths.clone(),
-                        width_constraints: constraints.clone(),
-                        expr: "".to_string(),
-                        width: "".to_string(),
-                    }
-                    .simplify_constraints();
-                    let widths_str = pbv_widths
-                        .into_iter()
-                        .map(|w| format!("(declare-const {w} Int)"))
-                        .join("\n");
-                    // Generate assertions for preconditions
-                    let precond_assertions = self
-                        .preconditions
-                        .iter()
-                        .map(|pre| pre.to_string())
-                        .join(" ");
-                    Some(format!(
-                        "{prefix}
+        let preconditions: Vec<String> = self.preconditions.iter().map(|p| p.to_string()).collect();
+
+        // Function to generate a single SMT problem
+        fn generate_smt_problem(
+            prefix: &str,
+            lsmt: &SmtPBVInfo,
+            rsmt: &SmtPBVInfo,
+            preconditions: &[String],
+        ) -> Option<String> {
+            let res = lsmt.constraints_match(&rsmt, Some(preconditions.to_vec()));
+            if !res {
+                return None;
+            }
+            let (pbv_vars, pbv_widths, constraints) = lsmt.merge_infos(&rsmt);
+            let _simplified = SmtPBVInfo {
+                pbv_vars: pbv_vars.clone(),
+                pbv_widths: pbv_widths.clone(),
+                width_constraints: constraints.clone(),
+                expr: "".to_string(),
+                width: "".to_string(),
+            }
+            .simplify_constraints();
+            let widths_str = pbv_widths
+                .into_iter()
+                .map(|w| format!("(declare-const {w} Int)"))
+                .join("\n");
+            let precond_assertions = preconditions.join(" ");
+            Some(format!(
+                "{prefix}
 
 ;; Parametric Bitwidth variables
 {}
@@ -465,16 +459,22 @@ for {nat_string} :: nat and {int_string} :: int\n",
 ))
 
 (check-sat)",
-                        widths_str,
-                        itertools::join(pbv_vars, "\n"),
-                        itertools::join(constraints, "\n    "),
-                        precond_assertions,
-                        lsmt.expr,
-                        rsmt.expr
-                    ))
-                } else {
-                    None
-                }
+                widths_str,
+                itertools::join(pbv_vars, "\n"),
+                itertools::join(constraints, "\n    "),
+                precond_assertions,
+                lsmt.expr,
+                rsmt.expr
+            ))
+        }
+
+        // Parallelize the SMT problem generation
+        let problems: Vec<_> = lhs_smt
+            .par_iter()
+            .flat_map_iter(|lsmt| {
+                rhs_smt
+                    .iter()
+                    .filter_map(|rsmt| generate_smt_problem(&prefix, lsmt, rsmt, &preconditions))
             })
             .collect();
         println!(
@@ -483,7 +483,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
             r_len,
             l_len,
             l_len * r_len,
-            c
+            problems.len()
         );
         Some(problems)
     }
