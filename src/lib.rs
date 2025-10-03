@@ -445,7 +445,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
 (check-sat)",
                                 widths_str,
                                 itertools::join(pbv_vars, "\n"),
-                                itertools::join(simplified.width_constraints, "\n    "),
+                                itertools::join(constraints, "\n    "),
                                 precond_assertions,
                                 lsmt.expr,
                                 rsmt.expr

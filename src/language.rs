@@ -336,34 +336,45 @@ impl SmtPBV for RecExpr<ModIR> {
                             width_constraints: constr,
                         };
 
-                        vec![
-                            (
-                                ret_smt(a_info.expr.to_string(), b_info.expr.to_string()),
-                                a_info.width.clone(), // case where a and b are assumed to be the same width
-                                insert_constr(
-                                    &constr,
-                                    &format!("(= {} {})", &a_info.width, &b_info.width),
-                                ),
-                            ),
-                            (
-                                ret_smt(a_info.zero_extend(&b_info.width), b_info.expr.to_string()),
-                                b_info.width.clone(), // w(a) < w(b)
-                                insert_constr(
-                                    &constr,
-                                    &format!("(< {} {})", &a_info.width, &b_info.width),
-                                ),
-                            ),
-                            (
-                                ret_smt(a_info.expr.to_string(), b_info.zero_extend(&a_info.width)),
-                                a_info.width.clone(), // w(b) < w(a)
-                                insert_constr(
-                                    &constr,
-                                    &format!("(< {} {})", &b_info.width, &a_info.width),
-                                ),
-                            ),
-                        ]
-                        .into_iter()
-                        .map(move |(e, w, c)| make_smtinfo(e, w.to_string(), c, vars.clone(), widths.clone()))
+                        let out_width_condt = vec![
+                            (format!("(+ {} 1)", &a_info.width), format!("(= {} {})", &a_info.width, &b_info.width)),
+                            (format!("(+ {} 1)", &b_info.width), format!("(< {} {})", &a_info.width, &b_info.width)), 
+                            (format!("(+ {} 1)", &a_info.width), format!("(> {} {})", &a_info.width, &b_info.width))
+                        ];
+
+                        // vec![
+                        //     (
+                        //         ret_smt(a_info.expr.to_string(), b_info.expr.to_string()),
+                        //         a_info.width.clone(), // case where a and b are assumed to be the same width
+                        //         insert_constr(
+                        //             &constr,
+                        //             &format!("(= {} {})", &a_info.width, &b_info.width),
+                        //         ),
+                        //     ),
+                        //     (
+                        //         ret_smt(a_info.zero_extend(&b_info.width), b_info.expr.to_string()),
+                        //         b_info.width.clone(), // w(a) < w(b)
+                        //         insert_constr(
+                        //             &constr,
+                        //             &format!("(< {} {})", &a_info.width, &b_info.width),
+                        //         ),
+                        //     ),
+                        //     (
+                        //         ret_smt(a_info.expr.to_string(), b_info.zero_extend(&a_info.width)),
+                        //         a_info.width.clone(), // w(b) < w(a)
+                        //         insert_constr(
+                        //             &constr,
+                        //             &format!("(< {} {})", &b_info.width, &a_info.width),
+                        //         ),
+                        //     ),
+                        // ]
+                        // .into_iter()
+                        out_width_condt.into_iter()
+                        .map(move |(new_width, condition)| 
+                            make_smtinfo(
+                                ret_smt(a_info.zero_extend(&new_width), b_info.zero_extend(&new_width)), 
+                                new_width, 
+                                insert_constr(&constr, &condition), vars.clone(), widths.clone()))
                         .filter(|info| info.constraints_sat(None))
                         .collect_vec()
                     })
