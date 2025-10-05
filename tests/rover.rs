@@ -249,7 +249,7 @@ fn rover_dist_over_add() {
     let mut eq = Equivalence::new(
         "dist_over_add",
         &["(>= q r)", "(>= u r)", "(>= v r)"],
-        "(bw r (* (bw p a) (+ (bw s b) (bw t c))))",
+        "(bw r (* (bw p a) (bw q (+ (bw s b) (bw t c)))))",
         "(bw r (+ (bw u (* (bw p a) (bw s b))) (bw v (* (bw p a) (bw t c)) ) ))",
     );
     eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
