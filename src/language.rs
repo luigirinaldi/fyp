@@ -317,51 +317,62 @@ impl SmtPBV for RecExpr<ModIR> {
         let root = &self[self.root()];
 
         match root {
-            ModIR::Add([a, b]) 
-            // | ModIR::Sub([a, b]) | ModIR::Mul([a, b])
+            ModIR::Add([a, b]) | ModIR::Mul([a, b])
+            // | ModIR::Sub([a, b]) 
              => {
                 let a_infos = get_recexpr(&a).to_smt_pbv().unwrap();
                 let b_infos = get_recexpr(&b).to_smt_pbv().unwrap();
 
-                let operator = match root {
-                    ModIR::Add(_) => "bvadd",
-                    ModIR::Mul(_) => "bvmul",
-                    ModIR::Sub(_) => "bvsub",
-                    _ => unreachable!("Something went wrong, proof with 0 length flat terms"),
-                };
-                let ret_smt = |x, y| format!("({operator} {} {})", x, y);
                 let out_exprs: Vec<SmtPBVInfo> = a_infos
+                .into_iter()
+                .cartesian_product(b_infos.into_iter())
+                .flat_map(|(a_info, b_info)| {
+                    let (vars, widths, constr) = a_info.clone().merge_infos(&b_info);
+                    
+                    let make_smtinfo = |expr, width, constr, vars, widths| SmtPBVInfo {
+                        expr: expr,
+                        width: width,
+                        pbv_vars: vars,
+                        pbv_widths: widths,
+                        width_constraints: constr,
+                    };
+
+                    // model verilog semantics by zero extending the binary operation to the amount of bits required to capture the full precision
+                    // then in a second step (when the mod is applied) the result is either zero extended or truncated to the outer bitwidth
+                    // example:
+                    //    c_r <- (a_p + b_q)_r 
+                    //    if r <= p and r <= q then c_r <- (a_p)_r + (b_q)_r ; trunc both a and b to r bits
+                    //    if r > p and r > q then c_r <- (zext r a_p) + (zext r b_q) ; extend a_p and b_q to r bits
+                    //    etc...
+                    //    so can be summarised by 
+                    //    c_r <- zext/extract r ((zext a_p ((max p q) + 1)) + (zext a_p ((max p q) + 1)))
+                    //    extend a and b to the width that captures the adds full precision ((max p q) + 1) and then truncate or extract more
+                    let (operator, width_template) : (_, Box<dyn Fn(&SmtPBVInfo, &SmtPBVInfo) -> String>) = match root {
+                        ModIR::Add(_) => ("bvadd", Box::new(|a, _b| (format!("(+ {} 1)", a.width)))),
+                        ModIR::Mul(_) => ("bvmul", Box::new(|a, b|  (format!("(+ {} {})", a.width, b.width)))),
+                        // ModIR::Sub(_) => ("bvsub", Box::new(|a, _b| (format!("(+ {} 1)", a.width)))), // needs zero extending?
+                        _ => unreachable!("Something went wrong, proof with 0 length flat terms"),
+                    };
+                    let ret_smt = |x, y| format!("({operator} {} {})", x, y);
+                    
+                    vec![
+                        (width_template(&a_info, &b_info), format!("(= {} {})", &a_info.width, &b_info.width)),
+                        (width_template(&a_info, &b_info), format!("(< {} {})", &a_info.width, &b_info.width)),
+                        (width_template(&a_info, &b_info), format!("(> {} {})", &a_info.width, &b_info.width))
+                    ]
                     .into_iter()
-                    .cartesian_product(b_infos.into_iter())
-                    .flat_map(|(a_info, b_info)| {
-                        let (vars, widths, constr) = a_info.clone().merge_infos(&b_info);
-
-                        let make_smtinfo = |expr, width, constr, vars, widths| SmtPBVInfo {
-                            expr: expr,
-                            width: width,
-                            pbv_vars: vars,
-                            pbv_widths: widths,
-                            width_constraints: constr,
-                        };
-
-                        vec![
-                            (format!("(+ {} 1)", &a_info.width), format!("(= {} {})", &a_info.width, &b_info.width)),
-                            (format!("(+ {} 1)", &b_info.width), format!("(< {} {})", &a_info.width, &b_info.width)),
-                            (format!("(+ {} 1)", &a_info.width), format!("(> {} {})", &a_info.width, &b_info.width))
-                        ]
-                        .into_iter()
-                        .map(move |(new_width, condition)| 
-                            make_smtinfo(
-                                ret_smt(
-                                    a_info.zero_extend(&new_width),
-                                    b_info.zero_extend(&new_width)),
-                                new_width,
-                                insert_constr(&constr, &condition),
-                                vars.clone(),
-                                widths.clone()
-                            ))
-                        .filter(|info| info.constraints_sat(None))
-                        .collect_vec()
+                    .map(move |(new_width, condition)| 
+                        make_smtinfo(
+                            ret_smt(
+                                a_info.zero_extend(&new_width),
+                                b_info.zero_extend(&new_width)),
+                            new_width,
+                            insert_constr(&constr, &condition),
+                            vars.clone(),
+                            widths.clone()
+                        ))
+                    .filter(|info| info.constraints_sat(None))
+                    .collect_vec()
                     })
                     .collect_vec();
                 return Some(out_exprs);
@@ -480,11 +491,7 @@ impl SmtPBV for RecExpr<ModIR> {
                                     },
                                     SmtPBVInfo {
                                         // case where the mod width is the same as the inner width
-                                        expr: format!(
-                                            "(pextract (- {} 1) 0 {})",
-                                            width_str.clone(),
-                                            child.expr
-                                        ),
+                                        expr: child.expr.clone(),
                                         pbv_vars: child.pbv_vars.clone(),
                                         pbv_widths: child.pbv_widths.clone(),
                                         width: width_str.clone(),
