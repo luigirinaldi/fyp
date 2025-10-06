@@ -447,7 +447,11 @@ for {nat_string} :: nat and {int_string} :: int\n",
                 .into_iter()
                 .map(|w| format!("(declare-const {w} Int)"))
                 .join("\n");
-            let precond_assertions = preconditions.join(" ");
+            let precond_assertions = if preconditions.len() > 1 {
+                &format!("(and {})", preconditions.join(" "))
+            } else {
+                preconditions.iter().next().unwrap()
+            };
             Some(format!(
                 "{prefix}
 
@@ -458,12 +462,10 @@ for {nat_string} :: nat and {int_string} :: int\n",
 {}
 
 ;; Generated preconditions (to ensure valid pbv formula)
-(assert (and
-    {}
-))
+(assert {})
 
 ;; User-provided Preconditions
-(assert (and {}))
+(assert {})
 
 ;; Disequality assertion
 (assert (distinct 
@@ -474,7 +476,11 @@ for {nat_string} :: nat and {int_string} :: int\n",
 (check-sat)",
                 widths_str,
                 itertools::join(pbv_vars, "\n"),
-                itertools::join(constraints, "\n    "),
+                if constraints.len() > 1 {
+                    &format!("(and \n    {})", &itertools::join(constraints, "\n    "))
+                } else {
+                    constraints.iter().next().unwrap()
+                },
                 precond_assertions,
                 lsmt.expr,
                 rsmt.expr
