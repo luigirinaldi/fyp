@@ -246,7 +246,7 @@ impl SmtPBVInfo {
     pub fn constraints_match(
         &self,
         other: &SmtPBVInfo,
-        extra_constraints: Option<Vec<String>>,
+        extra_constraints: Option<&Vec<String>>,
     ) -> bool {
         let solver = Solver::new();
 
@@ -258,7 +258,7 @@ impl SmtPBVInfo {
             .map(|w| format!("({w} Int)"))
             .join(" ");
         let widths_str = widths.into_iter().join(" ");
-        let extra_string = extra_constraints.unwrap_or(vec!["".to_string()]).join(" ");
+        let extra_string = extra_constraints.unwrap_or(&vec!["".to_string()]).join(" ");
 
         let string = format!(
             "
@@ -301,11 +301,22 @@ impl SmtPBVInfo {
 }
 
 pub trait SmtPBV {
+    fn to_smt_pbv_panic(&self) -> Option<Vec<SmtPBVInfo>>;
     fn to_smt_pbv(&self) -> Option<Vec<SmtPBVInfo>>;
 }
 
 impl SmtPBV for RecExpr<ModIR> {
     fn to_smt_pbv(&self) -> Option<Vec<SmtPBVInfo>> {
+        match std::panic::catch_unwind(|| self.to_smt_pbv_panic()) {
+            Ok(val) => val,
+            Err(_) => {
+                println!("modir_smt_pbv panicked for: {}", self);
+                return None;
+            }
+        }
+    }
+
+    fn to_smt_pbv_panic(&self) -> Option<Vec<SmtPBVInfo>> {
         let get_recexpr = |id: &Id| self[*id].build_recexpr(|id1| self[id1].clone());
 
         let insert_constr = |constr: &HashSet<String>, new: &String| {

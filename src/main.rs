@@ -100,7 +100,7 @@ fn main() -> Result<(), std::io::Error> {
 
             if cli.smt2_convert {
                 println!("Trying to convert {} to smt2", equiv.name);
-                if let Some(smt2_vec) = equiv.to_smt2() {
+                if let Some(smt2_vec) = equiv.to_smt_pbv() {
                     if let Some(out_dir) = &cli.smt2_out_dir {
                         // Create subdirectory for this equivalence
                         let mut equiv_dir = out_dir.clone();
