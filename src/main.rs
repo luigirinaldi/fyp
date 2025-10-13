@@ -85,9 +85,9 @@ fn main() -> Result<(), std::io::Error> {
     // println!("{:#?}", test_cases);
     println!("Found {} test-cases", test_cases.len());
 
-    let checked_equivs: Vec<(Equivalence, Option<u64>, Option<Duration>)> = tqdm(test_cases.iter())
+    let checked_equivs: Vec<(&Equivalence, Option<u64>, Option<Duration>)> = tqdm(test_cases.iter())
         .map(|case| {
-            let mut equiv = Equivalence::new(
+            let mut equiv = &Equivalence::new(
                 &case.name,
                 &case
                     .preconditions
@@ -97,10 +97,11 @@ fn main() -> Result<(), std::io::Error> {
                 &case.lhs,
                 &case.rhs,
             );
-
+            
             if cli.smt2_convert {
+                let res = equiv.to_smt_pbv();
                 println!("Trying to convert {} to smt2", equiv.name);
-                if let Some(smt2_vec) = equiv.to_smt_pbv() {
+                if let Some(smt2_vec) = res {
                     if let Some(out_dir) = &cli.smt2_out_dir {
                         // Create subdirectory for this equivalence
                         let mut equiv_dir = out_dir.clone();
@@ -134,6 +135,8 @@ fn main() -> Result<(), std::io::Error> {
                 }
             }
 
+            // println!("{res}");
+
             let stats = if !cli.skip_equiv {
                 // === Construct case-specific dot_path and expl_path ===
                 let dot_path = cli.dot_path.as_ref().map(|base| {
@@ -156,10 +159,10 @@ fn main() -> Result<(), std::io::Error> {
                     let _profiler = dhat::Profiler::new_heap();
                     #[cfg(feature = "get-heap-info")]
                     let before_stats = dhat::HeapStats::get();
-                    equiv = equiv.reset_runner();
+                    equiv = &equiv.reset_runner();
                     let now = Instant::now();
                     {
-                        equiv = equiv.find_equivalence(&dot_path, &expl_path);
+                        equiv = &equiv.find_equivalence(&dot_path, &expl_path);
                     }
                     let elapsed = now.elapsed();
                     #[cfg(feature = "get-heap-info")]
@@ -219,7 +222,7 @@ fn main() -> Result<(), std::io::Error> {
         let (true_equivs, false_equivs): (Vec<_>, Vec<_>) = checked_equivs
             .into_iter()
             .map(|(e, _m, _d)| e)
-            .partition(|e: &Equivalence| e.equiv.is_some_and(|x| x));
+            .partition(|e| e.equiv.is_some_and(|x| x));
 
         let true_equivs_info = true_equivs
             .iter()

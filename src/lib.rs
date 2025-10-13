@@ -45,7 +45,7 @@ pub struct Equivalence<'a> {
     inferred_truths: Option<Vec<(String, RecExpr<ModIR>)>>,
     lhs_pbv: OnceLock<Option<Vec<SmtPBVInfo>>>,
     rhs_pbv: OnceLock<Option<Vec<SmtPBVInfo>>>,
-    enum_pbv_conditions: OnceLock<Option<Vec<(SmtPBVInfo, SmtPBVInfo)>>>,
+    enum_pbv_conditions: OnceLock<Option<Vec<(&'a SmtPBVInfo, &'a SmtPBVInfo)>>>,
 }
 
 impl<'a> Equivalence<'a> {
@@ -130,22 +130,24 @@ impl<'a> Equivalence<'a> {
     }
 
     fn lhs_pbv(&self) -> &Option<Vec<SmtPBVInfo>> {
-        self.lhs_pbv.get_or_init(|| self.lhs.to_smt_pbv())
+        self.lhs_pbv.get_or_init(|| self.lhs.clone().to_smt_pbv())
     }
 
     fn rhs_pbv(&self) -> &Option<Vec<SmtPBVInfo>> {
-        self.rhs_pbv.get_or_init(|| self.rhs.to_smt_pbv())
+        self.rhs_pbv.get_or_init(|| self.rhs.clone().to_smt_pbv())
     }
 
-    fn enum_pbv_conditions(&self) -> &Option<Vec<(SmtPBVInfo, SmtPBVInfo)>> {
-        self.enum_pbv_conditions.get_or_init(|| {
+    fn enum_pbv_conditions(&'a self) -> &'a Option<Vec<(&'a SmtPBVInfo, &'a SmtPBVInfo)>>
+    {
+        self.enum_pbv_conditions.get_or_init(move || 
             match (self.lhs_pbv(), self.rhs_pbv()) {
                 (Some(lhs), Some(rhs)) => {
-                    let preconditions: Vec<String> = self.preconditions.iter().map(|p| p.to_string()).collect();
+                    let preconditions =
+                        &self.preconditions.iter().map(|p| p.to_string()).collect();
 
                     // Set up progress bar
                     let total = (lhs.len() * rhs.len()) as u64;
-                    let pb = ProgressBar::new(total);
+                    let pb = &ProgressBar::new(total);
                     pb.set_style(
                         ProgressStyle::default_bar()
                             .template(
@@ -157,11 +159,11 @@ impl<'a> Equivalence<'a> {
                     // Parallelize the SMT problem generation with progress bar
                     let problems: Vec<_> = lhs
                         .par_iter()
-                        .flat_map_iter(|lsmt| {
-                            rhs.iter().filter_map(|rsmt| {
+                        .flat_map_iter(move |lsmt| {
+                            rhs.iter().filter_map(move |rsmt| {
                                 pb.inc(1);
-                                if lsmt.constraints_match(rsmt, Some(&preconditions)) {
-                                    Some((lsmt.clone(), rsmt.clone()))
+                                if lsmt.constraints_match(&rsmt, Some(preconditions)) {
+                                    Some((lsmt, rsmt))
                                 } else {
                                     None
                                 }
@@ -169,20 +171,19 @@ impl<'a> Equivalence<'a> {
                         })
                         .collect();
                     pb.finish_with_message("done");
-                    println!(
-                        "{}: left: {} right: {} product: {}. valid: {}",
-                        self.name,
-                        lhs.len(),
-                        rhs.len(),
-                        lhs.len() * rhs.len(),
-                        problems.len()
-                    );
+                            println!(
+            "{}: left: {} right: {} product: {}. valid: {}",
+            self.name,
+            lhs.len(),
+            rhs.len(),
+            lhs.len() * rhs.len(),
+            problems.len()
+        );
                     Some(problems)
-                }
-                _ => {
-                    println!("lhs or rhs is None");
-                    None
-                }
+            }
+            _ => {
+                println!("lhs or rhs is None");
+                None
             }
         })
     }
@@ -440,9 +441,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
         proof_file.write("\nend\n".as_bytes()).unwrap();
     }
 
-    pub fn to_smt_pbv<'c>(&'c self) -> Option<Vec<String>> 
-    where
-        'c: 'a
+    pub fn to_smt_pbv(&'a self) -> Option<Vec<String>>
     {
         // Function to generate a single SMT problem
         fn generate_smt_problem(
