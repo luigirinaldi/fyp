@@ -85,9 +85,9 @@ fn main() -> Result<(), std::io::Error> {
     // println!("{:#?}", test_cases);
     println!("Found {} test-cases", test_cases.len());
 
-    let checked_equivs: Vec<(&Equivalence, Option<u64>, Option<Duration>)> = tqdm(test_cases.iter())
+    let checked_equivs: Vec<(Equivalence, Option<u64>, Option<Duration>)> = tqdm(test_cases.iter())
         .map(|case| {
-            let mut equiv = &Equivalence::new(
+            let mut equiv = Equivalence::new(
                 &case.name,
                 &case
                     .preconditions
@@ -159,10 +159,10 @@ fn main() -> Result<(), std::io::Error> {
                     let _profiler = dhat::Profiler::new_heap();
                     #[cfg(feature = "get-heap-info")]
                     let before_stats = dhat::HeapStats::get();
-                    equiv = &equiv.reset_runner();
+                    equiv = equiv.reset_runner();
                     let now = Instant::now();
                     {
-                        equiv = &equiv.find_equivalence(&dot_path, &expl_path);
+                        equiv = equiv.find_equivalence(&dot_path, &expl_path);
                     }
                     let elapsed = now.elapsed();
                     #[cfg(feature = "get-heap-info")]

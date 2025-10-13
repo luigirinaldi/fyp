@@ -4,6 +4,7 @@ use crate::Symbol;
 use egg::*;
 use itertools::Itertools;
 use language::ModAnalysis;
+use rayon::iter::Once;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fs::File;
@@ -12,8 +13,6 @@ use std::time::Duration;
 
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
-
-use std::sync::OnceLock;
 
 mod dot_equiv;
 mod extractor;
@@ -26,13 +25,13 @@ use crate::language::ModIR;
 use crate::rewrite_rules::rules;
 use crate::utils::*;
 
-pub use utils::check_isabelle_proof;
-pub use utils::prepare_output_dir;
-
+use std::cell::OnceCell;
 use std::path::{Path, PathBuf};
 pub use types::EquivalenceString;
+pub use utils::check_isabelle_proof;
+pub use utils::prepare_output_dir;
 #[derive(Debug)]
-pub struct Equivalence<'a> {
+pub struct Equivalence {
     pub name: String,
     pub preconditions: Vec<RecExpr<ModIR>>,
     pub lhs: RecExpr<ModIR>,
@@ -43,12 +42,12 @@ pub struct Equivalence<'a> {
     non_bw_vars: HashSet<Symbol>,
     proof: Option<Vec<egg::FlatTerm<ModIR>>>,
     inferred_truths: Option<Vec<(String, RecExpr<ModIR>)>>,
-    lhs_pbv: OnceLock<Option<Vec<SmtPBVInfo>>>,
-    rhs_pbv: OnceLock<Option<Vec<SmtPBVInfo>>>,
-    enum_pbv_conditions: OnceLock<Option<Vec<(&'a SmtPBVInfo, &'a SmtPBVInfo)>>>,
+    lhs_pbv: OnceCell<Result<Vec<SmtPBVInfo>, String>>,
+    rhs_pbv: OnceCell<Result<Vec<SmtPBVInfo>, String>>,
+    enum_pbv_conditions: OnceCell<Result<Vec<(SmtPBVInfo, SmtPBVInfo)>, String>>,
 }
 
-impl<'a> Equivalence<'a> {
+impl Equivalence {
     pub fn new(name: &str, preconditions: &[&str], lhs: &str, rhs: &str) -> Self {
         // construct an equivalence struct
         // infer extra pre-conditions, mainly around which values need to be greater than 0
@@ -112,9 +111,9 @@ impl<'a> Equivalence<'a> {
                 .with_iter_limit(1000)
                 .with_node_limit(200000)
                 .with_scheduler(SimpleScheduler),
-            enum_pbv_conditions: OnceLock::new(),
-            lhs_pbv: OnceLock::new(),
-            rhs_pbv: OnceLock::new(),
+            enum_pbv_conditions: OnceCell::new(),
+            lhs_pbv: OnceCell::new(),
+            rhs_pbv: OnceCell::new(),
         };
 
         ret_self
@@ -129,26 +128,26 @@ impl<'a> Equivalence<'a> {
             .join(" and ")
     }
 
-    fn lhs_pbv(&self) -> &Option<Vec<SmtPBVInfo>> {
+    fn lhs_pbv(&self) -> &Result<Vec<SmtPBVInfo>, String> {
         self.lhs_pbv.get_or_init(|| self.lhs.clone().to_smt_pbv())
     }
 
-    fn rhs_pbv(&self) -> &Option<Vec<SmtPBVInfo>> {
+    fn rhs_pbv(&self) -> &Result<Vec<SmtPBVInfo>, String> {
         self.rhs_pbv.get_or_init(|| self.rhs.clone().to_smt_pbv())
     }
 
-    fn enum_pbv_conditions(&'a self) -> &'a Option<Vec<(&'a SmtPBVInfo, &'a SmtPBVInfo)>>
-    {
-        self.enum_pbv_conditions.get_or_init(move || 
-            match (self.lhs_pbv(), self.rhs_pbv()) {
-                (Some(lhs), Some(rhs)) => {
-                    let preconditions =
-                        &self.preconditions.iter().map(|p| p.to_string()).collect();
+    fn enum_pbv_conditions(&self) -> &Result<Vec<(SmtPBVInfo, SmtPBVInfo)>, String> {
+        let lhs = self.lhs_pbv();
+        let rhs = self.rhs_pbv();
+        self.enum_pbv_conditions.get_or_init(|| {
+        match (lhs, rhs) {
+            (Ok(lhs), Ok(rhs)) => {
+                let preconditions = &self.preconditions.iter().map(|p| p.to_string()).collect();
 
-                    // Set up progress bar
-                    let total = (lhs.len() * rhs.len()) as u64;
-                    let pb = &ProgressBar::new(total);
-                    pb.set_style(
+                // Set up progress bar
+                let total = (lhs.len() * rhs.len()) as u64;
+                let pb = &ProgressBar::new(total);
+                pb.set_style(
                         ProgressStyle::default_bar()
                             .template(
                                 "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})",
@@ -156,36 +155,34 @@ impl<'a> Equivalence<'a> {
                             .unwrap()
                             .progress_chars("#>-"),
                     );
-                    // Parallelize the SMT problem generation with progress bar
-                    let problems: Vec<_> = lhs
-                        .par_iter()
-                        .flat_map_iter(move |lsmt| {
-                            rhs.iter().filter_map(move |rsmt| {
-                                pb.inc(1);
-                                if lsmt.constraints_match(&rsmt, Some(preconditions)) {
-                                    Some((lsmt, rsmt))
-                                } else {
-                                    None
-                                }
-                            })
+                // Parallelize the SMT problem generation with progress bar
+                let problems: Vec<(SmtPBVInfo, SmtPBVInfo)> = lhs
+                    .par_iter()
+                    .flat_map_iter(|lsmt| {
+                        rhs.iter().filter_map(|rsmt| {
+                            pb.inc(1);
+                            if lsmt.constraints_match(&rsmt, Some(preconditions)) {
+                                Some((lsmt.clone(), rsmt.clone()))
+                            } else {
+                                None
+                            }
                         })
-                        .collect();
-                    pb.finish_with_message("done");
-                            println!(
-            "{}: left: {} right: {} product: {}. valid: {}",
-            self.name,
-            lhs.len(),
-            rhs.len(),
-            lhs.len() * rhs.len(),
-            problems.len()
-        );
-                    Some(problems)
+                    })
+                    .collect();
+                pb.finish_with_message("done");
+                println!(
+                    "{}: left: {} right: {} product: {}. valid: {}",
+                    self.name,
+                    lhs.len(),
+                    rhs.len(),
+                    lhs.len() * rhs.len(),
+                    problems.len()
+                );
+                Ok(problems)
             }
-            _ => {
-                println!("lhs or rhs is None");
-                None
-            }
-        })
+            (l, r) => Err(format!("Error:\nlhs:{l:#?}\nrhs:{r:#?}")),
+        }
+    })
     }
 
     pub fn reset_runner(mut self) -> Self {
@@ -441,8 +438,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
         proof_file.write("\nend\n".as_bytes()).unwrap();
     }
 
-    pub fn to_smt_pbv(&'a self) -> Option<Vec<String>>
-    {
+    pub fn to_smt_pbv(&self) -> Option<Vec<String>> {
         // Function to generate a single SMT problem
         fn generate_smt_problem(
             lsmt: &SmtPBVInfo,
@@ -503,16 +499,24 @@ for {nat_string} :: nat and {int_string} :: int\n",
             )
         }
 
-
-        self.enum_pbv_conditions()
-            .as_ref()
-            .map_or(None, |pbv_vec| Some(
-                pbv_vec.into_iter().map(|(lhs, rhs)| {
-                    generate_smt_problem(lhs, rhs, &self.preconditions.iter().map(|p| p.to_string()).collect_vec())
-                })
-                .collect_vec())
+        self.enum_pbv_conditions().as_ref().map_or(None, |pbv_vec| {
+            Some(
+                pbv_vec
+                    .into_iter()
+                    .map(|(lhs, rhs)| {
+                        generate_smt_problem(
+                            lhs,
+                            rhs,
+                            &self
+                                .preconditions
+                                .iter()
+                                .map(|p| p.to_string())
+                                .collect_vec(),
+                        )
+                    })
+                    .collect_vec(),
             )
-
+        })
     }
 
     pub fn check_proof(

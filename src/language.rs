@@ -301,22 +301,21 @@ impl SmtPBVInfo {
 }
 
 pub trait SmtPBV {
-    fn to_smt_pbv_panic(&self) -> Option<Vec<SmtPBVInfo>>;
-    fn to_smt_pbv(&self) -> Option<Vec<SmtPBVInfo>>;
+    fn to_smt_pbv_panic(&self) -> Result<Vec<SmtPBVInfo>, String>;
+    fn to_smt_pbv(&self) -> Result<Vec<SmtPBVInfo>, String>;
 }
 
 impl SmtPBV for RecExpr<ModIR> {
-    fn to_smt_pbv(&self) -> Option<Vec<SmtPBVInfo>> {
-        match std::panic::catch_unwind(|| self.to_smt_pbv_panic()) {
+    fn to_smt_pbv(&self) -> Result<Vec<SmtPBVInfo>, String> {
+        return match std::panic::catch_unwind(|| self.to_smt_pbv_panic()) {
             Ok(val) => val,
             Err(_) => {
-                println!("modir_smt_pbv panicked for: {}", self);
-                return None;
+                return Err(format!("modir_smt_pbv panicked for: {}", self));
             }
         }
     }
 
-    fn to_smt_pbv_panic(&self) -> Option<Vec<SmtPBVInfo>> {
+    fn to_smt_pbv_panic(&self) -> Result<Vec<SmtPBVInfo>, String> {
         let get_recexpr = |id: &Id| self[*id].build_recexpr(|id1| self[id1].clone());
 
         let insert_constr = |constr: &HashSet<String>, new: &String| {
@@ -386,7 +385,7 @@ impl SmtPBV for RecExpr<ModIR> {
                     .collect_vec()
                     })
                     .collect_vec();
-                return Some(out_exprs);
+                return Ok(out_exprs);
             }
             // ModIR::Neg(a) => {
             //     let child_info = get_recexpr(a).to_smt_pbv(outer_width.clone()).unwrap();
@@ -426,7 +425,7 @@ impl SmtPBV for RecExpr<ModIR> {
                     ModIR::Var(symb) => {
                         // this is the case where the bw symbol identifies a parametric bitvector variable
                         let label = format!("pbv_{symb}");
-                        return Some(vec![SmtPBVInfo {
+                        return Ok(vec![SmtPBVInfo {
                             expr: label.clone(),
                             pbv_vars: HashSet::<String>::from([format!(
                                 "(declare-fun {} () (_ BitVec {}))",
@@ -444,7 +443,7 @@ impl SmtPBV for RecExpr<ModIR> {
                     ModIR::Num(num) => {
                         if let ModIR::Num(_) = self[*width] {
                             // the width and the value are constant, hence this is in no way parametric
-                            return Some(vec![SmtPBVInfo {
+                            return Ok(vec![SmtPBVInfo {
                                 expr: format!("(_ bv{num} {})", width_str),
                                 pbv_vars: HashSet::<String>::from([]),
                                 pbv_widths: HashSet::<String>::from([]),
@@ -454,7 +453,7 @@ impl SmtPBV for RecExpr<ModIR> {
                         } else {
                             // width is parametric but value isn't hence create the variable and add assert to make it equal to some val
                             let label = format!("pbv_{num}");
-                            return Some(vec![SmtPBVInfo {
+                            return Ok(vec![SmtPBVInfo {
                                 expr: label.clone(),
                                 pbv_vars: HashSet::<String>::from([format!(
                                     "(declare-fun {lab} () (_ BitVec {w}))\n(assert (= {lab} (int_to_pbv {w} {num})))",
@@ -526,12 +525,12 @@ impl SmtPBV for RecExpr<ModIR> {
                             })
                             .filter(|info| info.constraints_sat(None))
                             .collect_vec();
-                        return Some(ret_array);
+                        return Ok(ret_array);
                     }
                 }
             }
             _ => {
-                return None;
+                return Err("Case not considered in match".to_string());
             }
         }
     }
