@@ -69,13 +69,13 @@
     "name": "sum_same",
     "preconditions": [],
     "lhs": "(bw q (+ (bw p a) (bw p a)))",
-    "rhs": "(bw q (* (bw 2 2) (bw p a)))"
+    "rhs": "(bw q (* (bw p 2) (bw p a)))"
   },
   {
     "name": "mult_sum_same",
     "preconditions": ["(> t p)", "(> t 1)", "(>= s (+ p q))"],
     "lhs": "(bw r (+ (bw s (* (bw p a) (bw q b))) (bw q b)))",
-    "rhs": "(bw r (* (bw t (+ (bw p a) (bw 1 1))) (bw q b)))"
+    "rhs": "(bw r (* (bw t (+ (bw p a) (bw p 1))) (bw q b)))"
   },
   {
     "name": "add_zero",

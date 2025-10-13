@@ -273,7 +273,7 @@ fn rover_sum_same() {
         "sum_same",
         &[],
         "(bw q (+ (bw p a) (bw p a)))",
-        "(bw q (* (bw 2 2) (bw p a)))",
+        "(bw q (* (bw p 2) (bw p a)))",
     );
     eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
@@ -296,7 +296,7 @@ fn rover_mult_sum_same() {
         "mult_sum_same",
         &["(> t p)", "(> t 1)", "(>= s (+ p q))"],
         "(bw r (+ (bw s (* (bw p a) (bw q b))) (bw q b)))",
-        "(bw r (* (bw t (+ (bw p a) (bw 1 1))) (bw q b)))",
+        "(bw r (* (bw t (+ (bw p a) (bw p 1))) (bw q b)))",
     );
     eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
