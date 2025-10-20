@@ -23,6 +23,7 @@ pub use utils::prepare_output_dir;
 
 use std::path::{Path, PathBuf};
 pub use types::EquivalenceString;
+#[derive(Debug)]
 pub struct Equivalence {
     pub name: String,
     pub preconditions: Vec<RecExpr<ModIR>>,
@@ -34,6 +35,21 @@ pub struct Equivalence {
     non_bw_vars: HashSet<Symbol>,
     proof: Option<Vec<egg::FlatTerm<ModIR>>>,
     inferred_truths: Option<Vec<(String, RecExpr<ModIR>)>>,
+}
+
+impl From<EquivalenceString> for Equivalence {
+    fn from(item: EquivalenceString) -> Self {
+        Equivalence::new(
+            &item.name,
+            &item
+                .preconditions
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<&str>>(),
+            &item.lhs,
+            &item.rhs,
+        )
+    }
 }
 
 impl Equivalence {
@@ -105,7 +121,7 @@ impl Equivalence {
         ret_self
     }
 
-    fn precond_str(&self) -> String {
+    pub fn precond_str(&self) -> String {
         self.preconditions
             .clone()
             .iter()
