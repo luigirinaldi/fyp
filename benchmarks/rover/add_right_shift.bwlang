@@ -1,0 +1,11 @@
+{
+    "name": "add_right_shift",
+    "preconditions": [
+        "(>= q t)",
+        "(>= s (+ p (- (^ 2 u) 1)))",
+        "(> v s)",
+        "(> v t)"
+    ],
+    "lhs": "(bw r (+ (bw p a) (bw q (>> (bw t b) (bw u c)))))",
+    "rhs": "(bw r (>> (bw v (+ (bw s (<< (bw p a) (bw u c))) (bw t b))) (bw u c)))"
+}

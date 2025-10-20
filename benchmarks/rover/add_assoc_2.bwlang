@@ -1,0 +1,10 @@
+{
+    "name": "add_assoc_2",
+    "preconditions": [
+        "(< r q)",
+        "(< s q)",
+        "(>= u t)"
+    ],
+    "lhs": "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
+    "rhs": "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))"
+}

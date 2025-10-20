@@ -1,0 +1,11 @@
+{
+    "name": "add_assoc_4",
+    "preconditions": [
+        "(< r q)",
+        "(< s q)",
+        "(< p u)",
+        "(< r u)"
+    ],
+    "lhs": "(bw t ( + (bw u (+ (bw p a) (bw r b))) (bw s c)))",
+    "rhs": "(bw t ( + (bw p a) (bw q (+ (bw r b) (bw s c)))))"
+}

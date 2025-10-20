@@ -1,0 +1,6 @@
+{
+    "name": "muldivrem_229",
+    "lhs": "(bw k (* (bw k (+ (bw k var_X) (bw k C1))) (bw k var_Op1)))",
+    "rhs": "(bw k (+ (bw k (* (bw k var_X) (bw k var_Op1))) (bw k (* (bw k C1) (bw k var_Op1)))))",
+    "preconditions": []
+}

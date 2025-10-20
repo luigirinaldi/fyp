@@ -1,0 +1,9 @@
+{
+    "name": "left_shift_mult",
+    "preconditions": [
+        "(>= t r)",
+        "(>= v r)"
+    ],
+    "lhs": "(bw r (<< (bw t (* (bw p a) (bw q b))) (bw u c)))",
+    "rhs": "(bw r (* (bw v (<< (bw p a) (bw u c))) (bw q b)))"
+}

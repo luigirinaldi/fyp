@@ -1,0 +1,9 @@
+{
+    "name": "mult_assoc_3",
+    "preconditions": [
+        "(<= (+ r s) q)",
+        "(>= u t)"
+    ],
+    "lhs": "(bw t ( * (bw u (* (bw p a) (bw r b))) (bw s c)))",
+    "rhs": "(bw t ( * (bw p a) (bw q (* (bw r b) (bw s c)))))"
+}
