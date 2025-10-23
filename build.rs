@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -16,26 +16,44 @@ fn sanitize_ident(s: &str) -> String {
             }
         })
         .collect();
-    // ensure it doesn't start with a digit
-    if out
-        .chars()
-        .next()
-        .map(|c| c.is_ascii_digit())
-        .unwrap_or(false)
-    {
+    if out.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false) {
         out.insert(0, '_');
     }
-    // avoid empty
     if out.is_empty() {
         out = "_".to_string();
     }
     out
 }
 
+fn read_expected_fails(subdir_path: &Path) -> HashSet<String> {
+    let mut set = HashSet::new();
+    let fails_path = subdir_path.join("fails.txt");
+    if fails_path.exists() {
+        // Tell cargo to rerun when fails.txt changes
+        println!("cargo:rerun-if-changed={}", fails_path.to_string_lossy());
+        if let Ok(contents) = fs::read_to_string(&fails_path) {
+            for line in contents.lines() {
+                let line = line.trim();
+                if line.is_empty() || line.starts_with('#') {
+                    continue;
+                }
+                // accept either "name" or "name.bwlang"
+                let stem = PathBuf::from(line)
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .map(|s| s.to_string())
+                    .unwrap_or_else(|| line.to_string());
+                set.insert(stem);
+            }
+        }
+    }
+    set
+}
+
 fn main() {
     let benchmarks_dir = Path::new("benchmarks");
 
-    // Map subdir_name -> Vec<(file_stem, path)>
+    // Map: subdir_name -> Vec<(file_stem, path)>
     let mut by_subdir: BTreeMap<String, Vec<(String, String)>> = BTreeMap::new();
 
     if let Ok(entries) = fs::read_dir(benchmarks_dir) {
@@ -47,9 +65,7 @@ fn main() {
                         for sub_entry in sub_entries.flatten() {
                             let file_path = sub_entry.path();
                             if file_path.extension().and_then(|s| s.to_str()) == Some("bwlang") {
-                                if let Some(file_stem) =
-                                    file_path.file_stem().and_then(|s| s.to_str())
-                                {
+                                if let Some(file_stem) = file_path.file_stem().and_then(|s| s.to_str()) {
                                     let path_str = file_path.to_string_lossy().into_owned();
                                     // Tell cargo to re-run when the benchmark file changes
                                     println!("cargo:rerun-if-changed={}", path_str);
@@ -66,14 +82,18 @@ fn main() {
         }
     }
 
-    // Make sure tests directory exists
+    // Ensure tests/ exists
     let _ = fs::create_dir_all("tests");
 
-    // For each subdir, create a single tests/<subdir>.rs containing all tests
+    // For each subdir, create tests/<subdir>.rs containing all tests for that subdir
     for (subdir, files) in by_subdir {
         if files.is_empty() {
             continue;
         }
+
+        // compute expected-fails set for this subdir
+        let subdir_path = Path::new("benchmarks").join(&subdir);
+        let expected_fails = read_expected_fails(&subdir_path);
 
         let out_path: PathBuf = format!("tests/{}.rs", subdir).into();
         let mut output = File::create(&out_path)
@@ -88,8 +108,8 @@ fn main() {
         for (file_stem, file_path) in files {
             let data = fs::read_to_string(&file_path)
                 .unwrap_or_else(|_| panic!("Failed to read file {}", &file_path));
-            let case: EquivalenceString = serde_json::from_str(&data)
-                .unwrap_or_else(|e| panic!("Failed to parse JSON {}: {}", &file_path, e));
+            let case: EquivalenceString =
+                serde_json::from_str(&data).unwrap_or_else(|e| panic!("Failed to parse JSON {}: {}", &file_path, e));
 
             // create a unique, safe function name
             let raw_fn_name = format!("{}_{}", subdir, case.name);
@@ -101,11 +121,17 @@ fn main() {
             let lhs_literal = format!("{:?}", case.lhs);
             let rhs_literal = format!("{:?}", case.rhs);
 
+            // Determine whether this test is expected to fail (file stem listed in fails.txt)
+            let is_expected_fail = expected_fails.contains(&file_stem);
+
+            // Build should_panic attribute if needed. We'll place it after #[test].
+            let should_panic_attr = if is_expected_fail { "#[should_panic]\n" } else { "" };
+
             writeln!(
                 output,
                 r#"
 #[test]
-#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
+{should_panic_attr}#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn {fn_name}() {{
     let mut eq = Equivalence::new(
@@ -124,6 +150,7 @@ fn {fn_name}() {{
     // eq.check_proof(&output_dir).unwrap();
 }}
 "#,
+                should_panic_attr = should_panic_attr,
                 fn_name = fn_name,
                 name_literal = name_literal,
                 preconditions = preconditions,
