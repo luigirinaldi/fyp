@@ -80,7 +80,7 @@ enum Command {
     // /// Convert the bwlang file to SMT PBV
     // ToSmtPbv,
     /// Convert to Isabelle
-    GenProof {
+    GetProof {
         /// Store the generated theorem in this directory
         #[arg(long, value_name = "FILE")]
         theorem_path: Option<PathBuf>,
@@ -129,10 +129,10 @@ fn main() -> Result<(), std::io::Error> {
             dot_path,
         } => {
             let name = equiv.name.clone();
-            equiv = equiv.find_equivalence(&add_base(dot_path, &name));
-            equiv = equiv.make_proof();
-
-            let explanation_string = equiv.explanation_string().unwrap();
+            let explanation_string = equiv
+                .find_equivalence(&add_base(dot_path, &name))
+                .make_proof()
+                .explanation_string();
 
             if let Some(path) = expl_path {
                 let mut file = File::create(path.join(format!("{name} explanation.txt"))).unwrap();
@@ -204,13 +204,13 @@ fn main() -> Result<(), std::io::Error> {
                 ),
             };
         }
-        Command::GenProof {
+        Command::GetProof {
             theorem_path,
             def_only,
             skip_equiv,
         } => {
             if !skip_equiv {
-                equiv = equiv.find_equivalence(&None)
+                equiv = equiv.find_equivalence(&None).make_proof();
             }
 
             match theorem_path {
@@ -227,38 +227,5 @@ fn main() -> Result<(), std::io::Error> {
             }
         }
     }
-
-    // let stats = if !cli.skip_equiv {
-    //     // === Construct case-specific dot_path and expl_path ===
-
-    // } else {
-    //     (None, None)
-    // };
-
-    // if let Some(th_path) = &cli.theorem_path {
-    //     equiv.to_isabelle(th_path, !cli.def_only);
-    // }
-
-    // if !cli.skip_equiv {
-    //     if let Some(info_path) = cli.runner_stats {
-    //         if info_path.exists() {
-    //             assert!(info_path.is_file(), "Runner stats path has to be a file");
-    //         } else {
-    //             prepare_output_dir(&info_path.parent().unwrap().to_path_buf(), false);
-    //         }
-
-    //         let stats = (
-    //             equiv.name.clone(),
-    //             EquivRunnerInfo {
-    //                 summary: equiv.runner.report(),
-    //                 memory_footprint: stats.0,
-    //                 crude_time: stats.1.map(|d| d.as_secs_f64()),
-    //                 iteration_info: equiv.runner.iterations.clone(),
-    //             },
-    //         );
-    //         let mut file_out = File::create(&info_path)?;
-    //         write!(file_out, "{}", serde_json::to_string(&stats).unwrap())?;
-    //     }
-    // }
     Ok(())
 }

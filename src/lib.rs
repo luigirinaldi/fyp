@@ -157,49 +157,45 @@ impl Equivalence {
         self
     }
 
-    pub fn explanation_string(&self) -> Option<String> {
-        if let Some(equiv) = self.equiv {
-            if let Some(proof) = &self.proof {
-                let mut output_str = format!(
-                    "{} LHS and RHS are{}equivalent!\n",
-                    self.name,
-                    if equiv { " " } else { " not " }
-                );
-                if equiv {
-                    output_str += &proof
-                        .iter()
-                        .map(|e| e.to_string())
-                        .collect::<Vec<_>>()
-                        .join("\n");
-                } else {
-                    let cost_func = EGraphCostFn::new(&self.runner.egraph, &self.lhs, &self.rhs);
-                    // try to extract simplified representations
-                    let extractor = Extractor::new(&self.runner.egraph, cost_func);
-                    // need to look for the simplified version of the lhs and rhs expression
-                    let (_best_cost, best_lhs_expr) =
-                        extractor.find_best(self.runner.egraph.lookup_expr(&self.lhs).unwrap());
-                    let (_best_cost, best_rhs_expr) =
-                        extractor.find_best(self.runner.egraph.lookup_expr(&self.rhs).unwrap());
+    pub fn explanation_string(&self) -> String {
+        let mut output_str = format!(
+            "{} LHS and RHS are{}equivalent!\n",
+            self.name,
+            if self.proof.is_some() { " " } else { " not " }
+        );
+        if let Some(proof) = &self.proof {
+            output_str += &proof
+                .iter()
+                .map(|e| e.to_string())
+                .collect::<Vec<_>>()
+                .join("\n");
+        } else {
+            let cost_func = EGraphCostFn::new(&self.runner.egraph, &self.lhs, &self.rhs);
+            // try to extract simplified representations
+            let extractor = Extractor::new(&self.runner.egraph, cost_func);
+            // need to look for the simplified version of the lhs and rhs expression
+            let (_best_cost, best_lhs_expr) =
+                extractor.find_best(self.runner.egraph.lookup_expr(&self.lhs).unwrap());
+            let (_best_cost, best_rhs_expr) =
+                extractor.find_best(self.runner.egraph.lookup_expr(&self.rhs).unwrap());
 
-                    output_str += &format!(
-                        "lhs simplified to:\n{}\nrhs simplified to:\n{}",
-                        best_lhs_expr.to_string(),
-                        best_rhs_expr.to_string()
-                    );
-                }
-
-                let out_str = format!(
-                    "lhs:{}\nrhs:{}\nconditions:{}\n{}\n",
-                    self.lhs.to_string(),
-                    self.rhs.to_string(),
-                    self.precond_str(),
-                    output_str,
-                );
-                debug!("{}", output_str);
-                return Some(out_str);
-            }
+            output_str += &format!(
+                "lhs simplified to:\n{}\nrhs simplified to:\n{}",
+                best_lhs_expr.to_string(),
+                best_rhs_expr.to_string()
+            );
         }
-        None
+
+        let out_str = format!(
+            "lhs:{}\nrhs:{}\nconditions:{}\n{}\n",
+            self.lhs.to_string(),
+            self.rhs.to_string(),
+            self.precond_str(),
+            output_str,
+        );
+
+        debug!("{}", output_str);
+        output_str
     }
 
     pub fn find_equivalence(mut self, make_dot: &Option<PathBuf>) -> Self {
