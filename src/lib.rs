@@ -1,6 +1,7 @@
 use crate::Symbol;
 use egg::*;
 use language::ModAnalysis;
+use log::info;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fs::File;
@@ -231,9 +232,13 @@ impl Equivalence {
             output_str,
         );
 
+        info!("{}", output_str);
+
         if let Some(path) = save_out {
             let mut file = File::create(path.join("explanation.txt")).unwrap();
             file.write(out_str.as_bytes()).unwrap();
+        } else {
+            println!("{}", output_str)
         }
         self
     }
