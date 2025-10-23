@@ -6,6 +6,7 @@ use std::{
     time::Duration,
 };
 
+use dhat::assert;
 use env_logger;
 use log::{debug, info, trace};
 
@@ -80,7 +81,7 @@ enum Command {
     // ToSmtPbv,
     /// Convert to Isabelle
     GenProof {
-        /// Store the generated theorem in this path
+        /// Store the generated theorem in this directory
         #[arg(long, value_name = "FILE")]
         theorem_path: Option<PathBuf>,
 
@@ -128,7 +129,17 @@ fn main() -> Result<(), std::io::Error> {
             dot_path,
         } => {
             let name = equiv.name.clone();
-            equiv.find_equivalence(&add_base(dot_path, &name), &add_base(expl_path, &name));
+            equiv = equiv.find_equivalence(&add_base(dot_path, &name));
+            equiv = equiv.make_proof();
+
+            let explanation_string = equiv.explanation_string().unwrap();
+
+            if let Some(path) = expl_path {
+                let mut file = File::create(path.join(format!("{name} explanation.txt"))).unwrap();
+                file.write(explanation_string.as_bytes()).unwrap();
+            } else {
+                println!("{}", explanation_string)
+            }
         }
         Command::GetStats {
             stats_path,
@@ -148,7 +159,7 @@ fn main() -> Result<(), std::io::Error> {
                     equiv = equiv.reset_runner();
                     let now = Instant::now();
                     {
-                        equiv = equiv.find_equivalence(&None, &None);
+                        equiv = equiv.find_equivalence(&None);
                     }
                     let elapsed = now.elapsed();
                     #[cfg(feature = "get-heap-info")]
@@ -187,7 +198,7 @@ fn main() -> Result<(), std::io::Error> {
                     write!(file_out, "{}", serde_json::to_string(&stats).unwrap())?;
                 }
                 None => println!(
-                    "Time Taken: {}\nNumber of bytes: {:?}",
+                    "Average Runtime: {}\nNumber of bytes: {:?}",
                     seconds.as_secs_f64(),
                     num_bytes
                 ),
@@ -198,7 +209,22 @@ fn main() -> Result<(), std::io::Error> {
             def_only,
             skip_equiv,
         } => {
-            
+            if !skip_equiv {
+                equiv = equiv.find_equivalence(&None)
+            }
+
+            match theorem_path {
+                Some(path) => {
+                    assert!(path.is_dir(), "Path must be a directory");
+                    let proof_file_path = path.join(format!("{}.thy", equiv.name));
+                    let mut proof_file = File::create(proof_file_path).unwrap();
+
+                    proof_file.write(equiv.to_isabelle(!def_only).as_bytes())?;
+                }
+                None => {
+                    println!("{}", equiv.to_isabelle(!def_only));
+                }
+            }
         }
     }
 

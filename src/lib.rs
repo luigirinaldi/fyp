@@ -1,6 +1,7 @@
 use crate::Symbol;
 use egg::*;
 use language::ModAnalysis;
+use log::debug;
 use log::info;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -24,6 +25,7 @@ pub use utils::prepare_output_dir;
 
 use std::path::{Path, PathBuf};
 pub use types::EquivalenceString;
+
 #[derive(Debug)]
 pub struct Equivalence {
     pub name: String,
@@ -141,11 +143,66 @@ impl Equivalence {
         self
     }
 
-    pub fn find_equivalence(
-        mut self,
-        make_dot: &Option<PathBuf>,
-        save_out: &Option<PathBuf>,
-    ) -> Self {
+    pub fn make_proof(mut self) -> Self {
+        if let Some(equiv) = self.equiv {
+            self.proof = if equiv {
+                let mut expl = self.runner.egraph.explain_equivalence(&self.lhs, &self.rhs);
+                expl.check_proof(&rules());
+
+                Some(expl.make_flat_explanation().clone())
+            } else {
+                None
+            };
+        }
+        self
+    }
+
+    pub fn explanation_string(&self) -> Option<String> {
+        if let Some(equiv) = self.equiv {
+            if let Some(proof) = &self.proof {
+                let mut output_str = format!(
+                    "{} LHS and RHS are{}equivalent!\n",
+                    self.name,
+                    if equiv { " " } else { " not " }
+                );
+                if equiv {
+                    output_str += &proof
+                        .iter()
+                        .map(|e| e.to_string())
+                        .collect::<Vec<_>>()
+                        .join("\n");
+                } else {
+                    let cost_func = EGraphCostFn::new(&self.runner.egraph, &self.lhs, &self.rhs);
+                    // try to extract simplified representations
+                    let extractor = Extractor::new(&self.runner.egraph, cost_func);
+                    // need to look for the simplified version of the lhs and rhs expression
+                    let (_best_cost, best_lhs_expr) =
+                        extractor.find_best(self.runner.egraph.lookup_expr(&self.lhs).unwrap());
+                    let (_best_cost, best_rhs_expr) =
+                        extractor.find_best(self.runner.egraph.lookup_expr(&self.rhs).unwrap());
+
+                    output_str += &format!(
+                        "lhs simplified to:\n{}\nrhs simplified to:\n{}",
+                        best_lhs_expr.to_string(),
+                        best_rhs_expr.to_string()
+                    );
+                }
+
+                let out_str = format!(
+                    "lhs:{}\nrhs:{}\nconditions:{}\n{}\n",
+                    self.lhs.to_string(),
+                    self.rhs.to_string(),
+                    self.precond_str(),
+                    output_str,
+                );
+                debug!("{}", output_str);
+                return Some(out_str);
+            }
+        }
+        None
+    }
+
+    pub fn find_equivalence(mut self, make_dot: &Option<PathBuf>) -> Self {
         let (lhs_clone, rhs_clone) = (self.lhs.clone(), self.rhs.clone());
         let (lhs_for_dot, rhs_for_dot) = (self.lhs.clone(), self.rhs.clone());
 
@@ -194,52 +251,7 @@ impl Equivalence {
         let equiv = !self.runner.egraph.equivs(&lhs_clone, &rhs_clone).is_empty();
         self.equiv = Some(equiv);
 
-        let mut output_str = format!(
-            "{} LHS and RHS are{}equivalent!\n",
-            self.name,
-            if equiv { " " } else { " not " }
-        );
-
-        self.proof = if equiv {
-            let mut expl = self.runner.egraph.explain_equivalence(&self.lhs, &self.rhs);
-            expl.check_proof(rewrite_rules);
-
-            output_str += &expl.get_flat_string();
-            Some(expl.make_flat_explanation().clone())
-        } else {
-            let cost_func = EGraphCostFn::new(&self.runner.egraph, &self.lhs, &self.rhs);
-            // try to extract simplified representations
-            let extractor = Extractor::new(&self.runner.egraph, cost_func);
-            // need to look for the simplified version of the lhs and rhs expression
-            let (_best_cost, best_lhs_expr) =
-                extractor.find_best(self.runner.egraph.lookup_expr(&self.lhs).unwrap());
-            let (_best_cost, best_rhs_expr) =
-                extractor.find_best(self.runner.egraph.lookup_expr(&self.rhs).unwrap());
-
-            output_str += &format!(
-                "lhs simplified to:\n{}\nrhs simplified to:\n{}",
-                best_lhs_expr.to_string(),
-                best_rhs_expr.to_string()
-            );
-            None
-        };
-
-        let out_str = format!(
-            "lhs:{}\nrhs:{}\nconditions:{}\n{}\n",
-            self.lhs.to_string(),
-            self.rhs.to_string(),
-            self.precond_str(),
-            output_str,
-        );
-
-        info!("{}", output_str);
-
-        if let Some(path) = save_out {
-            let mut file = File::create(path.join("explanation.txt")).unwrap();
-            file.write(out_str.as_bytes()).unwrap();
-        } else {
-            println!("{}", output_str)
-        }
+        debug!("Equiv: {}", equiv);
         self
     }
 
@@ -334,11 +346,10 @@ impl Equivalence {
         }
     }
 
-    pub fn to_isabelle(&self, path: &Path, use_lemmas: bool) {
+    pub fn to_isabelle(&self, use_lemmas: bool) -> String {
         // Clean up theorem name
         let proof_name = &self.name;
-        let proof_file_path = path.join(format!("{}.thy", proof_name));
-        let mut proof_file = File::create(proof_file_path).unwrap();
+        let mut proof_string = String::new();
 
         let nat_string = self
             .bw_vars
@@ -353,39 +364,33 @@ impl Equivalence {
             .collect::<Vec<_>>()
             .join(" ");
 
-        proof_file
-            .write(
-                format!(
-                    "theory {th_name}
+        proof_string.push_str(&format!(
+            "theory {th_name}
     imports {imports}
 begin
 theorem {th_name}_th:
 \"{lhs}={rhs}\" (is \"?lhs = ?rhs\")
 if {preconditions}
 for {nat_string} :: nat and {int_string} :: int\n",
-                    imports = if use_lemmas {
-                        "rewrite_lemmas"
-                    } else {
-                        "rewrite_defs"
-                    },
-                    th_name = proof_name,
-                    lhs = print_infix(&self.lhs, &self.bw_vars, false),
-                    rhs = print_infix(&self.rhs, &self.bw_vars, false),
-                    preconditions = self.precond_str()
-                )
-                .as_bytes(),
-            )
-            .unwrap();
+            imports = if use_lemmas {
+                "rewrite_lemmas"
+            } else {
+                "rewrite_defs"
+            },
+            th_name = proof_name,
+            lhs = print_infix(&self.lhs, &self.bw_vars, false),
+            rhs = print_infix(&self.rhs, &self.bw_vars, false),
+            preconditions = self.precond_str()
+        ));
 
         if let Some(proof) = self.get_isabelle_proof() {
-            proof_file.write(proof.as_bytes()).unwrap();
+            proof_string.push_str(&proof);
         } else {
-            proof_file
-                .write("proof -\n  show ?thesis sorry\nqed\n".as_bytes())
-                .unwrap();
+            proof_string.push_str("proof -\n  show ?thesis sorry\nqed\n");
         }
 
-        proof_file.write("\nend\n".as_bytes()).unwrap();
+        proof_string.push_str("\nend\n");
+        proof_string
     }
 
     pub fn check_proof(
