@@ -6,6 +6,7 @@ use ntest::timeout;
 
 
 #[test]
+#[should_panic]
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_InstCombineShift476() {
@@ -48,6 +49,7 @@ fn alive_mixed_AddSub_1043() {
 
 
 #[test]
+#[should_panic]
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_InstCombineShift440() {
@@ -69,6 +71,7 @@ fn alive_mixed_InstCombineShift440() {
 
 
 #[test]
+#[should_panic]
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_AndOrXor_2475() {
@@ -90,6 +93,7 @@ fn alive_mixed_AndOrXor_2475() {
 
 
 #[test]
+#[should_panic]
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_InstCombineShift239() {
@@ -132,6 +136,7 @@ fn alive_mixed_AddSub_1624() {
 
 
 #[test]
+#[should_panic]
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_AndOrXor_2515() {
@@ -195,6 +200,7 @@ fn alive_mixed_AddSub_1560() {
 
 
 #[test]
+#[should_panic]
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_InstCombineShift279() {
@@ -258,6 +264,7 @@ fn alive_mixed_AddSub_1295() {
 
 
 #[test]
+#[should_panic]
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_InstCombineShift497a() {
@@ -300,6 +307,7 @@ fn alive_mixed_AddSub_1564() {
 
 
 #[test]
+#[should_panic]
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_mixed_InstCombineShift582() {

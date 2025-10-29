@@ -153,6 +153,7 @@ fn alive_bitwise_AndOrXor_2285() {
 
 
 #[test]
+#[should_panic]
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2231() {
@@ -300,6 +301,7 @@ fn alive_bitwise_AndOrXor_2113() {
 
 
 #[test]
+#[should_panic]
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2063() {
@@ -447,6 +449,7 @@ fn alive_bitwise_AndOrXor_2297() {
 
 
 #[test]
+#[should_panic]
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2627() {
@@ -552,6 +555,7 @@ fn alive_bitwise_AndOrXor_1294() {
 
 
 #[test]
+#[should_panic]
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2647() {
@@ -573,6 +577,7 @@ fn alive_bitwise_AndOrXor_2647() {
 
 
 #[test]
+#[should_panic]
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2263() {
@@ -636,6 +641,7 @@ fn alive_bitwise_AndOrXor_2429() {
 
 
 #[test]
+#[should_panic]
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_2264() {
@@ -741,6 +747,7 @@ fn alive_bitwise_AndOrXor_144() {
 
 
 #[test]
+#[should_panic]
 #[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn alive_bitwise_AndOrXor_1288() {

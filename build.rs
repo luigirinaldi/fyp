@@ -16,7 +16,12 @@ fn sanitize_ident(s: &str) -> String {
             }
         })
         .collect();
-    if out.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false) {
+    if out
+        .chars()
+        .next()
+        .map(|c| c.is_ascii_digit())
+        .unwrap_or(false)
+    {
         out.insert(0, '_');
     }
     if out.is_empty() {
@@ -61,14 +66,16 @@ fn main() {
             let subdir_path = entry.path();
             if subdir_path.is_dir() {
                 if let Some(subdir_name) = subdir_path.file_name().and_then(|s| s.to_str()) {
+                    // Tell cargo to re-run when the benchmark directory changes
+                    println!("cargo:rerun-if-changed={}", subdir_path.to_string_lossy());
                     if let Ok(sub_entries) = fs::read_dir(&subdir_path) {
                         for sub_entry in sub_entries.flatten() {
                             let file_path = sub_entry.path();
                             if file_path.extension().and_then(|s| s.to_str()) == Some("bwlang") {
-                                if let Some(file_stem) = file_path.file_stem().and_then(|s| s.to_str()) {
+                                if let Some(file_stem) =
+                                    file_path.file_stem().and_then(|s| s.to_str())
+                                {
                                     let path_str = file_path.to_string_lossy().into_owned();
-                                    // Tell cargo to re-run when the benchmark file changes
-                                    println!("cargo:rerun-if-changed={}", path_str);
                                     by_subdir
                                         .entry(subdir_name.to_string())
                                         .or_default()
@@ -94,6 +101,7 @@ fn main() {
         // compute expected-fails set for this subdir
         let subdir_path = Path::new("benchmarks").join(&subdir);
         let expected_fails = read_expected_fails(&subdir_path);
+        println!("{:#?}", expected_fails);
 
         let out_path: PathBuf = format!("tests/{}.rs", subdir).into();
         let mut output = File::create(&out_path)
@@ -108,8 +116,8 @@ fn main() {
         for (file_stem, file_path) in files {
             let data = fs::read_to_string(&file_path)
                 .unwrap_or_else(|_| panic!("Failed to read file {}", &file_path));
-            let case: EquivalenceString =
-                serde_json::from_str(&data).unwrap_or_else(|e| panic!("Failed to parse JSON {}: {}", &file_path, e));
+            let case: EquivalenceString = serde_json::from_str(&data)
+                .unwrap_or_else(|e| panic!("Failed to parse JSON {}: {}", &file_path, e));
 
             // create a unique, safe function name
             let raw_fn_name = format!("{}_{}", subdir, case.name);
@@ -125,7 +133,11 @@ fn main() {
             let is_expected_fail = expected_fails.contains(&file_stem);
 
             // Build should_panic attribute if needed. We'll place it after #[test].
-            let should_panic_attr = if is_expected_fail { "#[should_panic]\n" } else { "" };
+            let should_panic_attr = if is_expected_fail {
+                "#[should_panic]\n"
+            } else {
+                ""
+            };
 
             writeln!(
                 output,
