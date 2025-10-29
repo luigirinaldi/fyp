@@ -1,0 +1,8 @@
+{
+    "name": "muldivrem_290_292",
+    "lhs": "(bw k (* (bw k (<< (bw k 1) (bw k var_Y))) (bw k var_Op1)))",
+    "rhs": "(bw k (<< (bw k var_Op1) (bw k var_Y)))",
+    "preconditions": [
+        "(< (bw k var_Y) (bw k 4))"
+    ]
+}

@@ -1,0 +1,6 @@
+{
+    "name": "AddSub_1295",
+    "lhs": "(bw k (+ (bw k (and (bw k var_a) (bw k var_b))) (bw k (xor (bw k var_a) (bw k var_b)))))",
+    "rhs": "(bw k (or (bw k var_a) (bw k var_b)))",
+    "preconditions": []
+}

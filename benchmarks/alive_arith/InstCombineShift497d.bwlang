@@ -1,0 +1,8 @@
+{
+    "name": "InstCombineShift497d",
+    "lhs": "(bw k (<< (bw k (+ (bw k var_X) (bw k C2))) (bw k C)))",
+    "rhs": "(bw k (+ (bw k (<< (bw k var_X) (bw k C))) (bw k (<< (bw k C2) (bw k C)))))",
+    "preconditions": [
+        "(< (bw k C) (bw k 4))"
+    ]
+}

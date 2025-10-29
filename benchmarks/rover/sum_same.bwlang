@@ -1,0 +1,6 @@
+{
+    "name": "sum_same",
+    "preconditions": [],
+    "lhs": "(bw q (+ (bw p a) (bw p a)))",
+    "rhs": "(bw q (* (bw 2 2) (bw p a)))"
+}

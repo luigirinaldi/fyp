@@ -1,0 +1,10 @@
+{
+    "name": "merge_right_shift",
+    "preconditions": [
+        "(>= u p)",
+        "(> t s)",
+        "(> t q)"
+    ],
+    "lhs": "(bw r (>> (bw u (>> (bw p a) (bw q b))) (bw s c)))",
+    "rhs": "(bw r (>> (bw p a) (bw t (+ (bw q b) (bw s c)))))"
+}

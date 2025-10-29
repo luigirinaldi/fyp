@@ -1,0 +1,6 @@
+{
+    "name": "sub_to_neg",
+    "preconditions": [],
+    "lhs": "(bw r (- (bw p a) (bw q b)))",
+    "rhs": "(bw r (+ (bw p a) (- (bw q b))))"
+}

@@ -1,0 +1,10 @@
+{
+    "name": "dist_over_add",
+    "preconditions": [
+        "(>= q r)",
+        "(>= u r)",
+        "(>= v r)"
+    ],
+    "lhs": "(bw r (* (bw p a) (bw q (+ (bw s b) (bw t c)))))",
+    "rhs": "(bw r (+ (bw u (* (bw p a) (bw s b))) (bw v (* (bw p a) (bw t c)) ) ))"
+}

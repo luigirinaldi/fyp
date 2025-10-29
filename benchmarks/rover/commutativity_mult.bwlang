@@ -1,0 +1,6 @@
+{
+    "name": "commutativity_mult",
+    "preconditions": [],
+    "lhs": "(bw r ( * (bw p a) (bw q b)))",
+    "rhs": "(bw r ( * (bw q b) (bw p a)))"
+}

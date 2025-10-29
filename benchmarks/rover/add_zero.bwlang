@@ -1,0 +1,6 @@
+{
+    "name": "add_zero",
+    "preconditions": [],
+    "lhs": "(bw p (+ (bw p a) (bw q 0)))",
+    "rhs": "(bw p a)"
+}

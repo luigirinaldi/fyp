@@ -1,0 +1,6 @@
+{
+    "name": "AddSub_1539_2",
+    "lhs": "(bw k (- (bw k var_x) (bw k C)))",
+    "rhs": "(bw k (+ (bw k var_x) (bw k (- (bw k C)))))",
+    "preconditions": []
+}

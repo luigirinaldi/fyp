@@ -1,0 +1,8 @@
+{
+    "name": "InstCombineShift440",
+    "lhs": "(bw k (<< (bw k (xor (bw k var_Y) (bw k (and (bw k (>> (bw k var_X) (bw k C))) (bw k C2))))) (bw k C)))",
+    "rhs": "(bw k (xor (bw k (and (bw k var_X) (bw k (<< (bw k C2) (bw k C))))) (bw k (<< (bw k var_Y) (bw k C)))))",
+    "preconditions": [
+        "(< (bw k C) (bw k 4))"
+    ]
+}

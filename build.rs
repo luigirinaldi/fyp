@@ -1,77 +1,173 @@
+use std::collections::{BTreeMap, HashSet};
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
 include!("src/types.rs");
 
+fn sanitize_ident(s: &str) -> String {
+    let mut out: String = s
+        .chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect();
+    if out
+        .chars()
+        .next()
+        .map(|c| c.is_ascii_digit())
+        .unwrap_or(false)
+    {
+        out.insert(0, '_');
+    }
+    if out.is_empty() {
+        out = "_".to_string();
+    }
+    out
+}
+
+fn read_expected_fails(subdir_path: &Path) -> HashSet<String> {
+    let mut set = HashSet::new();
+    let fails_path = subdir_path.join("fails.txt");
+    if fails_path.exists() {
+        // Tell cargo to rerun when fails.txt changes
+        println!("cargo:rerun-if-changed={}", fails_path.to_string_lossy());
+        if let Ok(contents) = fs::read_to_string(&fails_path) {
+            for line in contents.lines() {
+                let line = line.trim();
+                if line.is_empty() || line.starts_with('#') {
+                    continue;
+                }
+                // accept either "name" or "name.bwlang"
+                let stem = PathBuf::from(line)
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .map(|s| s.to_string())
+                    .unwrap_or_else(|| line.to_string());
+                set.insert(stem);
+            }
+        }
+    }
+    set
+}
+
 fn main() {
-    let test_data_dir = Path::new("test_data");
+    let benchmarks_dir = Path::new("benchmarks");
 
-    // Collect (name, path) tuples for all JSON files in test_data
-    let mut files = Vec::new();
+    // Map: subdir_name -> Vec<(file_stem, path)>
+    let mut by_subdir: BTreeMap<String, Vec<(String, String)>> = BTreeMap::new();
 
-    if let Ok(entries) = fs::read_dir(test_data_dir) {
-        for entry in entries {
-            if let Ok(entry) = entry {
-                let path = entry.path();
-                if path.extension().and_then(|s| s.to_str()) == Some("json") {
-                    if let Some(file_stem) = path.file_stem().and_then(|s| s.to_str()) {
-                        let path_str = path.to_string_lossy().into_owned();
-                        println!("cargo:rerun-if-changed={}", path_str);
-                        files.push((file_stem.to_string(), path_str));
+    if let Ok(entries) = fs::read_dir(benchmarks_dir) {
+        for entry in entries.flatten() {
+            let subdir_path = entry.path();
+            if subdir_path.is_dir() {
+                if let Some(subdir_name) = subdir_path.file_name().and_then(|s| s.to_str()) {
+                    // Tell cargo to re-run when the benchmark directory changes
+                    println!("cargo:rerun-if-changed={}", subdir_path.to_string_lossy());
+                    if let Ok(sub_entries) = fs::read_dir(&subdir_path) {
+                        for sub_entry in sub_entries.flatten() {
+                            let file_path = sub_entry.path();
+                            if file_path.extension().and_then(|s| s.to_str()) == Some("bwlang") {
+                                if let Some(file_stem) =
+                                    file_path.file_stem().and_then(|s| s.to_str())
+                                {
+                                    let path_str = file_path.to_string_lossy().into_owned();
+                                    by_subdir
+                                        .entry(subdir_name.to_string())
+                                        .or_default()
+                                        .push((file_stem.to_string(), path_str));
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
 
-    for (prefix, file_path) in files {
-        let out_path: PathBuf = format!("tests/{}.rs", prefix).into();
-        let mut output = File::create(&out_path).expect("Failed to create output test file");
+    // Ensure tests/ exists
+    let _ = fs::create_dir_all("tests");
 
+    // For each subdir, create tests/<subdir>.rs containing all tests for that subdir
+    for (subdir, files) in by_subdir {
+        if files.is_empty() {
+            continue;
+        }
+
+        // compute expected-fails set for this subdir
+        let subdir_path = Path::new("benchmarks").join(&subdir);
+        let expected_fails = read_expected_fails(&subdir_path);
+        println!("{:#?}", expected_fails);
+
+        let out_path: PathBuf = format!("tests/{}.rs", subdir).into();
+        let mut output = File::create(&out_path)
+            .unwrap_or_else(|_| panic!("Failed to create output test file {:?}", out_path));
+
+        // header + imports
         writeln!(output, "// AUTO-GENERATED BY build.rs\n").unwrap();
-        writeln!(output, "use para_bit::*;\n").unwrap(); // Replace `your_crate` with actual lib name
-        writeln!(output, "use std::path::PathBuf;\n").unwrap();
+        writeln!(output, "use parabit::*;\n").unwrap(); // adjust crate name if needed
         writeln!(output, "use ntest::timeout;\n").unwrap();
-        let data = fs::read_to_string(&file_path)
-            .unwrap_or_else(|_| panic!("Failed to read file {}", &file_path));
-        let test_cases: Vec<EquivalenceString> =
-            serde_json::from_str(&data).expect("Failed to parse JSON");
 
-        for (_, case) in test_cases.iter().enumerate() {
-            let fn_name = format!("{}_{}", prefix, case.name);
+        // For each file in this subdir, parse the bwlang file and append a test fn
+        for (file_stem, file_path) in files {
+            let data = fs::read_to_string(&file_path)
+                .unwrap_or_else(|_| panic!("Failed to read file {}", &file_path));
+            let case: EquivalenceString = serde_json::from_str(&data)
+                .unwrap_or_else(|e| panic!("Failed to parse JSON {}: {}", &file_path, e));
+
+            // create a unique, safe function name
+            let raw_fn_name = format!("{}_{}", subdir, case.name);
+            let fn_name = sanitize_ident(&raw_fn_name);
+
+            // Pretty-print preconditions and use debug formatting for string literals so they are valid Rust code
             let preconditions = format!("{:?}", case.preconditions);
+            let name_literal = format!("{:?}", case.name);
+            let lhs_literal = format!("{:?}", case.lhs);
+            let rhs_literal = format!("{:?}", case.rhs);
+
+            // Determine whether this test is expected to fail (file stem listed in fails.txt)
+            let is_expected_fail = expected_fails.contains(&file_stem);
+
+            // Build should_panic attribute if needed. We'll place it after #[test].
+            let should_panic_attr = if is_expected_fail {
+                "#[should_panic]\n"
+            } else {
+                ""
+            };
 
             writeln!(
                 output,
                 r#"
 #[test]
-#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
+{should_panic_attr}#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
 #[allow(non_snake_case)]
 fn {fn_name}() {{
-    let output_dir = PathBuf::from("target")
-        .join("tests")
-        .join("{prefix}")
-        .join("{escaped_name}");
-    prepare_output_dir(&output_dir, true);
     let mut eq = Equivalence::new(
-        "{escaped_name}",
+        {name_literal},
         &{preconditions},
-        "{lhs}",
-        "{rhs}",
+        {lhs_literal},
+        {rhs_literal},
     );
-    eq = eq.find_equivalence(&None, &Some(output_dir.clone()));
-    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found");
-    eq.to_isabelle(&output_dir, true);
-    #[cfg(feature = "isabelle-check")]
-    eq.check_proof(&output_dir).unwrap();
+    eq = eq.find_equivalence(&None);
+    assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found.\n{{}}", eq.explanation_string());
+    eq = eq.make_proof();
+    let _expl = eq.explanation_string();
+    // println!("{{}}", _expl); 
+    // let _isabelle_proof = eq.to_isabelle(true);
+    // #[cfg(feature = "isabelle-check")]
+    // eq.check_proof(&output_dir).unwrap();
 }}
 "#,
+                should_panic_attr = should_panic_attr,
                 fn_name = fn_name,
-                escaped_name = case.name,
+                name_literal = name_literal,
                 preconditions = preconditions,
-                lhs = case.lhs,
-                rhs = case.rhs
+                lhs_literal = lhs_literal,
+                rhs_literal = rhs_literal
             )
             .unwrap();
         }

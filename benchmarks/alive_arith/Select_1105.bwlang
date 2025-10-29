@@ -1,0 +1,6 @@
+{
+    "name": "Select_1105",
+    "lhs": "(bw k var_Y)",
+    "rhs": "(bw k var_Y)",
+    "preconditions": []
+}

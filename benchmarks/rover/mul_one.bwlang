@@ -1,0 +1,6 @@
+{
+    "name": "mul_one",
+    "preconditions": [],
+    "lhs": "(bw p (* (bw p a) (bw q 1)))",
+    "rhs": "(bw p a)"
+}

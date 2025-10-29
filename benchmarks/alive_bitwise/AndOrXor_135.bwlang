@@ -1,0 +1,6 @@
+{
+    "name": "AndOrXor_135",
+    "lhs": "(bw k (and (bw k (xor (bw k var_X) (bw k C1))) (bw k C2)))",
+    "rhs": "(bw k (xor (bw k (and (bw k var_X) (bw k C2))) (bw k (and (bw k C1) (bw k C2)))))",
+    "preconditions": []
+}

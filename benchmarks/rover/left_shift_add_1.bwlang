@@ -1,0 +1,9 @@
+{
+    "name": "left_shift_add_1",
+    "preconditions": [
+        "(>= u r)",
+        "(>= s r)"
+    ],
+    "lhs": "(bw r (<< (bw s (+ (bw p a) (bw q b))) (bw t c)))",
+    "rhs": "(bw r (+ (bw u (<< (bw p a) (bw t c))) (bw u (<< (bw q b) (bw t c)))))"
+}
