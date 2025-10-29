@@ -34,7 +34,7 @@ struct EquivRunnerInfo {
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
-    /// Path to the file containing the equalitiy to check
+    /// Path to the file containing the equality to check
     file_name: PathBuf,
 
     #[command(subcommand)]

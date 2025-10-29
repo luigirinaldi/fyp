@@ -8,7 +8,7 @@ Commands:
   help          Print this message or the help of the given subcommand(s)
 
 Arguments:
-  <FILE_NAME>  Path to the file containing the equalitiy to check
+  <FILE_NAME>  Path to the file containing the equality to check
 
 Options:
   -v, --verbosity <VERBOSITY>  Verbosity level, feed a RUST_LOG compatible string [default: parabit=info]
