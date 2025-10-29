@@ -59,7 +59,7 @@ enum Command {
     },
 
     /// Run the equality checking while gathering runtime and memory footprint stats
-    /// need to compile with the get-heap-info feature flag for memory footprint
+    /// (need to compile with the get-heap-info feature flag for memory footprint)
     GetStats {
         /// Store stats in this path
         #[arg(long, value_name = "FILE")]

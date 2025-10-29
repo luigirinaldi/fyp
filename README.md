@@ -1,17 +1,17 @@
 ```
-Usage: para_bit [OPTIONS] <FILE_NAME>
+Usage: parabit [OPTIONS] <FILE_NAME> [COMMAND]
+
+Commands:
+  check-equals  Check if equality is true [default command]
+  get-stats     Run the equality checking while gathering runtime and memory footprint stats (need to compile with the get-heap-info feature flag for memory footprint)
+  get-proof     Convert to Isabelle
+  help          Print this message or the help of the given subcommand(s)
 
 Arguments:
-  <FILE_NAME>  Path to the JSON file containing the equalities to check
+  <FILE_NAME>  Path to the file containing the equalitiy to check
 
 Options:
-  -s, --skip-equiv           Skip searching for equivalence
-  -d, --def-only             Only use the rewrite_defs, not the lemmas, when generating a theorem
-  -c, --check-proofs         Run the isabelle proof check on the generated theorems
-      --theorem-path <FILE>  Store the generated theorem in this path
-      --expl-path <FILE>     Store the explanation if it is found
-      --dot-path <FILE>      Store generated dot-files in this path (slows down proof generation)
-      --runner-stats <FILE>  Store statistics in this path
-  -h, --help                 Print help
-  -V, --version              Print version
+  -v, --verbosity <VERBOSITY>  Verbosity level, feed a RUST_LOG compatible string [default: parabit=info]
+  -h, --help                   Print help
+  -V, --version                Print version
 ```
