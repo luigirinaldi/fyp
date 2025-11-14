@@ -108,7 +108,7 @@ fn main() -> Result<(), std::io::Error> {
 
     let mut equiv: Equivalence = Equivalence::from(equiv_str);
 
-    info!("Found equivalence: {}", equiv.name);
+    info!("Running parabit on file: {}", equiv.name);
     debug!(
         "\nlhs:\t{}\nrhs:\t{}\nprecond: {}",
         equiv.lhs.to_string(),
@@ -198,9 +198,10 @@ fn main() -> Result<(), std::io::Error> {
                     write!(file_out, "{}", serde_json::to_string(&stats).unwrap())?;
                 }
                 None => println!(
-                    "Average Runtime: {}\nNumber of bytes: {:?}",
+                    "Average Runtime: {}\nNumber of bytes: {:?}\nRunner report:\n{:#?}",
                     seconds.as_secs_f64(),
-                    num_bytes
+                    num_bytes,
+                    equiv.runner.report()
                 ),
             };
         }
