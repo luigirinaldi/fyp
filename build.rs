@@ -143,9 +143,18 @@ fn main() {
                 output,
                 r#"
 #[test]
-{should_panic_attr}#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
+{should_panic_attr}#[cfg_attr(not(feature = "isabelle-check"), timeout(5000))]
 #[allow(non_snake_case)]
 fn {fn_name}() {{
+    use libc::{{rlimit, setrlimit, RLIMIT_AS}};
+    
+    unsafe {{
+        let limit = rlimit {{
+            rlim_cur: 1024 * 1024 * 1024, // 1GB
+            rlim_max: 16 * 1024 * 1024 * 1024, // 16GB limit
+        }};
+        setrlimit(RLIMIT_AS, &limit);
+    }}
     let mut eq = Equivalence::new(
         {name_literal},
         &{preconditions},
