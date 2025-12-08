@@ -2,11 +2,8 @@ use crate::Symbol;
 use egg::*;
 use language::ModAnalysis;
 use log::debug;
-use log::info;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::fs::File;
-use std::io::Write;
 use std::time::Duration;
 
 mod dot_equiv;
@@ -158,11 +155,14 @@ impl Equivalence {
     }
 
     pub fn explanation_string(&self) -> String {
-        let mut output_str = format!(
-            "{} LHS and RHS are{}equivalent!\n",
-            self.name,
-            if self.proof.is_some() { " " } else { " not " }
-        );
+        let mut output_str = if self.proof.is_some() {
+            format!("{} LHS and RHS are equivalent!\n", self.name,)
+        } else {
+            format!(
+                "{} Could not establish whether LHS and RHS are equivalent.\n",
+                self.name
+            )
+        };
         if let Some(proof) = &self.proof {
             output_str += &proof
                 .iter()
@@ -194,8 +194,8 @@ impl Equivalence {
             output_str,
         );
 
-        debug!("{}", output_str);
-        output_str
+        debug!("{}", out_str);
+        out_str
     }
 
     pub fn find_equivalence(mut self, make_dot: &Option<PathBuf>) -> Self {

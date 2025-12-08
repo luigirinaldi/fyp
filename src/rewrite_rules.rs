@@ -65,7 +65,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
                                     if precondition(&["(>= ?p ?q)"])),
         rewrite!("reduce_mod";      "(bw ?q (bw ?p ?a))"
                                  => "(bw ?p ?a)"
-                                    if precondition(&["(>= ?q ?p)"])),
+                                    if precondition(&["(> ?q ?p)"])),
         rewrite!("mod_eq";          "(bw ?p (bw ?p ?a))"
                                  => "(bw ?p ?a)"),
         rewrite!("mul_pow2";        "(bw ?s (* (bw ?p ?a) (^ 2 (bw ?q ?b))))"
@@ -112,6 +112,8 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     rules.extend(rewrite!("and_distrib"; "(and ?a (or ?b ?c))" <=> "(or (and ?a ?b) (and ?a ?c))"));
     rules
         .extend(rewrite!("not_bw_not"; "(bw ?p (not (bw ?p (not (bw ?p ?a)))))" <=> "(bw ?p ?a)" ));
+
+    rules.extend(rewrite!("not_0_allones"; "(bw ?p (not (bw ?p 0)))" <=> "(bw ?p -1)"));
 
     rules.extend(rewrite!("int_distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     rules.extend(rewrite!("Num.ring_1_class.mult_minus1"; "(- ?b)" <=> "(* -1 ?b)"));

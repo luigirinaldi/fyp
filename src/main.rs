@@ -1,5 +1,6 @@
 // use serde::Deserialize;
 use std::{
+    error::Error,
     fs::{self, File},
     io::Write,
     path::PathBuf,
@@ -95,7 +96,7 @@ enum Command {
     },
 }
 
-fn main() -> Result<(), std::io::Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
     env_logger::Builder::new()
@@ -108,7 +109,7 @@ fn main() -> Result<(), std::io::Error> {
 
     let mut equiv: Equivalence = Equivalence::from(equiv_str);
 
-    info!("Found equivalence: {}", equiv.name);
+    info!("Running parabit on file: {}", equiv.name);
     debug!(
         "\nlhs:\t{}\nrhs:\t{}\nprecond: {}",
         equiv.lhs.to_string(),
@@ -129,10 +130,10 @@ fn main() -> Result<(), std::io::Error> {
             dot_path,
         } => {
             let name = equiv.name.clone();
-            let explanation_string = equiv
+            equiv = equiv
                 .find_equivalence(&add_base(dot_path, &name))
-                .make_proof()
-                .explanation_string();
+                .make_proof();
+            let explanation_string = equiv.explanation_string();
 
             if let Some(path) = expl_path {
                 let mut file = File::create(path.join(format!("{name} explanation.txt"))).unwrap();
@@ -198,9 +199,10 @@ fn main() -> Result<(), std::io::Error> {
                     write!(file_out, "{}", serde_json::to_string(&stats).unwrap())?;
                 }
                 None => println!(
-                    "Average Runtime: {}\nNumber of bytes: {:?}",
+                    "Average Runtime: {}\nNumber of bytes: {:?}\nRunner report:\n{:#?}",
                     seconds.as_secs_f64(),
-                    num_bytes
+                    num_bytes,
+                    equiv.runner.report()
                 ),
             };
         }
@@ -227,5 +229,14 @@ fn main() -> Result<(), std::io::Error> {
             }
         }
     }
-    Ok(())
+
+    if let Some(is_equiv) = equiv.equiv.clone() {
+        if is_equiv {
+            return Ok(());
+        } else {
+            return Err("Equivalence wasn't found".into());
+        }
+    } else {
+        return Err("Something went wrong".into());
+    }
 }
