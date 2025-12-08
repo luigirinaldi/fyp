@@ -68,9 +68,9 @@ using diff_right_remove_prec by simp
 
 lemma reduce_mod:
 "bw p (bw q a) = bw q a"
-if "p \<ge> q"
+if "p > q"
 using bw_def 
-by (smt (verit) bw_max_val mod_pos_pos_trivial pos_mod_sign power_increasing that zero_less_power)
+by (metis add.comm_neutral add_full_prec mod_0 that)
 
 lemma mod_eq:
 "bw p (bw p a) = bw p a"
