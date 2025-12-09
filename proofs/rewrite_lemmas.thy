@@ -72,6 +72,12 @@ if "p > q"
 using bw_def 
 by (metis add.comm_neutral add_full_prec mod_0 that)
 
+lemma reduce_mod_bis:
+"bw p (bw q a) = bw p a"
+if "q > p"
+using bw_def
+by (simp add: mod_exp_eq that)
+
 lemma mod_eq:
 "bw p (bw p a) = bw p a"
 using bw_def by simp

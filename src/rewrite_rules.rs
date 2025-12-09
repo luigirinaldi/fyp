@@ -66,6 +66,9 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("reduce_mod";      "(bw ?q (bw ?p ?a))"
                                  => "(bw ?p ?a)"
                                     if precondition(&["(> ?q ?p)"])),
+        rewrite!("reduce_mod_bis";  "(bw ?q (bw ?p ?a))"
+                                 => "(bw ?q ?a)"
+                                    if precondition(&["(> ?p ?q)"])),
         rewrite!("mod_eq";          "(bw ?p (bw ?p ?a))"
                                  => "(bw ?p ?a)"),
         rewrite!("mul_pow2";        "(bw ?s (* (bw ?p ?a) (^ 2 (bw ?q ?b))))"
