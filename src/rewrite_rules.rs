@@ -130,41 +130,38 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     rules
 }
 
+fn apply_subst(
+    expr: &RecExpr<ModIR>,
+    subst: &Subst,
+    egraph: &EGraph<ModIR, ModAnalysis>,
+) -> RecExpr<ModIR> {
+    match &expr[expr.root()] {
+        ModIR::Var(s) => {
+            return egraph.id_to_expr(*subst.get(Var::from_str(s.as_str()).unwrap()).unwrap());
+        }
+        other => {
+            // traverse through each node and return another recexpr
+            return other.join_recexprs(|id| {
+                apply_subst(
+                    &expr[id].build_recexpr(|id1| expr[id1].clone()),
+                    subst,
+                    egraph,
+                )
+            });
+        }
+    }
+}
+
 // given a list of preconditions, returns a function that checks that they are all satisfied
-// TODO reimplement this using multipatterns https://github.com/luigirinaldi/fyp/issues/1
 fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
     let cond_exprs: Vec<RecExpr<ModIR>> = conds.iter().map(|expr| expr.parse().unwrap()).collect();
     // look up the expr in the egraph then check that they are in the same eclass as the truth node
     move |egraph, _root, subst| {
         let mut res = true;
         for expr in &cond_exprs {
-            fn copy_expr(
-                expr: &RecExpr<ModIR>,
-                subst: &Subst,
-                egraph: &EGraph<ModIR, ModAnalysis>,
-            ) -> RecExpr<ModIR> {
-                match &expr[expr.root()] {
-                    ModIR::Var(s) => {
-                        return egraph
-                            .id_to_expr(*subst.get(Var::from_str(s.as_str()).unwrap()).unwrap());
-                    }
-                    other => {
-                        // traverse through each node and return another recexpr
-                        return other.join_recexprs(|id| {
-                            copy_expr(
-                                &expr[id].build_recexpr(|id1| expr[id1].clone()),
-                                subst,
-                                egraph,
-                            )
-                        });
-                    }
-                }
-            }
-
-            let cond_subst: RecExpr<ModIR> = copy_expr(expr, subst, egraph);
+            let cond_subst: RecExpr<ModIR> = apply_subst(expr, subst, egraph);
 
             infer_conditions(&cond_subst, egraph);
-
             // println!(
             //     "{:#?} => {:#?}",
             //     expr.to_string(),
