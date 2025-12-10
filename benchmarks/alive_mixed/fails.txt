@@ -1,4 +1,3 @@
-AndOrXor_2475
 AndOrXor_2515
 InstCombineShift239
 InstCombineShift279

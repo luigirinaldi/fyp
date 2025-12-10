@@ -143,7 +143,7 @@ fn main() {
                 output,
                 r#"
 #[test]
-{should_panic_attr}#[cfg_attr(not(feature = "isabelle-check"), timeout(30000))]
+{should_panic_attr}#[cfg_attr(not(feature = "isabelle-check"), timeout(10000))]
 #[allow(non_snake_case)]
 fn {fn_name}() {{
     let mut eq = Equivalence::new(
