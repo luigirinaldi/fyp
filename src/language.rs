@@ -180,17 +180,19 @@ impl ToZ3<ModIR> for RecExpr<ModIR> {
             ModIR::Mul([a, b]) => {
                 Some(get_recexpr(self, a).to_z3_int()? * get_recexpr(self, b).to_z3_int()?)
             }
-            ModIR::Pow([a, b]) => Some(
-                get_recexpr(self, a)
-                    .to_z3_int()?
-                    .power(get_recexpr(self, b).to_z3_int()?)
-                    .to_int(),
-            ),
-            ModIR::Mod([a, b]) => Some(
-                get_recexpr(self, b)
-                    .to_z3_int()?
-                    .modulo(get_recexpr(self, a).to_z3_int()?),
-            ),
+            // ModIR::Pow([a, b]) => Some(
+            //     get_recexpr(self, a)
+            //         .to_z3_int()?
+            //         .power(get_recexpr(self, b).to_z3_int()?)
+            //         .to_int(),
+            // ),
+            // ModIR::Mod([a, b]) => Some(
+            //     get_recexpr(self, b).to_z3_int()?.modulo(
+            //         Int::from_u64(2)
+            //             .power(get_recexpr(self, a).to_z3_int()?)
+            //             .to_int(),
+            //     ),
+            // ),
             _ => None,
         }
         // return Int::from_i64(0);
