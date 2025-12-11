@@ -1,11 +1,9 @@
 use egg::*;
 use log::error;
 use std::str::FromStr;
-use z3::ast::Int;
 use z3::SatResult;
 use z3::Solver;
 
-use crate::language::get_z3_variables;
 use crate::language::ModAnalysis;
 use crate::language::ModIR;
 use crate::language::ToZ3;
@@ -220,10 +218,10 @@ pub fn get_true_exprs(egraph: &EGraph<ModIR, ModAnalysis>) -> Vec<RecExpr<ModIR>
 
 // Given some condition that needs to be true, set it to be true based on some known truths
 fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAnalysis>) -> bool {
-    // println!("trying to infer truth for {}", condition.to_string());
     let mut truth_reason = match &condition[condition.root()] {
         ModIR::GT([a, b]) => match (&condition[*a], &condition[*b]) {
-            (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"), // any expression of the form  (> (^ _ _) 0) is true, by simp
+            // any expression of the form  (> (^ _ _) 0) is true, by simp
+            (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"),
             _ => None,
         },
         _ => None,
@@ -250,11 +248,8 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
                 "Current precondition give empty set of widths: {}",
                 solver.to_string()
             );
-            // println!("True expressions: {:#?}", get_true_exprs(egraph));
             solver.assert(!z3_cond);
             if solver.check() == SatResult::Unsat {
-                // println!("{}", solver.to_string());
-                // println!("Solver result for {}: {:#?}", condition, solver.check());
                 truth_reason = Some("z3")
             }
         } else {
