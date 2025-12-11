@@ -1,8 +1,10 @@
 use egg::*;
 use std::str::FromStr;
+use z3::ast::Int;
 use z3::SatResult;
 use z3::Solver;
 
+use crate::language::get_z3_variables;
 use crate::language::ModAnalysis;
 use crate::language::ModIR;
 use crate::language::ToZ3;
@@ -183,6 +185,40 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
     }
 }
 
+// Returns all RecExpr instances in the equivalence class of the True node
+// For each distinct node pattern in the True e-class, returns the smallest representative RecExpr
+// Excludes the Bool(true) node itself
+pub fn get_true_exprs(egraph: &EGraph<ModIR, ModAnalysis>) -> Vec<RecExpr<ModIR>> {
+    // First, lookup the True node in the egraph
+    match egraph.lookup(ModIR::Bool(true)) {
+        Some(true_id) => {
+            // Get the equivalence class for the True node
+            let eclass = &egraph[true_id];
+
+            // For each node in the equivalence class, extract the smallest representative expression
+            eclass
+                .nodes
+                .iter()
+                .filter(|node| {
+                    // Exclude the Bool(true) node itself
+                    !matches!(node, ModIR::Bool(true))
+                })
+                .map(|node| {
+                    // Build a RecExpr by recursively choosing the smallest representative from child e-classes
+                    node.build_recexpr(|child_id| {
+                        // For each child, extract the smallest expression from its e-class
+                        egraph.id_to_expr(child_id).as_ref()[0].clone()
+                    })
+                })
+                .collect()
+        }
+        None => {
+            // If there's no True node in the egraph, return an empty vector
+            Vec::new()
+        }
+    }
+}
+
 // Given some condition that needs to be true, set it to be true based on some known truths
 fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAnalysis>) {
     // println!("trying to infer truth for {}", condition.to_string());
@@ -196,8 +232,14 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
 
     if truth_reason.is_none() {
         let z3_cond = condition.to_z3_cond();
+        // let vars = get_z3_variables(&z3_cond);
         let solver = Solver::new();
+        for expr in get_true_exprs(egraph) {
+            solver.assert(expr.to_z3_cond());
+        }
+        // println!("True expressions: {:#?}", get_true_exprs(egraph));
         solver.assert(!z3_cond);
+        println!("{}", solver.to_string());
         println!("Solver result for {}: {:#?}", condition, solver.check());
         if solver.check() == SatResult::Unsat {
             truth_reason = Some("z3");

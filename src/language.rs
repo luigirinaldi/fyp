@@ -1,8 +1,9 @@
 use egg::*;
 use num::ToPrimitive;
 use std::fmt::Debug;
-use z3::ast::{Bool, Int, IntoAst};
+use z3::ast::{Ast, Bool, Int};
 type Num = i32;
+use std::collections::HashSet;
 
 define_language! {
     pub enum ModIR {
@@ -127,6 +128,26 @@ pub trait ToZ3<ModIR> {
 }
 fn get_recexpr(e: &RecExpr<ModIR>, id: &Id) -> RecExpr<ModIR> {
     e[*id].build_recexpr(|i| e[i].clone())
+}
+
+pub fn get_z3_variables(ast: &dyn Ast) -> Vec<String> {
+    let mut vars = HashSet::new();
+    collect_vars(ast, &mut vars);
+    vars.into_iter().collect()
+}
+
+fn collect_vars(ast: &dyn Ast, vars: &mut HashSet<String>) {
+    // If this is a variable (constant with uninterpreted function)
+    if ast.num_children() == 0 && ast.decl().kind() == z3::DeclKind::UNINTERPRETED {
+        vars.insert(format!("{:?}", ast));
+    } else {
+        // Recurse on all children
+        for i in 0..ast.num_children() {
+            if let Some(child) = ast.nth_child(i) {
+                collect_vars(&child, vars);
+            }
+        }
+    }
 }
 
 impl ToZ3<ModIR> for RecExpr<ModIR> {
