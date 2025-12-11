@@ -1,6 +1,7 @@
 use egg::*;
 use num::ToPrimitive;
 use std::fmt::Debug;
+use z3::ast::{Bool, Int, IntoAst};
 type Num = i32;
 
 define_language! {
@@ -118,4 +119,58 @@ impl Analysis<ModIR> for ModAnalysis {
             // egraph.union(id, id3);
         }
     }
+}
+
+pub trait ToZ3<ModIR> {
+    fn to_z3_int(&self) -> Int;
+    fn to_z3_cond(&self) -> Bool;
+}
+fn get_recexpr(e: &RecExpr<ModIR>, id: &Id) -> RecExpr<ModIR> {
+    e[*id].build_recexpr(|i| e[i].clone())
+}
+
+impl ToZ3<ModIR> for RecExpr<ModIR> {
+    fn to_z3_cond(&self) -> Bool {
+        let apply_comp = |a: &Id, b: &Id, op: fn(&Int, &Int) -> Bool| {
+            op(
+                &get_recexpr(self, a).to_z3_int(),
+                &get_recexpr(self, b).to_z3_int(),
+            )
+        };
+
+        match &self[self.root()] {
+            ModIR::GT([a, b]) => apply_comp(a, b, |x, y| Int::gt(x, y)),
+            ModIR::GTE([a, b]) => apply_comp(a, b, |x, y| Int::ge(x, y)),
+            ModIR::LT([a, b]) => apply_comp(a, b, |x, y| Int::lt(x, y)),
+            ModIR::LTE([a, b]) => apply_comp(a, b, |x, y| Int::le(x, y)),
+            _ => unreachable!("Z3 comp is not valid comparison operation: {}", self),
+        }
+    }
+
+    fn to_z3_int(&self) -> Int {
+        match &self[self.root()] {
+            ModIR::Var(sym) => Int::new_const(sym.as_str()),
+            ModIR::Num(num) => Int::from_i64(num.to_i64().unwrap()),
+            ModIR::Add([a, b]) => {
+                get_recexpr(self, a).to_z3_int() + get_recexpr(self, b).to_z3_int()
+            }
+            ModIR::Sub([a, b]) => {
+                get_recexpr(self, a).to_z3_int() - get_recexpr(self, b).to_z3_int()
+            }
+            ModIR::Mul([a, b]) => {
+                get_recexpr(self, a).to_z3_int() * get_recexpr(self, b).to_z3_int()
+            }
+            ModIR::Pow([a, b]) => get_recexpr(self, a)
+                .to_z3_int()
+                .power(get_recexpr(self, b).to_z3_int())
+                .to_int(),
+            _ => unreachable!("Z3 to int is not valid int operation: {}", self),
+        }
+        // return Int::from_i64(0);
+    }
+    //     match &self[self.root()] {
+    //         ModIR::Add([a,b]) =>
+
+    //     }
+    // }
 }

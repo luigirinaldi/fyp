@@ -1,8 +1,11 @@
 use egg::*;
 use std::str::FromStr;
+use z3::SatResult;
+use z3::Solver;
 
 use crate::language::ModAnalysis;
 use crate::language::ModIR;
+use crate::language::ToZ3;
 
 pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     let mut rules = vec![
@@ -183,13 +186,23 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
 // Given some condition that needs to be true, set it to be true based on some known truths
 fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAnalysis>) {
     // println!("trying to infer truth for {}", condition.to_string());
-    let truth_reason = match &condition[condition.root()] {
+    let mut truth_reason = match &condition[condition.root()] {
         ModIR::GT([a, b]) => match (&condition[*a], &condition[*b]) {
             (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"), // any expression of the form  (> (^ _ _) 0) is true, by simp
             _ => None,
         },
         _ => None,
     };
+
+    if truth_reason.is_none() {
+        let z3_cond = condition.to_z3_cond();
+        let solver = Solver::new();
+        solver.assert(!z3_cond);
+        println!("Solver result for {}: {:#?}", condition, solver.check());
+        if solver.check() == SatResult::Unsat {
+            truth_reason = Some("z3");
+        }
+    }
 
     // add to the egraph in case the inference is successful
     if let Some(just) = truth_reason {
