@@ -166,13 +166,7 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
         for expr in &cond_exprs {
             let cond_subst: RecExpr<ModIR> = apply_subst(expr, subst, egraph);
 
-            infer_conditions(&cond_subst, egraph);
-            // println!(
-            //     "{:#?} => {:#?}",
-            //     expr.to_string(),
-            //     cond_subst.to_string(),
-            // );
-            res &= egraph
+            let mut is_true = egraph
                 .lookup_expr_ids(&cond_subst)
                 .and_then(|ids| {
                     egraph
@@ -180,6 +174,15 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
                         .and_then(|truth| Some(ids.iter().any(|&id| id == truth)))
                 })
                 .unwrap_or(false);
+            if !is_true {
+                is_true = infer_conditions(&cond_subst, egraph);
+            }
+            // println!(
+            //     "{:#?} => {:#?}",
+            //     expr.to_string(),
+            //     cond_subst.to_string(),
+            // );
+            res &= is_true
         }
         res
     }
@@ -193,9 +196,10 @@ pub fn get_true_exprs(egraph: &EGraph<ModIR, ModAnalysis>) -> Vec<RecExpr<ModIR>
     match egraph.lookup(ModIR::Bool(true)) {
         Some(true_id) => {
             // Get the equivalence class for the True node
-            let eclass = &egraph[true_id];
+            let eclass: &EClass<ModIR, <ModAnalysis as egg::Analysis<ModIR>>::Data> =
+                &egraph[true_id];
 
-            // For each node in the equivalence class, extract the smallest representative expression
+            // For each node in the equivalence class, extract a representative expression
             eclass
                 .nodes
                 .iter()
@@ -203,13 +207,7 @@ pub fn get_true_exprs(egraph: &EGraph<ModIR, ModAnalysis>) -> Vec<RecExpr<ModIR>
                     // Exclude the Bool(true) node itself
                     !matches!(node, ModIR::Bool(true))
                 })
-                .map(|node| {
-                    // Build a RecExpr by recursively choosing the smallest representative from child e-classes
-                    node.build_recexpr(|child_id| {
-                        // For each child, extract the smallest expression from its e-class
-                        egraph.id_to_expr(child_id).as_ref()[0].clone()
-                    })
-                })
+                .map(|node: &ModIR| node.clone().join_recexprs(|id| egraph.id_to_expr(id)))
                 .collect()
         }
         None => {
@@ -220,7 +218,7 @@ pub fn get_true_exprs(egraph: &EGraph<ModIR, ModAnalysis>) -> Vec<RecExpr<ModIR>
 }
 
 // Given some condition that needs to be true, set it to be true based on some known truths
-fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAnalysis>) {
+fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAnalysis>) -> bool {
     // println!("trying to infer truth for {}", condition.to_string());
     let mut truth_reason = match &condition[condition.root()] {
         ModIR::GT([a, b]) => match (&condition[*a], &condition[*b]) {
@@ -237,17 +235,26 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
         for expr in get_true_exprs(egraph) {
             solver.assert(expr.to_z3_cond());
         }
+        solver.push();
+        let is_sat = solver.check() == SatResult::Sat;
+        solver.pop(1);
+        assert!(
+            is_sat,
+            "Current precondition give empty set of widths: {}",
+            solver.to_string()
+        );
         // println!("True expressions: {:#?}", get_true_exprs(egraph));
         solver.assert(!z3_cond);
-        println!("{}", solver.to_string());
-        println!("Solver result for {}: {:#?}", condition, solver.check());
         if solver.check() == SatResult::Unsat {
+            // println!("{}", solver.to_string());
+            // println!("Solver result for {}: {:#?}", condition, solver.check());
             truth_reason = Some("z3");
         }
     }
 
     // add to the egraph in case the inference is successful
     if let Some(just) = truth_reason {
+        println!("Inferred true condition: {} because of {}", condition, just);
         // println!("found new truth {} because {just}", condition.to_string());
         let cond_id = egraph.add_expr(condition);
         // get the truth id, it should exist within the egraph at this point
@@ -257,4 +264,5 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
         let union_reason = String::from("inferred_") + &String::from(just);
         egraph.union_trusted(truth_id, cond_id, union_reason);
     }
+    return truth_reason.is_some();
 }
