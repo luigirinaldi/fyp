@@ -123,8 +123,8 @@ impl Analysis<ModIR> for ModAnalysis {
 }
 
 pub trait ToZ3<ModIR> {
-    fn to_z3_int(&self) -> Int;
-    fn to_z3_cond(&self) -> Bool;
+    fn to_z3_int(&self) -> Option<Int>;
+    fn to_z3_cond(&self) -> Option<Bool>;
 }
 fn get_recexpr(e: &RecExpr<ModIR>, id: &Id) -> RecExpr<ModIR> {
     e[*id].build_recexpr(|i| e[i].clone())
@@ -151,12 +151,11 @@ fn collect_vars(ast: &dyn Ast, vars: &mut HashSet<String>) {
 }
 
 impl ToZ3<ModIR> for RecExpr<ModIR> {
-    fn to_z3_cond(&self) -> Bool {
+    fn to_z3_cond(&self) -> std::option::Option<z3::ast::Bool> {
         let apply_comp = |a: &Id, b: &Id, op: fn(&Int, &Int) -> Bool| {
-            op(
-                &get_recexpr(self, a).to_z3_int(),
-                &get_recexpr(self, b).to_z3_int(),
-            )
+            let a_int = &get_recexpr(self, a).to_z3_int()?;
+            let b_int = &get_recexpr(self, b).to_z3_int()?;
+            Some(op(a_int, b_int))
         };
 
         match &self[self.root()] {
@@ -168,27 +167,31 @@ impl ToZ3<ModIR> for RecExpr<ModIR> {
         }
     }
 
-    fn to_z3_int(&self) -> Int {
+    fn to_z3_int(&self) -> Option<Int> {
         match &self[self.root()] {
-            ModIR::Var(sym) => Int::new_const(sym.as_str()),
-            ModIR::Num(num) => Int::from_i64(num.to_i64().unwrap()),
+            ModIR::Var(sym) => Some(Int::new_const(sym.as_str())),
+            ModIR::Num(num) => Some(Int::from_i64(num.to_i64().unwrap())),
             ModIR::Add([a, b]) => {
-                get_recexpr(self, a).to_z3_int() + get_recexpr(self, b).to_z3_int()
+                Some(get_recexpr(self, a).to_z3_int()? + get_recexpr(self, b).to_z3_int()?)
             }
             ModIR::Sub([a, b]) => {
-                get_recexpr(self, a).to_z3_int() - get_recexpr(self, b).to_z3_int()
+                Some(get_recexpr(self, a).to_z3_int()? - get_recexpr(self, b).to_z3_int()?)
             }
             ModIR::Mul([a, b]) => {
-                get_recexpr(self, a).to_z3_int() * get_recexpr(self, b).to_z3_int()
+                Some(get_recexpr(self, a).to_z3_int()? * get_recexpr(self, b).to_z3_int()?)
             }
-            ModIR::Pow([a, b]) => get_recexpr(self, a)
-                .to_z3_int()
-                .power(get_recexpr(self, b).to_z3_int())
-                .to_int(),
-            ModIR::Mod([a, b]) => get_recexpr(self, b)
-                .to_z3_int()
-                .modulo(get_recexpr(self, a).to_z3_int()),
-            _ => unreachable!("Z3 to int is not valid int operation: {}", self),
+            ModIR::Pow([a, b]) => Some(
+                get_recexpr(self, a)
+                    .to_z3_int()?
+                    .power(get_recexpr(self, b).to_z3_int()?)
+                    .to_int(),
+            ),
+            ModIR::Mod([a, b]) => Some(
+                get_recexpr(self, b)
+                    .to_z3_int()?
+                    .modulo(get_recexpr(self, a).to_z3_int()?),
+            ),
+            _ => None,
         }
         // return Int::from_i64(0);
     }

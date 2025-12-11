@@ -1,4 +1,5 @@
 use egg::*;
+use log::error;
 use std::str::FromStr;
 use z3::ast::Int;
 use z3::SatResult;
@@ -221,34 +222,43 @@ pub fn get_true_exprs(egraph: &EGraph<ModIR, ModAnalysis>) -> Vec<RecExpr<ModIR>
 fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAnalysis>) -> bool {
     // println!("trying to infer truth for {}", condition.to_string());
     let mut truth_reason = match &condition[condition.root()] {
-        // ModIR::GT([a, b]) => match (&condition[*a], &condition[*b]) {
-        //     (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"), // any expression of the form  (> (^ _ _) 0) is true, by simp
-        //     _ => None,
-        // },
+        ModIR::GT([a, b]) => match (&condition[*a], &condition[*b]) {
+            (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"), // any expression of the form  (> (^ _ _) 0) is true, by simp
+            _ => None,
+        },
         _ => None,
     };
 
     if truth_reason.is_none() {
-        let z3_cond = condition.to_z3_cond();
-        // let vars = get_z3_variables(&z3_cond);
-        let solver = Solver::new();
-        for expr in get_true_exprs(egraph) {
-            solver.assert(expr.to_z3_cond());
-        }
-        solver.push();
-        let is_sat = solver.check() == SatResult::Sat;
-        solver.pop(1);
-        assert!(
-            is_sat,
-            "Current precondition give empty set of widths: {}",
-            solver.to_string()
-        );
-        // println!("True expressions: {:#?}", get_true_exprs(egraph));
-        solver.assert(!z3_cond);
-        if solver.check() == SatResult::Unsat {
-            // println!("{}", solver.to_string());
-            // println!("Solver result for {}: {:#?}", condition, solver.check());
-            truth_reason = Some("z3");
+        let z3_cond_opt = condition.to_z3_cond();
+        if let Some(z3_cond) = z3_cond_opt {
+            // let vars = get_z3_variables(&z3_cond);
+            let solver = Solver::new();
+            for expr in get_true_exprs(egraph) {
+                let z3_true_cond = expr.to_z3_cond();
+                if let Some(cond) = z3_true_cond {
+                    solver.assert(cond);
+                } else {
+                    error!("{} cannot be converted to z3", expr);
+                }
+            }
+            solver.push();
+            let is_sat = solver.check() == SatResult::Sat;
+            solver.pop(1);
+            assert!(
+                is_sat,
+                "Current precondition give empty set of widths: {}",
+                solver.to_string()
+            );
+            // println!("True expressions: {:#?}", get_true_exprs(egraph));
+            solver.assert(!z3_cond);
+            if solver.check() == SatResult::Unsat {
+                // println!("{}", solver.to_string());
+                // println!("Solver result for {}: {:#?}", condition, solver.check());
+                truth_reason = Some("z3")
+            }
+        } else {
+            error!("condition {} cannot be converted to z3", condition);
         }
     }
 
