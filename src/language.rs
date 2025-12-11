@@ -185,6 +185,9 @@ impl ToZ3<ModIR> for RecExpr<ModIR> {
                 .to_z3_int()
                 .power(get_recexpr(self, b).to_z3_int())
                 .to_int(),
+            ModIR::Mod([a, b]) => get_recexpr(self, b)
+                .to_z3_int()
+                .modulo(get_recexpr(self, a).to_z3_int()),
             _ => unreachable!("Z3 to int is not valid int operation: {}", self),
         }
         // return Int::from_i64(0);

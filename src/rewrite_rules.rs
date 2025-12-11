@@ -221,10 +221,10 @@ pub fn get_true_exprs(egraph: &EGraph<ModIR, ModAnalysis>) -> Vec<RecExpr<ModIR>
 fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAnalysis>) -> bool {
     // println!("trying to infer truth for {}", condition.to_string());
     let mut truth_reason = match &condition[condition.root()] {
-        ModIR::GT([a, b]) => match (&condition[*a], &condition[*b]) {
-            (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"), // any expression of the form  (> (^ _ _) 0) is true, by simp
-            _ => None,
-        },
+        // ModIR::GT([a, b]) => match (&condition[*a], &condition[*b]) {
+        //     (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"), // any expression of the form  (> (^ _ _) 0) is true, by simp
+        //     _ => None,
+        // },
         _ => None,
     };
 
