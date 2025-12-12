@@ -33,6 +33,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         /////////////////////////
         rewrite!("bw_1"; "(bw ?p 1)" => "1"),
         rewrite!("bw_0"; "(bw ?p 0)" => "0"),
+        rewrite!("bw_zero"; "(bw 0 ?a)" => "0"),
         // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
         rewrite!("add_remove_prec";    "(bw ?p (+ (bw ?q ?a) ?b))"
                                     => "(bw ?p (+ ?a ?b))"
@@ -79,7 +80,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
                                  => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"
                                     if precondition(&["(>= ?s (+ ?p (- (^ 2 ?q) 1)))"])),
         // signed definition
-        rewrite!("signed_def"; "(signed ?a ?p)" => "(- (* 2 (bw (- ?p 1) ?a)) (bw ?p ?a))"),
+        rewrite!("signed_def"; "(signed ?p ?a)" => "(- (* 2 (bw (- ?p 1) ?a)) (bw ?p ?a))"),
         // shift operations
         rewrite!("shl_def"; "(<< (bw ?p ?a) (bw ?q ?b))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
         rewrite!("shr_def"; "(>> (bw ?p ?a) (bw ?q ?b))" => "(div (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
