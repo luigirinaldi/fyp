@@ -79,7 +79,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
                                  => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"
                                     if precondition(&["(>= ?s (+ ?p (- (^ 2 ?q) 1)))"])),
         // signed definition
-        rewrite!("signed_def"; "(signed ?a ?p)" => "(- (bw ?p (* 2 ?a)) (bw ?p ?a))"),
+        rewrite!("signed_def"; "(signed ?a ?p)" => "(- (* 2 (bw (- ?p 1) ?a)) (bw ?p ?a))"),
         // shift operations
         rewrite!("shl_def"; "(<< (bw ?p ?a) (bw ?q ?b))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
         rewrite!("shr_def"; "(>> (bw ?p ?a) (bw ?q ?b))" => "(div (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
@@ -130,6 +130,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     // multliplication across the mod (this works because mod b implies mod 2^b)
     // c * (a mod b) = (c * a mod b * c)
     // rules.extend(rewrite!("mod-mul"; "(* (^ 2 ?e) (bw ?b ?c))" <=> "(bw (+ ?e ?b) (* (^ 2 ?e) ?c))"));
+    rules.extend(rewrite!("mod-minus-2"; "(* 2 (bw ?b ?c))" <=> "(bw (+ 1 ?b) (* 2 ?c))"));
     rules.extend(rewrite!("gt-lt";      "(> ?a ?b)" <=> "(< ?b ?a)"));
     rules.extend(rewrite!("gte-lte";    "(>= ?a ?b)" <=> "(<= ?b ?a)"));
     // rules.extend();
