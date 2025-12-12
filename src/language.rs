@@ -1,6 +1,7 @@
 use egg::*;
 use num::ToPrimitive;
 use std::fmt::Debug;
+use z3::ast::{Bool, Int};
 type Num = i32;
 
 define_language! {
@@ -116,6 +117,62 @@ impl Analysis<ModIR> for ModAnalysis {
             // let bw_id = egraph.add(ModIR::Num(min_width as i32));
             // let id3 = egraph.add(ModIR::Mod([bw_id, id2]));
             // egraph.union(id, id3);
+        }
+    }
+}
+
+pub trait ToZ3<ModIR> {
+    fn to_z3_int(&self) -> Option<Int>;
+    fn to_z3_cond(&self) -> Option<Bool>;
+}
+fn get_recexpr(e: &RecExpr<ModIR>, id: &Id) -> RecExpr<ModIR> {
+    e[*id].build_recexpr(|i| e[i].clone())
+}
+
+impl ToZ3<ModIR> for RecExpr<ModIR> {
+    fn to_z3_cond(&self) -> std::option::Option<z3::ast::Bool> {
+        let apply_comp = |a: &Id, b: &Id, op: fn(&Int, &Int) -> Bool| {
+            let a_int = &get_recexpr(self, a).to_z3_int()?;
+            let b_int = &get_recexpr(self, b).to_z3_int()?;
+            Some(op(a_int, b_int))
+        };
+
+        match &self[self.root()] {
+            ModIR::GT([a, b]) => apply_comp(a, b, |x, y| Int::gt(x, y)),
+            ModIR::GTE([a, b]) => apply_comp(a, b, |x, y| Int::ge(x, y)),
+            ModIR::LT([a, b]) => apply_comp(a, b, |x, y| Int::lt(x, y)),
+            ModIR::LTE([a, b]) => apply_comp(a, b, |x, y| Int::le(x, y)),
+            _ => unreachable!("Z3 comp is not valid comparison operation: {}", self),
+        }
+    }
+
+    fn to_z3_int(&self) -> Option<Int> {
+        match &self[self.root()] {
+            ModIR::Var(sym) => Some(Int::new_const(sym.as_str())),
+            ModIR::Num(num) => Some(Int::from_i64(num.to_i64().unwrap())),
+            ModIR::Add([a, b]) => {
+                Some(get_recexpr(self, a).to_z3_int()? + get_recexpr(self, b).to_z3_int()?)
+            }
+            ModIR::Sub([a, b]) => {
+                Some(get_recexpr(self, a).to_z3_int()? - get_recexpr(self, b).to_z3_int()?)
+            }
+            ModIR::Mul([a, b]) => {
+                Some(get_recexpr(self, a).to_z3_int()? * get_recexpr(self, b).to_z3_int()?)
+            }
+            // ModIR::Pow([a, b]) => Some(
+            //     get_recexpr(self, a)
+            //         .to_z3_int()?
+            //         .power(get_recexpr(self, b).to_z3_int()?)
+            //         .to_int(),
+            // ),
+            // ModIR::Mod([a, b]) => Some(
+            //     get_recexpr(self, b).to_z3_int()?.modulo(
+            //         Int::from_u64(2)
+            //             .power(get_recexpr(self, a).to_z3_int()?)
+            //             .to_int(),
+            //     ),
+            // ),
+            _ => None,
         }
     }
 }
