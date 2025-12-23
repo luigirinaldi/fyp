@@ -1,10 +1,17 @@
+use crate::language::SmtPBV;
+use crate::language::SmtPBVInfo;
 use crate::Symbol;
 use egg::*;
+use itertools::Itertools;
 use language::ModAnalysis;
 use log::debug;
+use rayon::iter::Once;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::time::Duration;
+
+use indicatif::{ProgressBar, ProgressStyle};
+use rayon::prelude::*;
 
 mod dot_equiv;
 mod extractor;
@@ -17,12 +24,12 @@ use crate::language::ModIR;
 use crate::rewrite_rules::rules;
 use crate::utils::*;
 
-pub use utils::check_isabelle_proof;
-pub use utils::prepare_output_dir;
-
+use std::cell::OnceCell;
 use std::path::{Path, PathBuf};
 pub use types::EquivalenceString;
 
+pub use utils::check_isabelle_proof;
+pub use utils::prepare_output_dir;
 #[derive(Debug)]
 pub struct Equivalence {
     pub name: String,
@@ -35,6 +42,9 @@ pub struct Equivalence {
     non_bw_vars: HashSet<Symbol>,
     proof: Option<Vec<egg::FlatTerm<ModIR>>>,
     inferred_truths: Option<Vec<(String, RecExpr<ModIR>)>>,
+    lhs_pbv: OnceCell<Result<Vec<SmtPBVInfo>, String>>,
+    rhs_pbv: OnceCell<Result<Vec<SmtPBVInfo>, String>>,
+    enum_pbv_conditions: OnceCell<Result<Vec<(SmtPBVInfo, SmtPBVInfo)>, String>>,
 }
 
 impl From<EquivalenceString> for Equivalence {
@@ -116,6 +126,9 @@ impl Equivalence {
                 .with_iter_limit(1000)
                 .with_node_limit(200000)
                 .with_scheduler(SimpleScheduler),
+            enum_pbv_conditions: OnceCell::new(),
+            lhs_pbv: OnceCell::new(),
+            rhs_pbv: OnceCell::new(),
         };
 
         ret_self
@@ -128,6 +141,63 @@ impl Equivalence {
             .map(|e| format!("\"{}\"", print_infix(e, &self.bw_vars, false)))
             .collect::<Vec<_>>()
             .join(" and ")
+    }
+
+    fn lhs_pbv(&self) -> &Result<Vec<SmtPBVInfo>, String> {
+        self.lhs_pbv.get_or_init(|| self.lhs.clone().to_smt_pbv())
+    }
+
+    fn rhs_pbv(&self) -> &Result<Vec<SmtPBVInfo>, String> {
+        self.rhs_pbv.get_or_init(|| self.rhs.clone().to_smt_pbv())
+    }
+
+    fn enum_pbv_conditions(&self) -> &Result<Vec<(SmtPBVInfo, SmtPBVInfo)>, String> {
+        let lhs = self.lhs_pbv();
+        let rhs = self.rhs_pbv();
+        self.enum_pbv_conditions.get_or_init(|| {
+        match (lhs, rhs) {
+            (Ok(lhs), Ok(rhs)) => {
+                let preconditions = &self.preconditions.iter().map(|p| p.to_string()).collect();
+
+                // Set up progress bar
+                let total = (lhs.len() * rhs.len()) as u64;
+                let pb = &ProgressBar::new(total);
+                pb.set_style(
+                        ProgressStyle::default_bar()
+                            .template(
+                                "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})",
+                            )
+                            .unwrap()
+                            .progress_chars("#>-"),
+                    );
+                // Parallelize the SMT problem generation with progress bar
+                let problems: Vec<(SmtPBVInfo, SmtPBVInfo)> = lhs
+                    .par_iter()
+                    .flat_map_iter(|lsmt| {
+                        rhs.iter().filter_map(|rsmt| {
+                            pb.inc(1);
+                            if lsmt.constraints_match(&rsmt, Some(preconditions)) {
+                                Some((lsmt.clone(), rsmt.clone()))
+                            } else {
+                                None
+                            }
+                        })
+                    })
+                    .collect();
+                pb.finish_with_message("done");
+                println!(
+                    "{}: left: {} right: {} product: {}. valid: {}",
+                    self.name,
+                    lhs.len(),
+                    rhs.len(),
+                    lhs.len() * rhs.len(),
+                    problems.len()
+                );
+                Ok(problems)
+            }
+            (l, r) => Err(format!("Error:\nlhs:{l:#?}\nrhs:{r:#?}")),
+        }
+    })
     }
 
     pub fn reset_runner(mut self) -> Self {
@@ -387,6 +457,87 @@ for {nat_string} :: nat and {int_string} :: int\n",
 
         proof_string.push_str("\nend\n");
         proof_string
+    }
+
+    pub fn to_smt_pbv(&self) -> Option<Vec<String>> {
+        // Function to generate a single SMT problem
+        fn generate_smt_problem(
+            lsmt: &SmtPBVInfo,
+            rsmt: &SmtPBVInfo,
+            preconditions: &[String],
+        ) -> String {
+            let (pbv_vars, pbv_widths, constraints) = lsmt.merge_infos(&rsmt);
+            let _simplified = SmtPBVInfo {
+                pbv_vars: pbv_vars.clone(),
+                pbv_widths: pbv_widths.clone(),
+                width_constraints: constraints.clone(),
+                expr: "".to_string(),
+                width: "".to_string(),
+            }
+            .simplify_constraints();
+            let widths_str = pbv_widths
+                .into_iter()
+                .map(|w| format!("(declare-const {w} Int)"))
+                .join("\n");
+            let precond_assertions = if preconditions.len() > 1 {
+                &format!("(and {})", preconditions.join(" "))
+            } else {
+                preconditions.iter().next().unwrap()
+            };
+            format!(
+                "
+(set-logic ALL)
+
+;; Parametric Bitwidth variables
+{}
+
+;; Parametric Bitwidth BitVectors
+{}
+
+;; Generated preconditions (to ensure valid pbv formula)
+(assert {})
+
+;; User-provided Preconditions
+(assert {})
+
+;; Disequality assertion
+(assert (distinct 
+    {}
+    {}
+))
+
+(check-sat)",
+                widths_str,
+                itertools::join(pbv_vars, "\n"),
+                if constraints.len() > 1 {
+                    &format!("(and \n    {})", &itertools::join(constraints, "\n    "))
+                } else {
+                    constraints.iter().next().unwrap()
+                },
+                precond_assertions,
+                lsmt.expr,
+                rsmt.expr
+            )
+        }
+
+        self.enum_pbv_conditions().as_ref().map_or(None, |pbv_vec| {
+            Some(
+                pbv_vec
+                    .into_iter()
+                    .map(|(lhs, rhs)| {
+                        generate_smt_problem(
+                            lhs,
+                            rhs,
+                            &self
+                                .preconditions
+                                .iter()
+                                .map(|p| p.to_string())
+                                .collect_vec(),
+                        )
+                    })
+                    .collect_vec(),
+            )
+        })
     }
 
     pub fn check_proof(
