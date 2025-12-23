@@ -312,7 +312,7 @@ impl SmtPBV for RecExpr<ModIR> {
             Err(_) => {
                 return Err(format!("modir_smt_pbv panicked for: {}", self));
             }
-        }
+        };
     }
 
     fn to_smt_pbv_panic(&self) -> Result<Vec<SmtPBVInfo>, String> {
@@ -338,7 +338,7 @@ impl SmtPBV for RecExpr<ModIR> {
                 .cartesian_product(b_infos.into_iter())
                 .flat_map(|(a_info, b_info)| {
                     let (vars, widths, constr) = a_info.clone().merge_infos(&b_info);
-                    
+
                     let make_smtinfo = |expr, width, constr, vars, widths| SmtPBVInfo {
                         expr: expr,
                         width: width,
@@ -364,14 +364,14 @@ impl SmtPBV for RecExpr<ModIR> {
                         _ => unreachable!("Something went wrong, proof with 0 length flat terms"),
                     };
                     let ret_smt = |x, y| format!("({operator} {} {})", x, y);
-                    
+
                     vec![
                         (width_template(&a_info, &b_info), format!("(= {} {})", &a_info.width, &b_info.width)),
                         (width_template(&a_info, &b_info), format!("(< {} {})", &a_info.width, &b_info.width)),
                         (width_template(&a_info, &b_info), format!("(> {} {})", &a_info.width, &b_info.width))
                     ]
                     .into_iter()
-                    .map(move |(new_width, condition)| 
+                    .map(move |(new_width, condition)|
                         make_smtinfo(
                             ret_smt(
                                 a_info.zero_extend(&new_width),
