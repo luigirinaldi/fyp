@@ -367,7 +367,7 @@ impl SmtPBV for RecExpr<ModIR> {
 
                     vec![
                         (width_template(&a_info, &b_info), format!("(= {} {})", &a_info.width, &b_info.width)),
-                        (width_template(&a_info, &b_info), format!("(< {} {})", &a_info.width, &b_info.width)),
+                        (width_template(&b_info, &a_info), format!("(< {} {})", &a_info.width, &b_info.width)),
                         (width_template(&a_info, &b_info), format!("(> {} {})", &a_info.width, &b_info.width))
                     ]
                     .into_iter()

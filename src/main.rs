@@ -280,6 +280,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     std::io::Write::write_all(&mut file, problem.as_bytes())
                         .expect("Failed to write SMT2 output");
                 }
+                return Ok(());
             } else {
                 return Err(format!("conversion to smt2 pbv failed!\n{}", equiv.name).into());
             }
