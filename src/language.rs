@@ -358,8 +358,8 @@ impl SmtPBV for RecExpr<ModIR> {
                     //    c_r <- zext/extract r ((zext a_p ((max p q) + 1)) + (zext a_p ((max p q) + 1)))
                     //    extend a and b to the width that captures the adds full precision ((max p q) + 1) and then truncate or extract more
                     let (operator, width_template) : (_, Box<dyn Fn(&SmtPBVInfo, &SmtPBVInfo) -> String>) = match root {
-                        ModIR::Add(_) => ("bvadd", Box::new(|a, _b| (format!("(+ {} 1)", a.width)))),
-                        ModIR::Mul(_) => ("bvmul", Box::new(|a, b|  (format!("(+ {} {})", a.width, b.width)))),
+                        ModIR::Add(_) => ("bvadd", Box::new(|a, _b| format!("(+ {} 1)", a.width))),
+                        ModIR::Mul(_) => ("bvmul", Box::new(|a, b|  format!("(+ {} {})", a.width, b.width))),
                         // ModIR::Sub(_) => ("bvsub", Box::new(|a, _b| (format!("(+ {} 1)", a.width)))), // needs zero extending?
                         _ => unreachable!("Something went wrong, proof with 0 length flat terms"),
                     };

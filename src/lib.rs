@@ -5,7 +5,6 @@ use egg::*;
 use itertools::Itertools;
 use language::ModAnalysis;
 use log::debug;
-use rayon::iter::Once;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::time::Duration;
