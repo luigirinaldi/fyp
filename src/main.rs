@@ -13,6 +13,8 @@ use log::{debug, info, trace};
 
 use std::time::Instant;
 
+use std::path::Path;
+
 use std::option::Option;
 
 use clap::{Parser, Subcommand};
@@ -77,9 +79,15 @@ enum Command {
 
     // /// Convert the bwlang file to Integer Arithmetic
     // ToSmtIa,
+    /// Convert the bwlang file to SMT2 theory of parametric bitvectors (T_PBV)
+    /// Will produce one or more smt2 files
+    ToSmtPbv {
+        /// Directory to store the generated files
+        /// Default is the same directory as the input file
+        #[arg(long, value_name = "FILE")]
+        smt2_path: Option<PathBuf>,
+    },
 
-    // /// Convert the bwlang file to SMT PBV
-    // ToSmtPbv,
     /// Convert to Isabelle
     GetProof {
         /// Store the generated theorem in this directory
@@ -103,7 +111,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         .parse_filters(&cli.verbosity)
         .init();
 
-    let path = cli.file_name;
+    let parent_opt = cli.file_name.parent();
+    let path: PathBuf = cli.file_name.clone();
+
     let data = fs::read_to_string(&path).expect("Failed to read input file");
     let equiv_str: EquivalenceString = serde_json::from_str(&data).expect("Failed to parse JSON");
 
@@ -226,6 +236,52 @@ fn main() -> Result<(), Box<dyn Error>> {
                 None => {
                     println!("{}", equiv.to_isabelle(!def_only));
                 }
+            }
+        }
+        Command::ToSmtPbv { smt2_path } => {
+            let out_dir: &Path;
+
+            if let Some(provided_path) = smt2_path {
+                if !provided_path.is_dir() {
+                    return Err("smt2_path must be a directory".into());
+                }
+                out_dir = provided_path;
+            } else {
+                if let Some(parent_path) = parent_opt {
+                    out_dir = parent_path;
+                } else {
+                    return Err("Provided file has no parent path".into());
+                }
+            }
+
+            let res = equiv.to_smt_pbv();
+            println!("Trying to convert {} to smt2", equiv.name);
+            if let Some(smt2_vec) = res {
+                // Write each problem to a numbered file
+                for (i, problem) in smt2_vec.iter().enumerate() {
+                    let file_path = out_dir.join(format!("{}_{}.smt2", equiv.name, i));
+                    let mut file = std::fs::File::create(&file_path)
+                        .expect("Failed to create SMT2 output file");
+                    // Prepare comment header
+                    let comment_header = format!(
+                        ";; Equivalence Name: {}\n;; Preconditions: {}\n;; LHS: {}\n;; RHS: {}\n\n",
+                        equiv.name,
+                        equiv
+                            .preconditions
+                            .iter()
+                            .map(|s| s.to_string())
+                            .collect::<Vec<String>>()
+                            .join(", "),
+                        equiv.lhs,
+                        equiv.rhs
+                    );
+                    std::io::Write::write_all(&mut file, comment_header.as_bytes())
+                        .expect("Failed to write SMT2 comment header");
+                    std::io::Write::write_all(&mut file, problem.as_bytes())
+                        .expect("Failed to write SMT2 output");
+                }
+            } else {
+                return Err(format!("conversion to smt2 pbv failed!\n{}", equiv.name).into());
             }
         }
     }
