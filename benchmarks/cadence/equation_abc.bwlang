@@ -1,0 +1,6 @@
+{
+    "name": "equation_abc",
+    "preconditions": ["(>= w4 w1)"],
+    "lhs": "(bw w7 (+ (bw w7 (* (bw (+ w4 1) (- (bw w4 ct) (bw w1 a))) (bw w3 c))) (bw w7 (* (bw w1 a) (bw w7 d)))))",
+    "rhs": "(bw w7 (+ (bw w7 (* (bw w3 c) (bw w4 ct))) (bw w7 (* (bw w1 a) (bw w7 (- (bw w7 d) (bw w3 c)))))))"
+}
