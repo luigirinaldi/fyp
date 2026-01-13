@@ -1,4 +1,4 @@
-use clap::error::Result;
+use clap::{error::Result, Error};
 use egg::*;
 use num::ToPrimitive;
 use std::fmt::Debug;
@@ -135,6 +135,16 @@ pub fn validate_width(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
         ModIR::Var(_) | ModIR::Num(_) => Ok(()),
         ModIR::Add(childs) | ModIR::Sub(childs) | ModIR::Mul(childs) => {
             childs.iter().map(|&id| validate_width(expr, id)).collect()
+        }
+        ModIR::Pow([base, exp]) => {
+            if expr[*base] == ModIR::Num(2) {
+                validate_width(expr, *exp)
+            } else {
+                Err(format!(
+                    "Only powers of two are allowed, base is: {}",
+                    &expr[*base]
+                ))
+            }
         }
         node => Err(format!(
             "Reached unsupported node while validating width expr : {:#?}",
