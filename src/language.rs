@@ -4,7 +4,7 @@ use num::ToPrimitive;
 use std::fmt::Debug;
 use z3::{
     ast::{Bool, Int},
-    RecFuncDecl, Solver, Sort,
+    RecFuncDecl, Sort,
 };
 type Num = i32;
 
