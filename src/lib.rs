@@ -1,4 +1,5 @@
 use crate::language::validate_bwlang;
+use crate::language::validate_precond;
 use crate::Symbol;
 use egg::*;
 use language::ModAnalysis;
@@ -402,6 +403,10 @@ for {nat_string} :: nat and {int_string} :: int\n",
     }
 
     pub fn validate(&self) -> Result<(), String> {
+        self.preconditions
+            .iter()
+            .map(|precond| validate_precond(precond, precond.root()))
+            .collect::<Result<(), String>>()?;
         validate_bwlang(&self.rhs, self.rhs.root())?;
         validate_bwlang(&self.lhs, self.lhs.root())
     }

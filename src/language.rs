@@ -121,6 +121,15 @@ impl Analysis<ModIR> for ModAnalysis {
     }
 }
 
+pub fn validate_precond(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
+    match &expr[id] {
+        ModIR::GT(childs) | ModIR::GTE(childs) | ModIR::LT(childs) | ModIR::LTE(childs) => {
+            childs.iter().map(|&id| validate_width(expr, id)).collect()
+        }
+        node => Err(format!("Unsupported precondition operation {:#}", node)),
+    }
+}
+
 pub fn validate_width(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
     match &expr[id] {
         ModIR::Var(_) | ModIR::Num(_) => Ok(()),
