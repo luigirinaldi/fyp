@@ -12,6 +12,7 @@ define_language! {
     pub enum ModIR {
         "bw" = Mod([Id; 2]), // mod operator to capture the bitwidth of a given sub-expression
         "@" = Sign([Id; 2]),
+        "signed" = Signed([Id; 1]),
         // Arithmetic operators
         "+" = Add([Id; 2]),
         "-" = Sub([Id; 2]),
