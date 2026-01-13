@@ -1,3 +1,6 @@
+use crate::language::validate_bwlang;
+use crate::language::validate_precond;
+use crate::language::ToZ3;
 use crate::Symbol;
 use egg::*;
 use language::ModAnalysis;
@@ -5,6 +8,8 @@ use log::debug;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::time::Duration;
+use z3::SatResult;
+use z3::Solver;
 
 mod dot_equiv;
 mod extractor;
@@ -31,6 +36,7 @@ pub struct Equivalence {
     pub rhs: RecExpr<ModIR>,
     pub equiv: Option<bool>,
     pub runner: Runner<ModIR, ModAnalysis>,
+    width_exprs: HashSet<RecExpr<ModIR>>,
     bw_vars: HashSet<Symbol>,
     non_bw_vars: HashSet<Symbol>,
     proof: Option<Vec<egg::FlatTerm<ModIR>>>,
@@ -59,7 +65,7 @@ impl Equivalence {
         let lhs_expr: RecExpr<ModIR> = lhs.parse().unwrap();
         let rhs_expr: RecExpr<ModIR> = rhs.parse().unwrap();
 
-        let unique_bitwidth_vars: HashSet<_> = get_bitwidth_exprs(&lhs_expr)
+        let unique_bitwidth_expr: HashSet<_> = get_bitwidth_exprs(&lhs_expr)
             .iter()
             .chain(&get_bitwidth_exprs(&rhs_expr))
             .cloned()
@@ -71,7 +77,7 @@ impl Equivalence {
             .collect::<HashSet<_>>();
 
         let all_bw_vars: HashSet<Symbol> =
-            unique_bitwidth_vars
+            unique_bitwidth_expr
                 .iter()
                 .fold(HashSet::<_>::from([]), |mut vars, expr| {
                     vars.extend(get_vars(expr));
@@ -85,7 +91,7 @@ impl Equivalence {
             .collect::<HashSet<_>>();
 
         // Default conditions on the fact that all bitwidth variables must be strictly greater than 0
-        let extra_preconditions = unique_bitwidth_vars.iter().map(|e_old| {
+        let extra_preconditions = unique_bitwidth_expr.iter().map(|e_old| {
             let mut e = e_old.clone();
             let root = e.root();
             let zero_id = e.add(ModIR::Num(0));
@@ -105,6 +111,7 @@ impl Equivalence {
             preconditions: precond_exprs,
             lhs: lhs_expr,
             rhs: rhs_expr,
+            width_exprs: unique_bitwidth_expr,
             bw_vars: all_bw_vars,
             non_bw_vars: non_bw_vars,
             proof: None,
@@ -398,5 +405,42 @@ for {nat_string} :: nat and {int_string} :: int\n",
         std::io::Error,
     > {
         return check_isabelle_proof(&vec![self.name.clone()], self.name.clone(), path);
+    }
+
+    pub fn validate(&self) -> Result<(), String> {
+        self.preconditions
+            .iter()
+            .map(|precond| validate_precond(precond, precond.root()))
+            .collect::<Result<(), String>>()?;
+        validate_bwlang(&self.rhs, self.rhs.root())?;
+        validate_bwlang(&self.lhs, self.lhs.root())?;
+
+        let solver = Solver::new();
+        for expr in &self.width_exprs {
+            solver.assert(expr.width_to_z3(expr.root())?.gt(0));
+        }
+        solver.push();
+        // want to validate that all the bitwidths can be > 0
+        if solver.check() != SatResult::Sat {
+            let mut out_str = format!("The constraint on the width expressions all being greater than 0 produces an unsatisfiable set of widths:");
+            for expr in &self.width_exprs {
+                out_str += " (";
+                out_str += &expr.to_string();
+                out_str += " > 0) and";
+            }
+            return Err(out_str);
+        }
+        solver.pop(1);
+
+        for expr in &self.preconditions {
+            solver.assert(expr.to_z3_cond()?);
+        }
+        // want to validate that given the provided preconditions the set of widths is satisfiable
+        if solver.check() != SatResult::Sat {
+            return Err(format!(
+                "The provided preconditions constrain the widths in an unsatisfiable way"
+            ));
+        }
+        return Ok(());
     }
 }

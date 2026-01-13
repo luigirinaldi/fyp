@@ -153,6 +153,7 @@ fn {fn_name}() {{
         {rhs_literal},
     );
     eq = eq.find_equivalence(&None);
+    assert!(eq.validate().is_ok());
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found.\n{{}}", eq.explanation_string());
     eq = eq.make_proof();
     let _expl = eq.explanation_string();

@@ -75,6 +75,8 @@ enum Command {
         max_time: u64,
     },
 
+    ValidateInput,
+
     // /// Convert the bwlang file to Integer Arithmetic
     // ToSmtIa,
 
@@ -108,8 +110,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let equiv_str: EquivalenceString = serde_json::from_str(&data).expect("Failed to parse JSON");
 
     let mut equiv: Equivalence = Equivalence::from(equiv_str);
-
     info!("Running parabit on file: {}", equiv.name);
+    equiv.validate()?;
+    
     debug!(
         "\nlhs:\t{}\nrhs:\t{}\nprecond: {}",
         equiv.lhs.to_string(),
@@ -228,6 +231,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }
+        // input validation happends after the equiv is constructed, hence no need to do anything
+        Command::ValidateInput => return Ok(()),
     }
 
     if let Some(is_equiv) = equiv.equiv.clone() {
