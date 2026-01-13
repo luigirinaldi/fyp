@@ -143,6 +143,12 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("demorg_and"; "(bw ?p (not (and (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("demorg_or";  "(bw ?p (not (or (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (and (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("sel_def"; "(bw ?p (sel ?cond ?a ?b))" => "(bw ?p (+ (* ?a (bw 1 ?cond)) (* ?b (bw 1 (not (bw 1 ?cond))))))"),
+        // Signed interpretations
+        rewrite!("redundant-signed"; "(bw ?p (signed (bw ?p ?a)))" => "(bw ?p ?a)"),
+        rewrite!("signed-zext"; "(signed (bw ?q (bw ?p ?a)))" => "(bw ?p ?a)" if precondition(&["(> ?q ?p)"])),
+        rewrite!("lower-signed"; "(signed (bw ?p ?a))" => "(- (bw ?p (* 2 (bw (- ?p 1) ?a))) (bw ?p ?a))"),
+        rewrite!("signed-of-neg"; "(signed (bw ?q (- (bw ?p ?a))))" => "(- (bw ?p ?a))" if precondition(&["(> ?q ?p)"])),
+        rewrite!("signed-of-diff"; "(signed (bw ?r (- (bw ?p ?a) (bw ?q ?b))))" => "(- (bw ?p ?a) (bw ?q ?b))" if precondition(&["(> ?r ?p)", "(> ?r ?q)"])),
     ];
     rules.extend(rewrite!("xor_and_or";      "(and (or (bw ?p ?a) (bw ?p ?b)) (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))" <=> "(xor (bw ?p ?a) (bw ?p ?b))"));
     // bitwise to arith
