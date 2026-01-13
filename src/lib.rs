@@ -1,3 +1,4 @@
+use crate::language::validate_bwlang;
 use crate::Symbol;
 use egg::*;
 use language::ModAnalysis;
@@ -398,5 +399,10 @@ for {nat_string} :: nat and {int_string} :: int\n",
         std::io::Error,
     > {
         return check_isabelle_proof(&vec![self.name.clone()], self.name.clone(), path);
+    }
+
+    pub fn validate(&self) -> Result<(), String> {
+        validate_bwlang(&self.rhs, self.rhs.root())?;
+        validate_bwlang(&self.lhs, self.lhs.root())
     }
 }

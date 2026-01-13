@@ -1,3 +1,4 @@
+use clap::{builder::styling::Reset, error::Result};
 use egg::*;
 use num::ToPrimitive;
 use std::fmt::Debug;
@@ -20,7 +21,7 @@ define_language! {
         "and" = And([Id;2]),
         "or" = Or([Id;2]),
         "xor" = Xor([Id;2]),
-        "not" = Not([Id; 1]),
+        "not" = Not(Id),
         // Operators to handle preconditions
         ">"  = GT([Id; 2]),
         ">=" = GTE([Id; 2]),
@@ -117,5 +118,60 @@ impl Analysis<ModIR> for ModAnalysis {
             // let id3 = egraph.add(ModIR::Mod([bw_id, id2]));
             // egraph.union(id, id3);
         }
+    }
+}
+
+pub fn validate_width(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
+    match &expr[id] {
+        ModIR::Var(_) | ModIR::Num(_) => Ok(()),
+        ModIR::Add(childs) | ModIR::Sub(childs) | ModIR::Mul(childs) => {
+            childs.iter().map(|&id| validate_width(expr, id)).collect()
+        }
+        node => Err(format!(
+            "Reached unsupported node while validating width expr : {:#?}",
+            node
+        )),
+    }
+}
+
+pub fn validate_term(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
+    match &expr[id] {
+        ModIR::Mod([width, term]) => {
+            validate_width(expr, *width)?;
+            validate_bwlang(expr, *term)
+        }
+        node => Err(format!(
+            "Found a child node without a 'bw' annotation: {:#?}, in {:#?}",
+            node, expr[id]
+        )),
+    }
+}
+
+pub fn validate_bwlang(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
+    match &expr[id] {
+        ModIR::Mod([width, term]) => {
+            validate_width(expr, *width)?;
+            validate_bwlang(expr, *term)
+        }
+        ModIR::Add(childs)
+        | ModIR::Sub(childs)
+        | ModIR::Mul(childs)
+        | ModIR::ShiftL(childs)
+        | ModIR::ShiftR(childs)
+        | ModIR::And(childs)
+        | ModIR::Xor(childs)
+        | ModIR::Or(childs) => childs.iter().map(|&id   | validate_term(expr, id)).collect(),
+        ModIR::Neg(child) | ModIR::Not(child) => validate_term(expr, *child),
+        ModIR::Var(_) | ModIR::Num(_) => {
+            if id != expr.root() {
+                Ok(())
+            } else {
+                Err("Cannot have Var or Num as root in bwlang".to_string())
+            }
+        }
+        node => Err(format!(
+            "Found an invalid node {:#?}, in {:#?}",
+            node, expr[id]
+        )),
     }
 }

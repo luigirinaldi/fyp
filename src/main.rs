@@ -108,6 +108,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let equiv_str: EquivalenceString = serde_json::from_str(&data).expect("Failed to parse JSON");
 
     let mut equiv: Equivalence = Equivalence::from(equiv_str);
+    equiv.validate()?;
 
     info!("Running parabit on file: {}", equiv.name);
     debug!(
