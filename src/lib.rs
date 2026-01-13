@@ -184,6 +184,7 @@ impl Equivalence {
                 best_lhs_expr.to_string(),
                 best_rhs_expr.to_string()
             );
+            output_str += &format!("\n{:#?}", self.runner.report());
         }
 
         let out_str = format!(
