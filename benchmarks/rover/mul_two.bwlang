@@ -1,6 +1,6 @@
 {
     "name": "mul_two",
     "preconditions": [],
-    "lhs": "(bw r (* (bw p a) 2))",
+    "lhs": "(bw r (* (bw p a) (bw 2 2)))",
     "rhs": "(bw r (<< (bw p a) (bw 1 1)))"
 }
