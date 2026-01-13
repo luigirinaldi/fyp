@@ -1,7 +1,11 @@
-use clap::{error::Result, Error};
+use clap::error::Result;
 use egg::*;
 use num::ToPrimitive;
 use std::fmt::Debug;
+use z3::{
+    ast::{Bool, Int},
+    RecFuncDecl, Solver, Sort,
+};
 type Num = i32;
 
 define_language! {
@@ -192,5 +196,71 @@ pub fn validate_bwlang(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
             "Found an invalid node {:#?}, in {:#?}",
             node, expr[id]
         )),
+    }
+}
+
+pub trait ToZ3 {
+    fn width_to_z3(&self, id: Id) -> Result<Int, String>;
+    fn to_z3_cond(&self) -> Result<Bool, String>;
+}
+
+/// Apply the pow2 function to a Z3 Int
+/// pow2(n) = if n == 0 then 1 else 2 * pow2(n - 1)
+fn apply_pow2(a: &Int) -> Int {
+    // Create recursive function declaration: pow2: Int -> Int
+    let pow2 = RecFuncDecl::new("pow2", &[&Sort::int()], &Sort::int());
+
+    // Create the parameter for the function body
+    let n = Int::new_const("n");
+
+    // Define the recursive body:
+    // if n == 0 then 1 else 2 * pow2(n - 1)
+    let zero = Int::from_i64(0);
+    let one = Int::from_i64(1);
+    let two = Int::from_i64(2);
+
+    let base_case = n.eq(&zero);
+    let recursive_call = pow2.apply(&[&(n.clone() - one.clone())]);
+    let recursive_case = two * recursive_call.as_int().unwrap();
+
+    let body = base_case.ite(&one, &recursive_case);
+
+    // Add the recursive definition
+    pow2.add_def(&[&n], &body);
+
+    // Apply pow2 to the input
+    pow2.apply(&[a]).as_int().unwrap()
+}
+
+impl ToZ3 for RecExpr<ModIR> {
+    fn to_z3_cond(&self) -> Result<Bool, String> {
+        match &self[self.root()] {
+            ModIR::GT([a, b]) => Ok(self.width_to_z3(*a)?.gt(self.width_to_z3(*b)?)),
+            ModIR::GTE([a, b]) => Ok(self.width_to_z3(*a)?.ge(self.width_to_z3(*b)?)),
+            ModIR::LT([a, b]) => Ok(self.width_to_z3(*a)?.lt(self.width_to_z3(*b)?)),
+            ModIR::LTE([a, b]) => Ok(self.width_to_z3(*a)?.le(self.width_to_z3(*b)?)),
+            _ => unreachable!("Z3 comp is not valid comparison operation: {}", self),
+        }
+    }
+
+    fn width_to_z3(&self, id: Id) -> Result<Int, String> {
+        match &self[id] {
+            ModIR::Var(sym) => Ok(Int::new_const(sym.as_str())),
+            ModIR::Num(num) => Ok(Int::from_i64(num.to_i64().unwrap())),
+            ModIR::Add([a, b]) => Ok(self.width_to_z3(*a)? + self.width_to_z3(*b)?),
+            ModIR::Mul([a, b]) => Ok(self.width_to_z3(*a)? * self.width_to_z3(*b)?),
+            ModIR::Sub([a, b]) => Ok(self.width_to_z3(*a)? - self.width_to_z3(*b)?),
+            ModIR::Pow([a, b]) => {
+                if self[*a] == ModIR::Num(2) {
+                    Ok(apply_pow2(&self.width_to_z3(*b)?))
+                } else {
+                    Err(format!(
+                        "Only powers of two are allowed, base is: {}",
+                        &self[*a]
+                    ))
+                }
+            }
+            _ => Err("Reached an invalid node type".to_string()),
+        }
     }
 }
