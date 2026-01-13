@@ -141,8 +141,8 @@ pub fn validate_term(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
             validate_bwlang(expr, *term)
         }
         node => Err(format!(
-            "Found a child node without a 'bw' annotation: {:#?}, in {:#?}",
-            node, expr[id]
+            "Found a child node without a 'bw' annotation: {:#?}, in {:#}",
+            node, expr
         )),
     }
 }
