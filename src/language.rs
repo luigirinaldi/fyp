@@ -1,4 +1,4 @@
-use clap::{builder::styling::Reset, error::Result};
+use clap::error::Result;
 use egg::*;
 use num::ToPrimitive;
 use std::fmt::Debug;
@@ -160,7 +160,7 @@ pub fn validate_bwlang(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
         | ModIR::ShiftR(childs)
         | ModIR::And(childs)
         | ModIR::Xor(childs)
-        | ModIR::Or(childs) => childs.iter().map(|&id   | validate_term(expr, id)).collect(),
+        | ModIR::Or(childs) => childs.iter().map(|&id| validate_term(expr, id)).collect(),
         ModIR::Neg(child) | ModIR::Not(child) => validate_term(expr, *child),
         ModIR::Var(_) | ModIR::Num(_) => {
             if id != expr.root() {
