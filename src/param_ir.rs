@@ -1,5 +1,6 @@
 use clap::error::Result;
 use egg::*;
+use log::warn;
 use num::ToPrimitive;
 use std::fmt::Debug;
 use z3::ast::Bool;
@@ -516,7 +517,18 @@ where
     solver.set_params(&params);
 
     for c in conds {
-        solver.assert(c.cond_to_z3()?);
+        if !c
+            .as_ref()
+            .into_iter()
+            .any(|n| matches!(n, ParamIR::Pow2(_)))
+        {
+            solver.assert(c.cond_to_z3()?);
+        } else {
+            warn!(
+                "Skipping condition because it contains a power of two: {}",
+                c.to_string()
+            );
+        }
     }
 
     let res = solver.check();
