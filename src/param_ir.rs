@@ -499,18 +499,15 @@ pub fn rewrite_var_to_wvar(expr: &RecExpr<ParamIR>) -> RecExpr<ParamIR> {
     final_exp.clone()
 }
 
-pub fn compatible_conds(
-    a: &Vec<RecExpr<ParamIR>>,
-    b: &Vec<RecExpr<ParamIR>>,
-) -> Result<bool, String> {
+pub fn compatible_conds<'a, I>(conds: I) -> Result<bool, String>
+where
+    I: IntoIterator<Item = &'a RecExpr<ParamIR>>,
+{
     let solver = Solver::new();
 
-    for ca in a {
-        solver.assert(ca.cond_to_z3()?);
+    for c in conds {
+        solver.assert(c.cond_to_z3()?);
     }
-    for cb in b {
-        solver.assert(cb.cond_to_z3()?);
-    }
-    // return whether or not the conditions encode a satisfiable assignment for the widths
+
     Ok(solver.check() == SatResult::Sat)
 }

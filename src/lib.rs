@@ -471,16 +471,17 @@ for {nat_string} :: nat and {int_string} :: int\n",
             .expr_out
             .iter()
             .flat_map(|(conds_l, expr_l)| {
-                rhs_single_w
-                    .expr_out
-                    .iter()
-                    .filter_map(|(conds_r, expr_r)| {
-                        if compatible_conds(conds_l, conds_r).unwrap() {
+                rhs_single_w.expr_out.iter().filter_map({
+                    let value = preconds_single_w.clone();
+                    move |(conds_r, expr_r)| {
+                        let conds = conds_r.iter().chain(conds_l).chain(&value);
+                        if compatible_conds(conds).unwrap() {
                             Some((expr_l.clone(), expr_r.clone()))
                         } else {
                             None
                         }
-                    })
+                    }
+                })
             })
             .collect::<Vec<_>>();
 
@@ -500,15 +501,15 @@ for {nat_string} :: nat and {int_string} :: int\n",
             width_vars.extend(rhs.get_width_var());
             let mut bitvector_vars = lhs.get_vars();
             bitvector_vars.extend(rhs.get_vars());
-            for p in preconds {
-                assert!(
-                    p.get_width_var().is_subset(&width_vars),
-                    "precondition {} contains variables not present in the lhs and rhs, {:#?}, {:#?}",
-                    p.to_string(),
-                    p.get_width_var(),
-                    width_vars
-                )
-            }
+            // for p in preconds {
+            //     assert!(
+            //         p.get_width_var().is_subset(&width_vars),
+            //         "precondition {} contains variables not present in the lhs and rhs, {:#?}, {:#?}",
+            //         p.to_string(),
+            //         p.get_width_var(),
+            //         width_vars
+            //     )
+            // }
             for w in width_vars {
                 string_out += &wvar_to_smt_string(&w);
                 string_out += "\n";
@@ -529,17 +530,9 @@ for {nat_string} :: nat and {int_string} :: int\n",
             string_out
         }
 
-        valid_pairs.into_iter().for_each(|(lhs, rhs)| {
-            println!("{}", generate_smt_string(&lhs, &rhs, &[]));
-        });
-
-        // let (l_w_cond, lhs_pbv) = lhs_single_w.expr_out[8].clone();
-        // let (r_w_cond, rhs_pbv) = rhs_single_w.expr_out[8].clone();
-
-        // println!(
-        //     "{}",
-        //     generate_smt_string(&lhs_pbv, &rhs_pbv, preconds_single_w.as_slice())
-        // );
-        Ok(vec![])
+        Ok(valid_pairs
+            .into_iter()
+            .map(|(lhs, rhs)| generate_smt_string(&lhs, &rhs, preconds_single_w.as_slice()))
+            .collect())
     }
 }
