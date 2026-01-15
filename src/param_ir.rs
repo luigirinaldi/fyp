@@ -3,9 +3,9 @@ use egg::*;
 use std::fmt::Debug;
 type Num = i32;
 
-use std::collections::HashMap;
-
 use crate::language::ModIR;
+use std::collections::HashMap;
+use std::collections::HashSet;
 
 // Language to describe SMT-lib parametric bitvector languages which impose a single width operator constraint
 define_language! {
@@ -49,6 +49,25 @@ pub struct ParamInfo {
     pub expr_out: Vec<(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>)>,
 }
 
+pub fn try_join_recexpr<L, E, F>(node: &L, mut f: F) -> Result<RecExpr<L>, E>
+where
+    L: Language + Clone,
+    F: FnMut(Id) -> Result<RecExpr<L>, E>,
+{
+    // 1. Compute each child RecExpr fallibly
+    let parts: HashMap<Id, RecExpr<L>> = node
+        .children()
+        .iter()
+        .copied()
+        .map(|id| f(id).map(|recexpr| (id, recexpr)))
+        .collect::<Result<_, _>>()?;
+
+    // 2. Join using the existing non-fallible logic
+    Ok(node
+        .clone()
+        .join_recexprs(|id| parts.get(&id).expect("missing child recexpr").clone()))
+}
+
 // Function that takes a modir, interpreted as a width and produces a corresponding paramir width
 fn modir_w_to_paramir_w(expr: &RecExpr<ModIR>, id: Id) -> Result<RecExpr<ParamIR>, String> {
     match &expr[id] {
@@ -60,15 +79,24 @@ fn modir_w_to_paramir_w(expr: &RecExpr<ModIR>, id: Id) -> Result<RecExpr<ParamIR
             }
         }
         ModIR::Var(var) => Ok(RecExpr::from(vec![ParamIR::WVar(*var)])),
-        ModIR::Add([a, b]) => {
-            let node = ParamIR::WAdd([Id::from(0), Id::from(1)]);
-            let parts: HashMap<&Id, RecExpr<_>> = [a, b]
-                .iter()
-                .copied()
-                .map(|id| modir_w_to_paramir_w(expr, *id).map(|recexpr| (id, recexpr)))
-                .collect::<Result<_, _>>()?;
-            let recexpr_ret = node.join_recexprs(|id| parts[&id].clone());
-            Ok(recexpr_ret)
+        ModIR::Add([a, b]) => try_join_recexpr(&ParamIR::WAdd([*a, *b]), |id| {
+            modir_w_to_paramir_w(expr, id)
+        }),
+        ModIR::Sub([a, b]) => try_join_recexpr(&ParamIR::WSub([*a, *b]), |id| {
+            modir_w_to_paramir_w(expr, id)
+        }),
+        ModIR::Mul([a, b]) => try_join_recexpr(&ParamIR::WMul([*a, *b]), |id| {
+            modir_w_to_paramir_w(expr, id)
+        }),
+        ModIR::Pow([base, exp]) => {
+            if expr[*base] == ModIR::Num(2) {
+                try_join_recexpr(&ParamIR::Pow2(*exp), |id| modir_w_to_paramir_w(expr, id))
+            } else {
+                Err(format!(
+                    "Only powers of two are allowed, base is: {}",
+                    &expr[*base]
+                ))
+            }
         }
         a => Err(format!("Unkown node: {}", a)),
     }
@@ -263,5 +291,40 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
             node => Err(format!("Invalid node type reached: {node}")),
         },
         _ => unreachable!(),
+    }
+}
+
+pub trait ParamUtils {
+    fn get_width_var(&self) -> HashSet<&ParamIR>;
+    fn get_vars(&self) -> HashSet<RecExpr<ParamIR>>;
+}
+
+impl ParamUtils for RecExpr<ParamIR> {
+    fn get_width_var(&self) -> HashSet<&ParamIR> {
+        self.as_ref()
+            .iter()
+            .filter(|node| {
+                if let ParamIR::WVar(_) = node {
+                    true
+                } else {
+                    false
+                }
+            })
+            .collect()
+    }
+
+    fn get_vars(&self) -> HashSet<RecExpr<ParamIR>> {
+        self.as_ref()
+            .iter()
+            .map(|node| {
+                if let ParamIR::Var(_, _) = node {
+                    Some(node.build_recexpr(|id| self[id].clone()))
+                } else {
+                    None
+                }
+            })
+            .filter(|x| x.is_some())
+            .map(|x| x.unwrap())
+            .collect()
     }
 }
