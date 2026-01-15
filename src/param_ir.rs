@@ -17,8 +17,8 @@ use std::collections::HashSet;
 define_language! {
     pub enum ParamIR {
         "bvadd" = Add([Id; 2]),
-        "bvneg" = Sub([Id; 2]),
-        "bvsub" = Neg(Id),
+        "bvsub" = Sub([Id; 2]),
+        "bvneg" = Neg(Id),
         "bvmul" = Mul([Id; 2]),
         "bvlshr" = ShiftR([Id;2]),
         "bvshl" = ShiftL([Id;2]),
@@ -39,6 +39,7 @@ define_language! {
         ">=" = GTE([Id; 2]),
         "<"  = LT([Id; 2]),
         "<=" = LTE([Id; 2]),
+        "=" = Eq([Id;2]),
         // Numbers and associated width expr (must be num or var)
         Num(Num, Id),
         // Variables and associate width expr (must be num or var)
@@ -185,21 +186,28 @@ fn case_split_unary(
     w_a: &RecExpr<ParamIR>,
     expr_a: &RecExpr<ParamIR>,
     w_out: &RecExpr<ParamIR>,
-) -> [(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>); 2] {
-    // two cases
+) -> [(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>); 3] {
+    // three cases
     // w_out > w_a
     let case_one: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
         vec![format!("(> {w_out} {w_a})").parse().unwrap()],
-        format!("({op} (zext (- {w_out} {w_a}) {expr_a}))")
+        format!("({op} (pzero_extend (- {w_out} {w_a}) {expr_a}))")
             .parse()
             .unwrap(),
     );
-    // w_out <= w_a
+    // w_out = w_a
     let case_two: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
-        vec![format!("(<= {w_out} {w_a})").parse().unwrap()],
-        format!("(trunc {w_out} ({op} {expr_a}))").parse().unwrap(),
+        vec![format!("(= {w_out} {w_a})").parse().unwrap()],
+        format!("({op} {expr_a})").parse().unwrap(),
     );
-    [case_one, case_two]
+    // w_out < w_a
+    let case_three: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+        vec![format!("(< {w_out} {w_a})").parse().unwrap()],
+        format!("(pextract (- {w_out} 1) 0 ({op} {expr_a}))")
+            .parse()
+            .unwrap(),
+    );
+    [case_one, case_two, case_three]
 }
 
 /// This function takes a ModIR expression and enumerates all of the width conditions
@@ -371,6 +379,7 @@ impl ParamUtils for RecExpr<ParamIR> {
             ParamIR::GTE([a, b]) => Ok(self.width_to_z3(*a)?.ge(self.width_to_z3(*b)?)),
             ParamIR::LT([a, b]) => Ok(self.width_to_z3(*a)?.lt(self.width_to_z3(*b)?)),
             ParamIR::LTE([a, b]) => Ok(self.width_to_z3(*a)?.le(self.width_to_z3(*b)?)),
+            ParamIR::Eq([a, b]) => Ok(self.width_to_z3(*a)?.eq(self.width_to_z3(*b)?)),
             _ => unreachable!("Z3 comp is not valid comparison operation: {}", self),
         }
     }
