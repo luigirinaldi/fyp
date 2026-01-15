@@ -303,10 +303,9 @@ impl ToZ3 for RecExpr<ModIR> {
 
 #[derive(Debug, Default)]
 pub struct ParamInfo {
-    width_out: RecExpr<ParamIR>,
+    pub width_out: RecExpr<ParamIR>,
     // Vector holding the width conditions and the generated expression under those conditions
-    // expr_out: Vec<(&'a Vec<RecExpr<ParamIR>>, &'a RecExpr<ParamIR>)>,
-    expr_out: Vec<(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>)>,
+    pub expr_out: Vec<(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>)>,
 }
 
 // Function that takes a modir, interpreted as a width and produces a corresponding paramir width

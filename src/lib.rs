@@ -446,7 +446,13 @@ for {nat_string} :: nat and {int_string} :: int\n",
     }
 
     pub fn to_single_width_op(&self) -> Result<(), String> {
-        let _ = modir_to_paramir(&self.rhs, self.rhs.root());
+        let rhs_single_w = modir_to_paramir(&self.rhs, self.rhs.root())?;
+        let lhs_single_w = modir_to_paramir(&self.lhs, self.lhs.root())?;
+        println!(
+            "Finished processing lhs and rhs, rhs has {} cases, lhs has {} cases",
+            rhs_single_w.expr_out.len(),
+            lhs_single_w.expr_out.len()
+        );
         Ok(())
     }
 }
