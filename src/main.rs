@@ -42,6 +42,7 @@ struct Cli {
     command: Option<Command>,
 
     /// Verbosity level, feed a RUST_LOG compatible string
+    /// For example: "parabit=debug" to get debug from parabit
     #[arg(short, long, default_value = "parabit=info")]
     verbosity: String,
 }
@@ -80,7 +81,11 @@ enum Command {
     // /// Convert the bwlang file to Integer Arithmetic
     // ToSmtIa,
     /// Convert the bwlang file to SMT PBV
-    ToSmtPbv,
+    ToSmtPbv {
+        /// Store the generated theorem in this directory
+        #[arg(value_name = "DIR")]
+        dest_path: PathBuf,
+    },
 
     /// Convert to Isabelle
     GetProof {
@@ -233,7 +238,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         // input validation happends after the equiv is constructed, hence no need to do anything
         Command::ValidateInput => return Ok(()),
-        Command::ToSmtPbv => return Ok(equiv.to_single_width_op()?),
+        Command::ToSmtPbv { dest_path } => {
+            if !dest_path.exists() {
+                debug!("Creating directory {}", dest_path.to_string_lossy());
+                std::fs::create_dir_all(&dest_path).expect("Failed to create smt pbv directory");
+            }
+
+            let _ = equiv.to_single_width_op()?;
+        }
     }
 
     if let Some(is_equiv) = equiv.equiv.clone() {

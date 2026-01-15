@@ -69,10 +69,12 @@ define_language! {
         ">=" = GTE([Id; 2]),
         "<"  = LT([Id; 2]),
         "<=" = LTE([Id; 2]),
-        // Numbers
-        Num(Num),
-        // variables on which the operators operate
-        Var(Symbol),
+        // Numbers and associated width expr (must be num or var)
+        Num(Num, Id),
+        // Variables and associate width expr (must be num or var)
+        Var(Symbol, Id),
+        WVar(Symbol),
+        WNum(Num),
     }
 }
 
@@ -313,12 +315,12 @@ pub fn modir_w_to_paramir_w(expr: &RecExpr<ModIR>, id: Id) -> Result<RecExpr<Par
     match &expr[id] {
         ModIR::Num(num) => {
             if *num > 0 {
-                Ok(RecExpr::from(vec![ParamIR::Num(*num)]))
+                Ok(RecExpr::from(vec![ParamIR::WNum(*num)]))
             } else {
                 Err(format!("Constant width cannot be less than zero:{}", num))
             }
         }
-        ModIR::Var(var) => Ok(RecExpr::from(vec![ParamIR::Var(*var)])),
+        ModIR::Var(var) => Ok(RecExpr::from(vec![ParamIR::WVar(*var)])),
         ModIR::Add([a, b]) => {
             let node = ParamIR::WAdd([Id::from(0), Id::from(1)]);
             let parts: HashMap<&Id, RecExpr<_>> = [a, b]
@@ -514,16 +516,28 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
                 })
             }
             ModIR::Var(var) => {
+                let width_expr = modir_w_to_paramir_w(expr_in, *w)?;
                 return Ok(ParamInfo {
-                    width_out: modir_w_to_paramir_w(expr_in, *w)?,
-                    expr_out: vec![(vec![], RecExpr::from(vec![ParamIR::Var(*var)]))],
-                })
+                    width_out: width_expr.clone(),
+                    expr_out: vec![(
+                        vec![],
+                        format!("({var} {})", &width_expr.to_string())
+                            .parse::<RecExpr<ParamIR>>()
+                            .unwrap(),
+                    )],
+                });
             }
             ModIR::Num(num) => {
+                let width_expr = modir_w_to_paramir_w(expr_in, *w)?;
                 return Ok(ParamInfo {
-                    width_out: modir_w_to_paramir_w(expr_in, *w)?,
-                    expr_out: vec![(vec![], RecExpr::from(vec![ParamIR::Num(*num)]))],
-                })
+                    width_out: width_expr.clone(),
+                    expr_out: vec![(
+                        vec![],
+                        format!("({num} {})", &width_expr.to_string())
+                            .parse::<RecExpr<ParamIR>>()
+                            .unwrap(),
+                    )],
+                });
             }
             ModIR::Mod(_) => todo!(),
             node => Err(format!("Invalid node type reached: {node}")),

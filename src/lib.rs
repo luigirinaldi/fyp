@@ -1,6 +1,7 @@
 use crate::language::modir_to_paramir;
 use crate::language::validate_bwlang;
 use crate::language::validate_precond;
+use crate::language::ParamIR;
 use crate::language::ToZ3;
 use crate::Symbol;
 use egg::*;
@@ -445,7 +446,8 @@ for {nat_string} :: nat and {int_string} :: int\n",
         return Ok(());
     }
 
-    pub fn to_single_width_op(&self) -> Result<(), String> {
+    /// Produces a vector of smtlib-pbv compatible strings
+    pub fn to_single_width_op(&self) -> Result<Vec<String>, String> {
         let rhs_single_w = modir_to_paramir(&self.rhs, self.rhs.root())?;
         let lhs_single_w = modir_to_paramir(&self.lhs, self.lhs.root())?;
         println!(
@@ -453,6 +455,17 @@ for {nat_string} :: nat and {int_string} :: int\n",
             rhs_single_w.expr_out.len(),
             lhs_single_w.expr_out.len()
         );
-        Ok(())
+
+        // fn generate_smt_string(
+        //     lhs: &RecExpr<ParamIR>,
+        //     rhs: &RecExpr<ParamIR>,
+        //     preconds: &[&RecExpr<ParamIR>],
+        // ) -> String {
+        //     let mut string_out: String = "(set-logic ALL)\n".to_string();
+        //     string_out += ";; Parametric Bitwidth Variables\n";
+        //     string_out
+        // }
+
+        Ok(vec![])
     }
 }
