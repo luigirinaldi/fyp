@@ -102,6 +102,27 @@ fn modir_w_to_paramir_w(expr: &RecExpr<ModIR>, id: Id) -> Result<RecExpr<ParamIR
     }
 }
 
+pub fn modir_cond_to_paramir_cond(
+    expr: &RecExpr<ModIR>,
+    id: Id,
+) -> Result<RecExpr<ParamIR>, String> {
+    match &expr[id] {
+        cond @ (ModIR::GT(_) | ModIR::GTE(_) | ModIR::LT(_) | ModIR::LTE(_)) => {
+            fn opmap(modop: &ModIR) -> ParamIR {
+                match modop {
+                    ModIR::GT(c) => ParamIR::GT(*c),
+                    ModIR::GTE(c) => ParamIR::GTE(*c),
+                    ModIR::LT(c) => ParamIR::LT(*c),
+                    ModIR::LTE(c) => ParamIR::LTE(*c),
+                    _ => unreachable!(),
+                }
+            }
+            try_join_recexpr(&opmap(cond), |id| modir_w_to_paramir_w(expr, id))
+        }
+        node => Err(format!("Unsupported precondition operation {:#}", node)),
+    }
+}
+
 fn case_split_binary(
     op: &str,
     w_a: &RecExpr<ParamIR>,
