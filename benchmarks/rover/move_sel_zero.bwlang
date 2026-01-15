@@ -1,0 +1,6 @@
+{
+    "name": "move_sel_zero",
+    "preconditions": ["(>= p 1)", "(>= q 1)"],
+    "lhs": "(bw r (* (bw p (SEL (bw 1 b) (bw p 0) (bw p a))) (bw q c)))",
+    "rhs": "(bw r (*  (bw p a) (bw q (SEL (bw 1 b) (bw q 0) (bw q c)))))"
+}
