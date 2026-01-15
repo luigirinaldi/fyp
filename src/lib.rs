@@ -1,6 +1,7 @@
 use crate::language::validate_bwlang;
 use crate::language::validate_precond;
 use crate::language::ToZ3;
+use crate::param_ir::compatible_conds;
 use crate::param_ir::modir_cond_to_paramir_cond;
 use crate::param_ir::modir_to_paramir;
 use crate::param_ir::pbvvar_to_smt_string;
@@ -453,8 +454,8 @@ for {nat_string} :: nat and {int_string} :: int\n",
 
     /// Produces a vector of smtlib-pbv compatible strings
     pub fn to_single_width_op(&self) -> Result<Vec<String>, String> {
-        let rhs_single_w = modir_to_paramir(&self.rhs, self.rhs.root())?;
         let lhs_single_w = modir_to_paramir(&self.lhs, self.lhs.root())?;
+        let rhs_single_w = modir_to_paramir(&self.rhs, self.rhs.root())?;
         let preconds_single_w: Vec<RecExpr<ParamIR>> = self
             .preconditions
             .iter()
@@ -464,6 +465,29 @@ for {nat_string} :: nat and {int_string} :: int\n",
             "Finished processing lhs and rhs, rhs has {} cases, lhs has {} cases",
             rhs_single_w.expr_out.len(),
             lhs_single_w.expr_out.len()
+        );
+
+        let valid_pairs: Vec<_> = lhs_single_w
+            .expr_out
+            .iter()
+            .flat_map(|(conds_l, expr_l)| {
+                rhs_single_w
+                    .expr_out
+                    .iter()
+                    .filter_map(|(conds_r, expr_r)| {
+                        if compatible_conds(conds_l, conds_r).unwrap() {
+                            Some((expr_l.clone(), expr_r.clone()))
+                        } else {
+                            None
+                        }
+                    })
+            })
+            .collect::<Vec<_>>();
+
+        println!(
+            "{} total combinations, {} valid ones",
+            rhs_single_w.expr_out.len() * lhs_single_w.expr_out.len(),
+            valid_pairs.len()
         );
 
         fn generate_smt_string(
@@ -505,13 +529,17 @@ for {nat_string} :: nat and {int_string} :: int\n",
             string_out
         }
 
-        let (l_w_cond, lhs_pbv) = lhs_single_w.expr_out[8].clone();
-        let (r_w_cond, rhs_pbv) = rhs_single_w.expr_out[8].clone();
+        valid_pairs.into_iter().for_each(|(lhs, rhs)| {
+            println!("{}", generate_smt_string(&lhs, &rhs, &[]));
+        });
 
-        println!(
-            "{}",
-            generate_smt_string(&lhs_pbv, &rhs_pbv, preconds_single_w.as_slice())
-        );
+        // let (l_w_cond, lhs_pbv) = lhs_single_w.expr_out[8].clone();
+        // let (r_w_cond, rhs_pbv) = rhs_single_w.expr_out[8].clone();
+
+        // println!(
+        //     "{}",
+        //     generate_smt_string(&lhs_pbv, &rhs_pbv, preconds_single_w.as_slice())
+        // );
         Ok(vec![])
     }
 }
