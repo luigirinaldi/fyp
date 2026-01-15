@@ -1,12 +1,15 @@
 use clap::error::Result;
 use egg::*;
 use num::ToPrimitive;
+use serde_json::from_str;
 use std::fmt::Debug;
 use z3::{
     ast::{Bool, Int},
     RecFuncDecl, Sort,
 };
 type Num = i32;
+
+use std::collections::HashMap;
 
 define_language! {
     pub enum ModIR {
@@ -33,6 +36,39 @@ define_language! {
         "<=" = LTE([Id; 2]),
         // truth value for preconditions
         Bool(bool),
+        // Numbers
+        Num(Num),
+        // variables on which the operators operate
+        Var(Symbol),
+    }
+}
+
+// Language to describe SMT-lib parametric bitvector languages which impose a single width operator constraint
+define_language! {
+    pub enum ParamIR {
+        "bvadd" = Add([Id; 2]),
+        "bvneg" = Sub([Id; 2]),
+        "bvsub" = Neg(Id),
+        "bvmul" = Mul([Id; 2]),
+        "bvlshr" = ShiftR([Id;2]),
+        "bvshl" = ShiftL([Id;2]),
+        "bvand" = And([Id;2]),
+        "bvor" = Or([Id;2]),
+        "bvxor" = Xor([Id;2]),
+        "bvnot" = Not(Id),
+        // Width manip
+        "trunc" = Trunc([Id; 2]), // Take a target width and an expression and truncate it
+        "zext" = Zext([Id; 2]), // Take an expression and the number of width to zero extend it by
+        // Language to define the width expressions in the SMT-lib-esque parametric bitvector lang
+        "+" = WAdd([Id; 2]),
+        "-" = WSub([Id; 2]),
+        "*" = WMul([Id; 2]),
+        "pow2" = Pow2(Id), // power of two operator for some width cases
+        // Some conditionals for good measure (handle preconditions)
+        ">"  = GT([Id; 2]),
+        ">=" = GTE([Id; 2]),
+        "<"  = LT([Id; 2]),
+        "<=" = LTE([Id; 2]),
         // Numbers
         Num(Num),
         // variables on which the operators operate
@@ -262,5 +298,134 @@ impl ToZ3 for RecExpr<ModIR> {
             }
             _ => Err("Reached an invalid node type".to_string()),
         }
+    }
+}
+
+fn try_join_recexprs<L, E>(
+    ids: impl Iterator<Item = Id>,
+    mut f: impl FnMut(Id) -> Result<RecExpr<L>, E>,
+) -> Result<RecExpr<L>, E>
+where
+    L: egg::Language,
+{
+    let mut out = RecExpr::default();
+
+    for id in ids {
+        let expr = f(id)?;
+        join_into(&mut out, &expr); // your manual join
+    }
+
+    Ok(out)
+}
+
+#[derive(Debug, Default)]
+struct ParamInfo {
+    width_out: RecExpr<ParamIR>,
+    // Vector holding the width conditions and the generated expression under those conditions
+    expr_out: Vec<(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>)>,
+}
+
+// Function that takes a modir, interpreted as a width and produces a corresponding paramir width
+pub fn modir_w_to_paramir_w(expr: &RecExpr<ModIR>, id: Id) -> Result<RecExpr<ParamIR>, String> {
+    match &expr[id] {
+        ModIR::Num(num) => {
+            if *num > 0 {
+                Ok(RecExpr::from(vec![ParamIR::Num(*num)]))
+            } else {
+                Err(format!("Constant width cannot be less than zero:{}", num))
+            }
+        }
+        ModIR::Var(var) => Ok(RecExpr::from(vec![ParamIR::Var(*var)])),
+        ModIR::Add([a, b]) => {
+            let node = ParamIR::WAdd([Id::from(0), Id::from(1)]);
+            let parts: HashMap<&Id, RecExpr<_>> = [a, b]
+                .iter()
+                .copied()
+                .map(|id| modir_w_to_paramir_w(expr, *id).map(|recexpr| (id, recexpr)))
+                .collect::<Result<_, _>>()?;
+            let recexpr_ret = node.join_recexprs(|id| parts[&id].clone());
+            Ok(recexpr_ret)
+        }
+        a => Err(format!("Unkown node: {}", a)),
+    }
+}
+
+pub fn try_join_recexpr<L, E, F>(node: &L, mut f: F) -> Result<RecExpr<L>, E>
+where
+    L: Language + Clone,
+    F: FnMut(Id) -> Result<RecExpr<L>, E>,
+{
+    // 1. Compute each child RecExpr fallibly
+    let parts: HashMap<Id, RecExpr<L>> = node
+        .children()
+        .iter()
+        .copied()
+        .map(|id| f(id).map(|recexpr| (id, recexpr)))
+        .collect::<Result<_, _>>()?;
+
+    // 2. Join using the existing non-fallible logic
+    Ok(node
+        .clone()
+        .join_recexprs(|id| parts.get(&id).expect("missing child recexpr").clone()))
+}
+
+pub fn case_split_binary(
+    w_a: &RecExpr<ParamIR>,
+    expr_a: &RecExpr<ParamIR>,
+    w_b: &RecExpr<ParamIR>,
+    expr_b: &RecExpr<ParamIR>,
+    w_out: &RecExpr<ParamIR>,
+) -> [RecExpr<ParamIR>; 3] {
+    // three cases,
+    // width_out > max(w(a), w(b))
+    let case_one: RecExpr<ParamIR> =
+        format!("(bvadd (zext (- {w_out} {w_a}) {expr_a}) (zext (- {w_out} {w_b}) {expr_b}))")
+            .parse()
+            .unwrap();
+    // width_out <= max(w(a), w(b)) & w(a) < w(b)
+    let case_two: RecExpr<ParamIR> =
+        format!("(trunc {w_out} (bvadd (zext (- {w_b} {w_a}) {expr_a}) {expr_b}))")
+            .parse()
+            .unwrap();
+    // width_out <= max(w(a), w(b)) & w(a) >= w(b)
+    let case_three: RecExpr<ParamIR> =
+        format!("(trunc {w_out} (bvadd {expr_a} (zext (- {w_a} {w_b}) {expr_b})))")
+            .parse()
+            .unwrap();
+    [case_one, case_two, case_three]
+}
+
+pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, String> {
+    match &expr_in[id] {
+        ModIR::Mod([w, e]) => match &expr_in[*e] {
+            ModIR::Add([a, b]) => {
+                let info_a = modir_to_paramir(expr_in, *a)?;
+                let info_b = modir_to_paramir(expr_in, *b)?;
+
+                let width_out = modir_w_to_paramir_w(expr_in, *w)?;
+
+                let combined_exprs: Vec<_> = info_a
+                    .expr_out
+                    .iter()
+                    .flat_map(|(w_conds_a, expr_a)| {
+                        info_b.expr_out.iter().flat_map(|(w_conds_b, expr_b)| {
+                            case_split_binary(
+                                &info_a.width_out,
+                                expr_a,
+                                &info_b.width_out,
+                                expr_b,
+                                &width_out,
+                            )
+                        })
+                    })
+                    .collect();
+
+                println!("{:?}", combined_exprs);
+
+                Err("unfinishied".to_string())
+            }
+            _ => todo!(),
+        },
+        _ => todo!(),
     }
 }
