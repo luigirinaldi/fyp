@@ -241,10 +241,31 @@ fn main() -> Result<(), Box<dyn Error>> {
         Command::ToSmtPbv { dest_path } => {
             if !dest_path.exists() {
                 debug!("Creating directory {}", dest_path.to_string_lossy());
-                std::fs::create_dir_all(&dest_path).expect("Failed to create smt pbv directory");
+                std::fs::create_dir_all(&dest_path)?;
             }
 
-            let _ = equiv.to_single_width_op()?;
+            let probs = equiv.to_single_width_op()?;
+
+            for (i, problem) in probs.into_iter().enumerate() {
+                let mut file_path = dest_path.clone();
+                file_path.push(format!("{}_{}.smt2", equiv.name, i));
+                let mut file = std::fs::File::create(&file_path)?;
+                let comment_header = format!(
+                    ";; Equivalence Name: {}\n;; Preconditions: {}\n;; LHS: {}\n;; RHS: {}\n\n",
+                    equiv.name,
+                    equiv
+                        .preconditions
+                        .iter()
+                        .map(|s| s.to_string())
+                        .collect::<Vec<String>>()
+                        .join(", "),
+                    equiv.lhs,
+                    equiv.rhs
+                );
+                std::io::Write::write_all(&mut file, comment_header.as_bytes())?;
+                std::io::Write::write_all(&mut file, problem.as_bytes())?;
+            }
+            return Ok(());
         }
     }
 

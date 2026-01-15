@@ -501,26 +501,24 @@ for {nat_string} :: nat and {int_string} :: int\n",
             preconds: &[RecExpr<ParamIR>],
             conds: &Vec<&RecExpr<ParamIR>>,
         ) -> String {
-            let mut string_out: String = "(set-logic ALL)\n".to_string();
+            let mut string_out: String =
+                "(set-logic ALL)\n;; Implied conditions on the bitvector width variables:\n"
+                    .to_string();
 
-            for c in conds {
-                string_out += &format!(";; {}\n", c.to_string());
+            for c in conds.iter().map(|c| c.to_string()).collect::<HashSet<_>>() {
+                string_out += &format!(";; {c}\n");
             }
 
             let mut width_vars: HashSet<_> = lhs.get_width_var();
             width_vars.extend(rhs.get_width_var());
             let mut bitvector_vars = lhs.get_vars();
             bitvector_vars.extend(rhs.get_vars());
-            // for p in preconds {
-            //     assert!(
-            //         p.get_width_var().is_subset(&width_vars),
-            //         "precondition {} contains variables not present in the lhs and rhs, {:#?}, {:#?}",
-            //         p.to_string(),
-            //         p.get_width_var(),
-            //         width_vars
-            //     )
-            // }
-            for w in width_vars {
+            // only keep those preconditions whose variables are present in the set of variables of the terms
+            // because sometimes when constraining some variables may disappear
+            let filtered_precs = preconds
+                .into_iter()
+                .filter(|p| p.get_width_var().is_subset(&width_vars));
+            for w in &width_vars {
                 string_out += &wvar_to_smt_string(&w);
                 string_out += "\n";
             }
@@ -528,7 +526,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
                 string_out += &pbvvar_to_smt_string(&pbv);
                 string_out += "\n";
             }
-            for cond in preconds {
+            for cond in filtered_precs {
                 string_out += &format!("(assert {})", cond.to_string());
                 string_out += "\n";
             }
