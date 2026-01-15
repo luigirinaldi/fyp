@@ -140,14 +140,18 @@ fn case_split_binary(
     w_b: &RecExpr<ParamIR>,
     expr_b: &RecExpr<ParamIR>,
     w_out: &RecExpr<ParamIR>,
-) -> [(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>); 7] {
-    // three cases,
-    // width_out > max(w(a), w(b))
-    [(
+) -> Vec<(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>)> {
+    if w_a.to_string() == w_b.to_string() && w_a.to_string() == w_out.to_string() {
+        // shortcut for if the widths are all syntactically the same
+        return vec![(vec![], format!("({op} {expr_a} {expr_b})").parse().unwrap())];
+    } else {
+        // all cases assuming the widths are all different
+        // width_out > max(w(a), w(b))
+        vec![(
         vec![
             format!("(> {w_out} {w_a})").parse().unwrap(),
             format!("(> {w_out} {w_b})").parse().unwrap(),
-        ],
+            ],
         format!("({op} (pzero_extend (- {w_out} {w_a}) {expr_a}) (pzero_extend (- {w_out} {w_b}) {expr_b}))")
             .parse()
             .unwrap(),
@@ -158,7 +162,7 @@ fn case_split_binary(
             format!("(= {w_out} {w_a})").parse().unwrap(),
             format!("(= {w_out} {w_b})").parse().unwrap(),
             format!("(< {w_a} {w_b})").parse().unwrap(),
-        ],
+            ],
         format!(
             "({op} (pzero_extend (- {w_b} {w_a}) {expr_a}) {expr_b})"
         )
@@ -171,65 +175,66 @@ fn case_split_binary(
             format!("(= {w_out} {w_a})").parse().unwrap(),
             format!("(= {w_out} {w_b})").parse().unwrap(),
             format!("(= {w_a} {w_b})").parse().unwrap(),
-        ],
-        format!(
-            "({op} {expr_a} {expr_b})"
-        )
-        .parse()
-        .unwrap(),
-    ),
-    // width_out = max(w(a), w(b)) & w(a) > w(b)
-    (
-        vec![
-            format!("(= {w_out} {w_a})").parse().unwrap(),
+            ],
+            format!(
+                "({op} {expr_a} {expr_b})"
+            )
+            .parse()
+            .unwrap(),
+        ),
+        // width_out = max(w(a), w(b)) & w(a) > w(b)
+        (
+            vec![
+                format!("(= {w_out} {w_a})").parse().unwrap(),
             format!("(= {w_out} {w_b})").parse().unwrap(),
             format!("(> {w_a} {w_b})").parse().unwrap(),
-        ],
-        format!(
-            "({op} {expr_a} (pzero_extend (- {w_a} {w_b}) {expr_b})))"
-        )
-        .parse()
-        .unwrap(),
-    ),
+            ],
+            format!(
+                "({op} {expr_a} (pzero_extend (- {w_a} {w_b}) {expr_b})))"
+            )
+            .parse()
+            .unwrap(),
+        ),
     // width_out < max(w(a), w(b)) & w(a) < w(b)
     (
         vec![
             format!("(< {w_out} {w_a})").parse().unwrap(),
             format!("(< {w_out} {w_b})").parse().unwrap(),
             format!("(< {w_a} {w_b})").parse().unwrap(),
-        ],
-        format!(
-            "(pextract (- {w_out} 1) 0 ({op} (pzero_extend (- {w_b} {w_a}) {expr_a}) {expr_b}))"
+            ],
+            format!(
+                "(pextract (- {w_out} 1) 0 ({op} (pzero_extend (- {w_b} {w_a}) {expr_a}) {expr_b}))"
+            )
+            .parse()
+            .unwrap(),
         )
-        .parse()
-        .unwrap(),
-    )
     // width_out < max(w(a), w(b)) & w(a) = w(b)
     ,(
         vec![
             format!("(< {w_out} {w_a})").parse().unwrap(),
             format!("(< {w_out} {w_b})").parse().unwrap(),
             format!("(= {w_a} {w_b})").parse().unwrap(),
-        ],
-        format!(
-            "(pextract (- {w_out} 1) 0 ({op} {expr_a} {expr_b}))"
+            ],
+            format!(
+                "(pextract (- {w_out} 1) 0 ({op} {expr_a} {expr_b}))"
+            )
+            .parse()
+            .unwrap(),
         )
-        .parse()
-        .unwrap(),
-    )
-    // width_out < max(w(a), w(b)) & w(a) > w(b)
-    ,(
-        vec![
-            format!("(< {w_out} {w_a})").parse().unwrap(),
-            format!("(< {w_out} {w_b})").parse().unwrap(),
-            format!("(> {w_a} {w_b})").parse().unwrap(),
-        ],
-        format!(
-            "(pextract (- {w_out} 1) 0 ({op} {expr_a} (pzero_extend (- {w_a} {w_b}) {expr_b})))"
-        )
-        .parse()
-        .unwrap(),
+        // width_out < max(w(a), w(b)) & w(a) > w(b)
+        ,(
+            vec![
+                format!("(< {w_out} {w_a})").parse().unwrap(),
+                format!("(< {w_out} {w_b})").parse().unwrap(),
+                format!("(> {w_a} {w_b})").parse().unwrap(),
+                ],
+                format!(
+                    "(pextract (- {w_out} 1) 0 ({op} {expr_a} (pzero_extend (- {w_a} {w_b}) {expr_b})))"
+                )
+                .parse()
+                .unwrap(),
     )]
+    }
 }
 
 fn case_split_unary(
