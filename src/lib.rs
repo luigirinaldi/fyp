@@ -476,7 +476,11 @@ for {nat_string} :: nat and {int_string} :: int\n",
                     move |(conds_r, expr_r)| {
                         let conds = conds_r.iter().chain(conds_l).chain(&value);
                         if compatible_conds(conds).unwrap() {
-                            Some((expr_l.clone(), expr_r.clone()))
+                            Some((
+                                conds_r.iter().chain(conds_l).collect::<Vec<_>>(),
+                                expr_l.clone(),
+                                expr_r.clone(),
+                            ))
                         } else {
                             None
                         }
@@ -495,8 +499,14 @@ for {nat_string} :: nat and {int_string} :: int\n",
             lhs: &RecExpr<ParamIR>,
             rhs: &RecExpr<ParamIR>,
             preconds: &[RecExpr<ParamIR>],
+            conds: &Vec<&RecExpr<ParamIR>>,
         ) -> String {
             let mut string_out: String = "(set-logic ALL)\n".to_string();
+
+            for c in conds {
+                string_out += &format!(";; {}\n", c.to_string());
+            }
+
             let mut width_vars: HashSet<_> = lhs.get_width_var();
             width_vars.extend(rhs.get_width_var());
             let mut bitvector_vars = lhs.get_vars();
@@ -532,7 +542,9 @@ for {nat_string} :: nat and {int_string} :: int\n",
 
         Ok(valid_pairs
             .into_iter()
-            .map(|(lhs, rhs)| generate_smt_string(&lhs, &rhs, preconds_single_w.as_slice()))
+            .map(|(gen_cond, lhs, rhs)| {
+                generate_smt_string(&lhs, &rhs, preconds_single_w.as_slice(), &gen_cond)
+            })
             .collect())
     }
 }
