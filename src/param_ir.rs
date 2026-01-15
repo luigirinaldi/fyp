@@ -4,6 +4,8 @@ use num::ToPrimitive;
 use std::fmt::Debug;
 use z3::ast::Bool;
 use z3::ast::Int;
+use z3::Config;
+use z3::Context;
 use z3::SatResult;
 use z3::Solver;
 type Num = i32;
@@ -445,11 +447,11 @@ impl ParamUtils for RecExpr<ParamIR> {
         match &self[id] {
             ParamIR::WVar(sym) => Ok(Int::new_const(sym.as_str())),
             ParamIR::WNum(num) => Ok(Int::from_i64(num.to_i64().unwrap())),
-            ParamIR::Add([a, b]) => Ok(self.width_to_z3(*a)? + self.width_to_z3(*b)?),
-            ParamIR::Mul([a, b]) => Ok(self.width_to_z3(*a)? * self.width_to_z3(*b)?),
-            ParamIR::Sub([a, b]) => Ok(self.width_to_z3(*a)? - self.width_to_z3(*b)?),
+            ParamIR::WAdd([a, b]) => Ok(self.width_to_z3(*a)? + self.width_to_z3(*b)?),
+            ParamIR::WMul([a, b]) => Ok(self.width_to_z3(*a)? * self.width_to_z3(*b)?),
+            ParamIR::WSub([a, b]) => Ok(self.width_to_z3(*a)? - self.width_to_z3(*b)?),
             ParamIR::Pow2(a) => Ok(apply_pow2(&self.width_to_z3(*a)?)),
-            _ => Err("Reached an invalid node type".to_string()),
+            node => Err(format!("Reached an invalid node type : {node} in {self}")),
         }
     }
 }
@@ -509,11 +511,27 @@ pub fn compatible_conds<'a, I>(conds: I) -> Result<bool, String>
 where
     I: IntoIterator<Item = &'a RecExpr<ParamIR>>,
 {
+    // let cfg = Config::new();
+    // let ctx = Context::new(&cfg);
+    // let solver = Solver::new(&ctx);
+    // Create a Z3 parameter set
+    let mut params = z3::Params::new();
+    params.set_u32("timeout", 100); // timeout in milliseconds
     let solver = Solver::new();
+    solver.set_params(&params);
 
     for c in conds {
         solver.assert(c.cond_to_z3()?);
     }
 
-    Ok(solver.check() == SatResult::Sat)
+    let res = solver.check();
+
+    if res == SatResult::Unknown {
+        Err(format!(
+            "Z3 returned unkown for this problem: {}",
+            solver.to_string()
+        ))
+    } else {
+        Ok(res == SatResult::Sat)
+    }
 }
