@@ -3,6 +3,8 @@ use crate::language::validate_precond;
 use crate::language::ToZ3;
 use crate::param_ir::modir_cond_to_paramir_cond;
 use crate::param_ir::modir_to_paramir;
+use crate::param_ir::pbvvar_to_smt_string;
+use crate::param_ir::wvar_to_smt_string;
 use crate::param_ir::ParamIR;
 use crate::Symbol;
 use egg::*;
@@ -479,7 +481,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
         let mut width_vars: HashSet<_> = lhs_single_w.expr_out[0].1.get_width_var();
         width_vars.extend(rhs_single_w.expr_out[0].1.get_width_var());
 
-        for p in preconds_single_w {
+        for p in &preconds_single_w {
             assert!(
                 p.get_width_var().is_subset(&width_vars),
                 "precondition {} contains variables not present in the lhs and rhs",
@@ -488,6 +490,23 @@ for {nat_string} :: nat and {int_string} :: int\n",
         }
 
         println!("{:#?}", width_vars);
+
+        let mut bitvector_vars = lhs_single_w.expr_out[0].1.get_vars();
+        bitvector_vars.extend(rhs_single_w.expr_out[0].1.get_vars());
+
+        println!("{:#?}", bitvector_vars);
+
+        for w in width_vars {
+            println!("{}", wvar_to_smt_string(&w));
+        }
+
+        for pbv in bitvector_vars {
+            println!("{}", pbvvar_to_smt_string(&pbv))
+        }
+
+        for cond in &preconds_single_w {
+            println!("(assert {})", cond.to_string())
+        }
 
         Ok(vec![])
     }

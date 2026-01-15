@@ -1,6 +1,7 @@
 use clap::error::Result;
 use egg::*;
 use std::fmt::Debug;
+use z3::RecFuncDecl;
 type Num = i32;
 
 use crate::language::ModIR;
@@ -353,3 +354,21 @@ impl ParamUtils for RecExpr<ParamIR> {
             .collect()
     }
 }
+
+pub fn wvar_to_smt_string(var: &ParamIR) -> String {
+    match var {
+        ParamIR::WVar(sym) => format!("(declare-const {sym} Int)"),
+        _ => unreachable!(),
+    }
+}
+
+pub fn pbvvar_to_smt_string(var: &RecExpr<ParamIR>) -> String {
+    match &var[var.root()] {
+        ParamIR::Var(sym, wexpr) => format!(
+            "(declare-fun {sym} () (_ BitVec {}))",
+            var[*wexpr].build_recexpr(|id| var[id].clone()).to_string()
+        ),
+        _ => unreachable!(),
+    }
+}
+
