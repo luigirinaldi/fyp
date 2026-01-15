@@ -397,6 +397,28 @@ pub fn case_split_binary(
     [case_one, case_two, case_three]
 }
 
+pub fn case_split_unary(
+    op: &str,
+    w_a: &RecExpr<ParamIR>,
+    expr_a: &RecExpr<ParamIR>,
+    w_out: &RecExpr<ParamIR>,
+) -> [(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>); 2] {
+    // two cases
+    // w_out > w_a
+    let case_one: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+        vec![format!("(> {w_out} {w_a})").parse().unwrap()],
+        format!("({op} (zext (- {w_out} {w_a}) {expr_a}))")
+            .parse()
+            .unwrap(),
+    );
+    // w_out <= w_a
+    let case_two: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+        vec![format!("(<= {w_out} {w_a})").parse().unwrap()],
+        format!("(trunc {w_out} ({op} {expr_a}))").parse().unwrap(),
+    );
+    [case_one, case_two]
+}
+
 pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, String> {
     match &expr_in[id] {
         ModIR::Mod([w, e]) => match &expr_in[*e] {
@@ -461,7 +483,33 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
                     width_out,
                     expr_out: combined_exprs,
                 })
-                // Err("unfinishied".to_string())
+            }
+            op @ (ModIR::Neg(a) | ModIR::Not(a)) => {
+                let info_a = modir_to_paramir(expr_in, *a)?;
+                let width_out = modir_w_to_paramir_w(expr_in, *w)?;
+                let op_str = match op {
+                    ModIR::Neg(_) => "bvneg",
+                    ModIR::Not(_) => "bvnot",
+                    _ => unreachable!(),
+                };
+                let combined_exprs = info_a
+                    .expr_out
+                    .iter()
+                    .flat_map(|(w_conds, expr_a)| {
+                        case_split_unary(op_str, &info_a.width_out, expr_a, &width_out)
+                            .iter_mut()
+                            .map(|(cond, expr)| {
+                                cond.append(&mut w_conds.clone());
+                                (cond.to_vec(), expr.clone())
+                            })
+                            .collect::<Vec<_>>()
+                    })
+                    .collect::<Vec<_>>();
+
+                Ok(ParamInfo {
+                    width_out,
+                    expr_out: combined_exprs,
+                })
             }
             ModIR::Var(var) => {
                 return Ok(ParamInfo {
@@ -475,8 +523,9 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
                     expr_out: vec![(vec![], RecExpr::from(vec![ParamIR::Num(*num)]))],
                 })
             }
-            _ => todo!(),
+            ModIR::Mod(_) => todo!(),
+            node => Err(format!("Invalid node type reached: {node}")),
         },
-        _ => todo!(),
+        _ => unreachable!(),
     }
 }
