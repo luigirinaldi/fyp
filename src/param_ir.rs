@@ -4,8 +4,6 @@ use num::ToPrimitive;
 use std::fmt::Debug;
 use z3::ast::Bool;
 use z3::ast::Int;
-use z3::Config;
-use z3::Context;
 use z3::SatResult;
 use z3::Solver;
 type Num = i32;
@@ -511,9 +509,6 @@ pub fn compatible_conds<'a, I>(conds: I) -> Result<bool, String>
 where
     I: IntoIterator<Item = &'a RecExpr<ParamIR>>,
 {
-    // let cfg = Config::new();
-    // let ctx = Context::new(&cfg);
-    // let solver = Solver::new(&ctx);
     // Create a Z3 parameter set
     let mut params = z3::Params::new();
     params.set_u32("timeout", 100); // timeout in milliseconds
