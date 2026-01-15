@@ -419,6 +419,9 @@ pub fn case_split_unary(
     [case_one, case_two]
 }
 
+/// This function takes a ModIR expression and enumerates all of the width conditions
+/// in order to generate all possible combinations of width extensions and truncations
+/// that would occur when performing verilog width processing.
 pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, String> {
     match &expr_in[id] {
         ModIR::Mod([w, e]) => match &expr_in[*e] {
