@@ -354,6 +354,7 @@ where
 }
 
 pub fn case_split_binary(
+    op: &str,
     w_a: &RecExpr<ParamIR>,
     expr_a: &RecExpr<ParamIR>,
     w_b: &RecExpr<ParamIR>,
@@ -367,7 +368,7 @@ pub fn case_split_binary(
             format!("(> {w_out} {w_a})").parse().unwrap(),
             format!("(> {w_out} {w_b})").parse().unwrap(),
         ],
-        format!("(bvadd (zext (- {w_out} {w_a}) {expr_a}) (zext (- {w_out} {w_b}) {expr_b}))")
+        format!("({op} (zext (- {w_out} {w_a}) {expr_a}) (zext (- {w_out} {w_b}) {expr_b}))")
             .parse()
             .unwrap(),
     );
@@ -378,7 +379,7 @@ pub fn case_split_binary(
             format!("(<= {w_out} {w_b})").parse().unwrap(),
             format!("(< {w_a} {w_b})").parse().unwrap(),
         ],
-        format!("(trunc {w_out} (bvadd (zext (- {w_b} {w_a}) {expr_a}) {expr_b}))")
+        format!("(trunc {w_out} ({op} (zext (- {w_b} {w_a}) {expr_a}) {expr_b}))")
             .parse()
             .unwrap(),
     );
@@ -389,7 +390,7 @@ pub fn case_split_binary(
             format!("(<= {w_out} {w_b})").parse().unwrap(),
             format!("(<= {w_b} {w_a})").parse().unwrap(),
         ],
-        format!("(trunc {w_out} (bvadd {expr_a} (zext (- {w_a} {w_b}) {expr_b})))")
+        format!("(trunc {w_out} ({op} {expr_a} (zext (- {w_a} {w_b}) {expr_b})))")
             .parse()
             .unwrap(),
     );
@@ -399,7 +400,26 @@ pub fn case_split_binary(
 pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, String> {
     match &expr_in[id] {
         ModIR::Mod([w, e]) => match &expr_in[*e] {
-            ModIR::Add([a, b]) => {
+            op @ (ModIR::Add([a, b])
+            | ModIR::Mul([a, b])
+            | ModIR::Sub([a, b])
+            | ModIR::Or([a, b])
+            | ModIR::And([a, b])
+            | ModIR::Xor([a, b])
+            | ModIR::ShiftL([a, b])
+            | ModIR::ShiftR([a, b])) => {
+                let param_op = match op {
+                    ModIR::Mul(_) => "bvmul",
+                    ModIR::Add(_) => "bvadd",
+                    ModIR::Sub(_) => "bvsub",
+                    ModIR::ShiftL(_) => "bvshl",
+                    ModIR::ShiftR(_) => "bvlshr",
+                    ModIR::And(_) => "bvand",
+                    ModIR::Or(_) => "bvor",
+                    ModIR::Xor(_) => "bvxor",
+                    _ => unreachable!(),
+                };
+
                 let info_a = modir_to_paramir(expr_in, *a)?;
                 let info_b = modir_to_paramir(expr_in, *b)?;
 
@@ -411,6 +431,7 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
                     .flat_map(|(w_conds_a, expr_a)| {
                         info_b.expr_out.iter().flat_map(|(w_conds_b, expr_b)| {
                             case_split_binary(
+                                param_op,
                                 &info_a.width_out,
                                 expr_a,
                                 &info_b.width_out,
@@ -446,6 +467,12 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
                 return Ok(ParamInfo {
                     width_out: modir_w_to_paramir_w(expr_in, *w)?,
                     expr_out: vec![(vec![], RecExpr::from(vec![ParamIR::Var(*var)]))],
+                })
+            }
+            ModIR::Num(num) => {
+                return Ok(ParamInfo {
+                    width_out: modir_w_to_paramir_w(expr_in, *w)?,
+                    expr_out: vec![(vec![], RecExpr::from(vec![ParamIR::Num(*num)]))],
                 })
             }
             _ => todo!(),
