@@ -377,3 +377,37 @@ pub fn pbvvar_to_smt_string(var: &RecExpr<ParamIR>) -> String {
         _ => unreachable!(),
     }
 }
+
+pub fn rewrite_var_to_wvar(expr: &RecExpr<ParamIR>) -> RecExpr<ParamIR> {
+    let mut expr_out: RecExpr<ParamIR> = RecExpr::default();
+
+    fn rec_call<'a>(
+        expr_in: &RecExpr<ParamIR>,
+        id_in: Id,
+        exprout: &'a mut RecExpr<ParamIR>,
+    ) -> (Id, &'a mut RecExpr<ParamIR>) {
+        match &expr_in[id_in] {
+            // Remove the var and replace it with a WVar so that it prints out correctly
+            ParamIR::Var(sym, _w) => {
+                let id = exprout.add(ParamIR::WVar(*sym));
+                (id, exprout)
+            }
+            op => {
+                let mut new_childs = HashMap::<Id, Id>::new();
+                let mut expmut = exprout;
+                for c_id in op.children() {
+                    let (id, tmp) = rec_call(expr_in, *c_id, expmut);
+                    expmut = tmp;
+                    new_childs.insert(*c_id, id);
+                }
+                let new_op = op.clone().map_children(|i| new_childs[&i]);
+                let id_out = expmut.add(new_op);
+                (id_out, expmut)
+            }
+        }
+    }
+
+    let (_final_id, final_exp) = rec_call(expr, expr.root(), &mut expr_out);
+
+    final_exp.clone()
+}

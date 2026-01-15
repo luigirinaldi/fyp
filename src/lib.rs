@@ -4,6 +4,7 @@ use crate::language::ToZ3;
 use crate::param_ir::modir_cond_to_paramir_cond;
 use crate::param_ir::modir_to_paramir;
 use crate::param_ir::pbvvar_to_smt_string;
+use crate::param_ir::rewrite_var_to_wvar;
 use crate::param_ir::wvar_to_smt_string;
 use crate::param_ir::ParamIR;
 use crate::Symbol;
@@ -465,58 +466,52 @@ for {nat_string} :: nat and {int_string} :: int\n",
             lhs_single_w.expr_out.len()
         );
 
-        // fn generate_smt_string(
-        //     lhs: &RecExpr<ParamIR>,
-        //     rhs: &RecExpr<ParamIR>,
-        //     preconds: &[&RecExpr<ParamIR>],
-        // ) -> String {
-        //     let mut string_out: String = "(set-logic ALL)\n".to_string();
-        //     string_out += ";; Parametric Bitwidth Variables\n";
-        //     string_out
-        // }
+        fn generate_smt_string(
+            lhs: &RecExpr<ParamIR>,
+            rhs: &RecExpr<ParamIR>,
+            preconds: &[RecExpr<ParamIR>],
+        ) -> String {
+            let mut string_out: String = "(set-logic ALL)\n".to_string();
+            let mut width_vars: HashSet<_> = lhs.get_width_var();
+            width_vars.extend(rhs.get_width_var());
+            let mut bitvector_vars = lhs.get_vars();
+            bitvector_vars.extend(rhs.get_vars());
+            for p in preconds {
+                assert!(
+                    p.get_width_var().is_subset(&width_vars),
+                    "precondition {} contains variables not present in the lhs and rhs, {:#?}, {:#?}",
+                    p.to_string(),
+                    p.get_width_var(),
+                    width_vars
+                )
+            }
+            for w in width_vars {
+                string_out += &wvar_to_smt_string(&w);
+                string_out += "\n";
+            }
+            for pbv in bitvector_vars {
+                string_out += &pbvvar_to_smt_string(&pbv);
+                string_out += "\n";
+            }
+            for cond in preconds {
+                string_out += &format!("(assert {})", cond.to_string());
+                string_out += "\n";
+            }
+            string_out += "(assert (distinct\n    ";
+            string_out += &rewrite_var_to_wvar(&lhs).to_string();
+            string_out += "\n    ";
+            string_out += &rewrite_var_to_wvar(&rhs).to_string();
+            string_out += "\n))\n(check-sat)";
+            string_out
+        }
 
         let (l_w_cond, lhs_pbv) = lhs_single_w.expr_out[8].clone();
-        let (r_w_cond, rhs_pbv) = lhs_single_w.expr_out[2].clone();
-
-        println!("{:#?}", rhs_single_w.expr_out[0].1.get_width_var());
-        println!("{:#?}", lhs_single_w.expr_out[0].1.get_vars());
-
-        let mut width_vars: HashSet<_> = lhs_single_w.expr_out[0].1.get_width_var();
-        width_vars.extend(rhs_single_w.expr_out[0].1.get_width_var());
-
-        for p in &preconds_single_w {
-            assert!(
-                p.get_width_var().is_subset(&width_vars),
-                "precondition {} contains variables not present in the lhs and rhs",
-                p.to_string()
-            )
-        }
-
-        println!("{:#?}", width_vars);
-
-        let mut bitvector_vars = lhs_single_w.expr_out[0].1.get_vars();
-        bitvector_vars.extend(rhs_single_w.expr_out[0].1.get_vars());
-
-        println!("{:#?}", bitvector_vars);
-
-        for w in width_vars {
-            println!("{}", wvar_to_smt_string(&w));
-        }
-
-        for pbv in bitvector_vars {
-            println!("{}", pbvvar_to_smt_string(&pbv))
-        }
-
-        for cond in &preconds_single_w {
-            println!("(assert {})", cond.to_string())
-        }
+        let (r_w_cond, rhs_pbv) = rhs_single_w.expr_out[8].clone();
 
         println!(
-            "(assert (distinct\n    {}\n    {}\n))",
-            lhs_pbv.to_string(),
-            rhs_pbv.to_string()
+            "{}",
+            generate_smt_string(&lhs_pbv, &rhs_pbv, preconds_single_w.as_slice())
         );
-
         Ok(vec![])
     }
 }
