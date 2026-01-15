@@ -140,10 +140,10 @@ fn case_split_binary(
     w_b: &RecExpr<ParamIR>,
     expr_b: &RecExpr<ParamIR>,
     w_out: &RecExpr<ParamIR>,
-) -> [(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>); 3] {
+) -> [(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>); 7] {
     // three cases,
     // width_out > max(w(a), w(b))
-    let case_one: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+    [(
         vec![
             format!("(> {w_out} {w_a})").parse().unwrap(),
             format!("(> {w_out} {w_b})").parse().unwrap(),
@@ -151,12 +151,51 @@ fn case_split_binary(
         format!("({op} (pzero_extend (- {w_out} {w_a}) {expr_a}) (pzero_extend (- {w_out} {w_b}) {expr_b}))")
             .parse()
             .unwrap(),
-    );
-    // width_out <= max(w(a), w(b)) & w(a) < w(b)
-    let case_two: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+    ),
+    // width_out = max(w(a), w(b)) & w(a) < w(b)
+    (
         vec![
-            format!("(<= {w_out} {w_a})").parse().unwrap(),
-            format!("(<= {w_out} {w_b})").parse().unwrap(),
+            format!("(= {w_out} {w_a})").parse().unwrap(),
+            format!("(= {w_out} {w_b})").parse().unwrap(),
+            format!("(< {w_a} {w_b})").parse().unwrap(),
+        ],
+        format!(
+            "({op} (pzero_extend (- {w_b} {w_a}) {expr_a}) {expr_b})"
+        )
+        .parse()
+        .unwrap(),
+    ),
+    // width_out = max(w(a), w(b)) & w(a) = w(b)
+    (
+        vec![
+            format!("(= {w_out} {w_a})").parse().unwrap(),
+            format!("(= {w_out} {w_b})").parse().unwrap(),
+            format!("(= {w_a} {w_b})").parse().unwrap(),
+        ],
+        format!(
+            "({op} {expr_a} {expr_b})"
+        )
+        .parse()
+        .unwrap(),
+    ),
+    // width_out = max(w(a), w(b)) & w(a) > w(b)
+    (
+        vec![
+            format!("(= {w_out} {w_a})").parse().unwrap(),
+            format!("(= {w_out} {w_b})").parse().unwrap(),
+            format!("(> {w_a} {w_b})").parse().unwrap(),
+        ],
+        format!(
+            "({op} {expr_a} (pzero_extend (- {w_a} {w_b}) {expr_b})))"
+        )
+        .parse()
+        .unwrap(),
+    ),
+    // width_out < max(w(a), w(b)) & w(a) < w(b)
+    (
+        vec![
+            format!("(< {w_out} {w_a})").parse().unwrap(),
+            format!("(< {w_out} {w_b})").parse().unwrap(),
             format!("(< {w_a} {w_b})").parse().unwrap(),
         ],
         format!(
@@ -164,21 +203,33 @@ fn case_split_binary(
         )
         .parse()
         .unwrap(),
-    );
-    // width_out <= max(w(a), w(b)) & w(a) >= w(b)
-    let case_three: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+    )
+    // width_out < max(w(a), w(b)) & w(a) = w(b)
+    ,(
         vec![
-            format!("(<= {w_out} {w_a})").parse().unwrap(),
-            format!("(<= {w_out} {w_b})").parse().unwrap(),
-            format!("(<= {w_b} {w_a})").parse().unwrap(),
+            format!("(< {w_out} {w_a})").parse().unwrap(),
+            format!("(< {w_out} {w_b})").parse().unwrap(),
+            format!("(= {w_a} {w_b})").parse().unwrap(),
+        ],
+        format!(
+            "(pextract (- {w_out} 1) 0 ({op} {expr_a} {expr_b}))"
+        )
+        .parse()
+        .unwrap(),
+    )
+    // width_out < max(w(a), w(b)) & w(a) > w(b)
+    ,(
+        vec![
+            format!("(< {w_out} {w_a})").parse().unwrap(),
+            format!("(< {w_out} {w_b})").parse().unwrap(),
+            format!("(> {w_a} {w_b})").parse().unwrap(),
         ],
         format!(
             "(pextract (- {w_out} 1) 0 ({op} {expr_a} (pzero_extend (- {w_a} {w_b}) {expr_b})))"
         )
         .parse()
         .unwrap(),
-    );
-    [case_one, case_two, case_three]
+    )]
 }
 
 fn case_split_unary(
