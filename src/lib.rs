@@ -1,8 +1,7 @@
-use crate::language::modir_to_paramir;
 use crate::language::validate_bwlang;
 use crate::language::validate_precond;
-use crate::language::ParamIR;
 use crate::language::ToZ3;
+use crate::param_ir::modir_to_paramir;
 use crate::Symbol;
 use egg::*;
 use language::ModAnalysis;
@@ -16,6 +15,7 @@ use z3::Solver;
 mod dot_equiv;
 mod extractor;
 mod language;
+mod param_ir;
 mod rewrite_rules;
 mod types;
 mod utils;
