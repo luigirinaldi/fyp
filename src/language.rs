@@ -1,15 +1,12 @@
 use clap::error::Result;
 use egg::*;
 use num::ToPrimitive;
-use serde_json::from_str;
 use std::fmt::Debug;
 use z3::{
     ast::{Bool, Int},
     RecFuncDecl, Sort,
 };
 type Num = i32;
-
-use std::collections::HashMap;
 
 define_language! {
     pub enum ModIR {
@@ -42,7 +39,6 @@ define_language! {
         Var(Symbol),
     }
 }
-
 
 #[derive(Default)]
 pub struct ModAnalysis;
