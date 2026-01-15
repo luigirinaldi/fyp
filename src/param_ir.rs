@@ -37,8 +37,8 @@ define_language! {
         Num(Num, Id),
         // Variables and associate width expr (must be num or var)
         Var(Symbol, Id),
-        WVar(Symbol),
         WNum(Num),
+        WVar(Symbol),
     }
 }
 
@@ -316,14 +316,15 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
 }
 
 pub trait ParamUtils {
-    fn get_width_var(&self) -> HashSet<&ParamIR>;
+    fn get_width_var(&self) -> HashSet<ParamIR>;
     fn get_vars(&self) -> HashSet<RecExpr<ParamIR>>;
 }
 
 impl ParamUtils for RecExpr<ParamIR> {
-    fn get_width_var(&self) -> HashSet<&ParamIR> {
+    fn get_width_var(&self) -> HashSet<ParamIR> {
         self.as_ref()
             .iter()
+            .map(|node| node.clone())
             .filter(|node| {
                 if let ParamIR::WVar(_) = node {
                     true

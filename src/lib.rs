@@ -1,7 +1,9 @@
 use crate::language::validate_bwlang;
 use crate::language::validate_precond;
 use crate::language::ToZ3;
+use crate::param_ir::modir_cond_to_paramir_cond;
 use crate::param_ir::modir_to_paramir;
+use crate::param_ir::ParamIR;
 use crate::Symbol;
 use egg::*;
 use language::ModAnalysis;
@@ -12,6 +14,7 @@ use std::time::Duration;
 use z3::SatResult;
 use z3::Solver;
 
+use crate::param_ir::ParamUtils;
 mod dot_equiv;
 mod extractor;
 mod language;
@@ -450,6 +453,11 @@ for {nat_string} :: nat and {int_string} :: int\n",
     pub fn to_single_width_op(&self) -> Result<Vec<String>, String> {
         let rhs_single_w = modir_to_paramir(&self.rhs, self.rhs.root())?;
         let lhs_single_w = modir_to_paramir(&self.lhs, self.lhs.root())?;
+        let preconds_single_w: Vec<RecExpr<ParamIR>> = self
+            .preconditions
+            .iter()
+            .map(|p| modir_cond_to_paramir_cond(p, p.root()))
+            .collect::<Result<Vec<_>, String>>()?;
         println!(
             "Finished processing lhs and rhs, rhs has {} cases, lhs has {} cases",
             rhs_single_w.expr_out.len(),
@@ -465,6 +473,18 @@ for {nat_string} :: nat and {int_string} :: int\n",
         //     string_out += ";; Parametric Bitwidth Variables\n";
         //     string_out
         // }
+
+        println!("{:#?}", rhs_single_w.expr_out[0].1.get_width_var());
+        println!("{:#?}", lhs_single_w.expr_out[0].1.get_vars());
+
+        let mut width_vars: HashSet<_> = lhs_single_w.expr_out[0].1.get_width_var();
+        width_vars.extend(rhs_single_w.expr_out[0].1.get_width_var());
+
+        for p in preconds_single_w {
+            assert!(p.get_width_var().is_subset(&width_vars))
+        }
+
+        println!("{:#?}", width_vars);
 
         Ok(vec![])
     }

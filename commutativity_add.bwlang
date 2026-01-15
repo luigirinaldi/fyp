@@ -2,5 +2,5 @@
     "name": "commutativity_add",
     "preconditions": [],
     "rhs": "(bw r ( + (bw t c) (bw r ( + (bw p a) (bw q b)))))",
-    "lhs": "(bw r ( + (bw q b) (bw p a)))"
+    "lhs": "(bw r ( + (bw (+ t j) b) (bw p a)))"
 }
