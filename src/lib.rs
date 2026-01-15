@@ -475,6 +475,9 @@ for {nat_string} :: nat and {int_string} :: int\n",
         //     string_out
         // }
 
+        let (l_w_cond, lhs_pbv) = lhs_single_w.expr_out[8].clone();
+        let (r_w_cond, rhs_pbv) = lhs_single_w.expr_out[2].clone();
+
         println!("{:#?}", rhs_single_w.expr_out[0].1.get_width_var());
         println!("{:#?}", lhs_single_w.expr_out[0].1.get_vars());
 
@@ -507,6 +510,12 @@ for {nat_string} :: nat and {int_string} :: int\n",
         for cond in &preconds_single_w {
             println!("(assert {})", cond.to_string())
         }
+
+        println!(
+            "(assert (distinct\n    {}\n    {}\n))",
+            lhs_pbv.to_string(),
+            rhs_pbv.to_string()
+        );
 
         Ok(vec![])
     }

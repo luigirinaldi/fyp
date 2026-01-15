@@ -1,8 +1,9 @@
 use clap::error::Result;
 use egg::*;
 use std::fmt::Debug;
-use z3::RecFuncDecl;
 type Num = i32;
+
+use std::fmt;
 
 use crate::language::ModIR;
 use std::collections::HashMap;
@@ -22,8 +23,8 @@ define_language! {
         "bvxor" = Xor([Id;2]),
         "bvnot" = Not(Id),
         // Width manip
-        "trunc" = Trunc([Id; 2]), // Take a target width and an expression and truncate it
-        "zext" = Zext([Id; 2]), // Take an expression and the number of width to zero extend it by
+        "pextract" = Extract([Id; 3]), // perform bitvector extraction
+        "pzero_extend" = Zext([Id; 2]), // Take an expression and the number of width to zero extend it by
         // Language to define the width expressions in the SMT-lib-esque parametric bitvector lang
         "+" = WAdd([Id; 2]),
         "-" = WSub([Id; 2]),
@@ -142,7 +143,7 @@ fn case_split_binary(
             format!("(> {w_out} {w_a})").parse().unwrap(),
             format!("(> {w_out} {w_b})").parse().unwrap(),
         ],
-        format!("({op} (zext (- {w_out} {w_a}) {expr_a}) (zext (- {w_out} {w_b}) {expr_b}))")
+        format!("({op} (pzero_extend (- {w_out} {w_a}) {expr_a}) (pzero_extend (- {w_out} {w_b}) {expr_b}))")
             .parse()
             .unwrap(),
     );
@@ -153,9 +154,11 @@ fn case_split_binary(
             format!("(<= {w_out} {w_b})").parse().unwrap(),
             format!("(< {w_a} {w_b})").parse().unwrap(),
         ],
-        format!("(trunc {w_out} ({op} (zext (- {w_b} {w_a}) {expr_a}) {expr_b}))")
-            .parse()
-            .unwrap(),
+        format!(
+            "(pextract (- {w_out} 1) 0 ({op} (pzero_extend (- {w_b} {w_a}) {expr_a}) {expr_b}))"
+        )
+        .parse()
+        .unwrap(),
     );
     // width_out <= max(w(a), w(b)) & w(a) >= w(b)
     let case_three: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
@@ -164,9 +167,11 @@ fn case_split_binary(
             format!("(<= {w_out} {w_b})").parse().unwrap(),
             format!("(<= {w_b} {w_a})").parse().unwrap(),
         ],
-        format!("(trunc {w_out} ({op} {expr_a} (zext (- {w_a} {w_b}) {expr_b})))")
-            .parse()
-            .unwrap(),
+        format!(
+            "(pextract (- {w_out} 1) 0 ({op} {expr_a} (pzero_extend (- {w_a} {w_b}) {expr_b})))"
+        )
+        .parse()
+        .unwrap(),
     );
     [case_one, case_two, case_three]
 }
@@ -322,6 +327,7 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
 pub trait ParamUtils {
     fn get_width_var(&self) -> HashSet<ParamIR>;
     fn get_vars(&self) -> HashSet<RecExpr<ParamIR>>;
+    // fn replace_trunc(&self) -> Self;
 }
 
 impl ParamUtils for RecExpr<ParamIR> {
@@ -371,4 +377,3 @@ pub fn pbvvar_to_smt_string(var: &RecExpr<ParamIR>) -> String {
         _ => unreachable!(),
     }
 }
-
