@@ -1,10 +1,12 @@
 use clap::error::Result;
 use egg::*;
+use num::ToPrimitive;
 use std::fmt::Debug;
+use z3::ast::Bool;
+use z3::ast::Int;
 type Num = i32;
 
-use std::fmt;
-
+use crate::language::apply_pow2;
 use crate::language::ModIR;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -327,7 +329,8 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
 pub trait ParamUtils {
     fn get_width_var(&self) -> HashSet<ParamIR>;
     fn get_vars(&self) -> HashSet<RecExpr<ParamIR>>;
-    // fn replace_trunc(&self) -> Self;
+    fn width_to_z3(&self, id: Id) -> Result<Int, String>;
+    fn cond_to_z3(&self) -> Result<Bool, String>;
 }
 
 impl ParamUtils for RecExpr<ParamIR> {
@@ -358,6 +361,28 @@ impl ParamUtils for RecExpr<ParamIR> {
             .filter(|x| x.is_some())
             .map(|x| x.unwrap())
             .collect()
+    }
+
+    fn cond_to_z3(&self) -> Result<Bool, String> {
+        match &self[self.root()] {
+            ParamIR::GT([a, b]) => Ok(self.width_to_z3(*a)?.gt(self.width_to_z3(*b)?)),
+            ParamIR::GTE([a, b]) => Ok(self.width_to_z3(*a)?.ge(self.width_to_z3(*b)?)),
+            ParamIR::LT([a, b]) => Ok(self.width_to_z3(*a)?.lt(self.width_to_z3(*b)?)),
+            ParamIR::LTE([a, b]) => Ok(self.width_to_z3(*a)?.le(self.width_to_z3(*b)?)),
+            _ => unreachable!("Z3 comp is not valid comparison operation: {}", self),
+        }
+    }
+
+    fn width_to_z3(&self, id: Id) -> Result<Int, String> {
+        match &self[id] {
+            ParamIR::WVar(sym) => Ok(Int::new_const(sym.as_str())),
+            ParamIR::WNum(num) => Ok(Int::from_i64(num.to_i64().unwrap())),
+            ParamIR::Add([a, b]) => Ok(self.width_to_z3(*a)? + self.width_to_z3(*b)?),
+            ParamIR::Mul([a, b]) => Ok(self.width_to_z3(*a)? * self.width_to_z3(*b)?),
+            ParamIR::Sub([a, b]) => Ok(self.width_to_z3(*a)? - self.width_to_z3(*b)?),
+            ParamIR::Pow2(a) => Ok(apply_pow2(&self.width_to_z3(*a)?)),
+            _ => Err("Reached an invalid node type".to_string()),
+        }
     }
 }
 
