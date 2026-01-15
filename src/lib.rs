@@ -37,6 +37,7 @@ pub use types::EquivalenceString;
 pub struct Equivalence {
     pub name: String,
     pub preconditions: Vec<RecExpr<ModIR>>,
+    pub width_gt_zero: Vec<RecExpr<ModIR>>,
     pub lhs: RecExpr<ModIR>,
     pub rhs: RecExpr<ModIR>,
     pub equiv: Option<bool>,
@@ -105,15 +106,13 @@ impl Equivalence {
             e
         });
 
-        let precond_exprs: Vec<RecExpr<ModIR>> = preconditions
-            .iter()
-            .map(|&p| p.parse().unwrap())
-            .chain(extra_preconditions)
-            .collect::<Vec<_>>();
+        let precond_exprs: Vec<RecExpr<ModIR>> =
+            preconditions.iter().map(|&p| p.parse().unwrap()).collect();
 
         let ret_self = Self {
             name: String::from(name),
             preconditions: precond_exprs,
+            width_gt_zero: extra_preconditions.collect(),
             lhs: lhs_expr,
             rhs: rhs_expr,
             width_exprs: unique_bitwidth_expr,
@@ -481,7 +480,11 @@ for {nat_string} :: nat and {int_string} :: int\n",
         width_vars.extend(rhs_single_w.expr_out[0].1.get_width_var());
 
         for p in preconds_single_w {
-            assert!(p.get_width_var().is_subset(&width_vars))
+            assert!(
+                p.get_width_var().is_subset(&width_vars),
+                "precondition {} contains variables not present in the lhs and rhs",
+                p.to_string()
+            )
         }
 
         println!("{:#?}", width_vars);

@@ -1,6 +1,6 @@
 {
     "name": "commutativity_add",
-    "preconditions": [],
+    "preconditions": ["(> r m)"],
     "rhs": "(bw r ( + (bw t c) (bw r ( + (bw p a) (bw q b)))))",
     "lhs": "(bw r ( + (bw (+ t j) b) (bw p a)))"
 }

@@ -119,7 +119,10 @@ pub fn modir_cond_to_paramir_cond(
             }
             try_join_recexpr(&opmap(cond), |id| modir_w_to_paramir_w(expr, id))
         }
-        node => Err(format!("Unsupported precondition operation {:#}", node)),
+        node => Err(format!(
+            "[conv to param ir] Unsupported precondition operation {:#}",
+            node
+        )),
     }
 }
 
