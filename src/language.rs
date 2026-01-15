@@ -335,25 +335,6 @@ pub fn modir_w_to_paramir_w(expr: &RecExpr<ModIR>, id: Id) -> Result<RecExpr<Par
     }
 }
 
-pub fn try_join_recexpr<L, E, F>(node: &L, mut f: F) -> Result<RecExpr<L>, E>
-where
-    L: Language + Clone,
-    F: FnMut(Id) -> Result<RecExpr<L>, E>,
-{
-    // 1. Compute each child RecExpr fallibly
-    let parts: HashMap<Id, RecExpr<L>> = node
-        .children()
-        .iter()
-        .copied()
-        .map(|id| f(id).map(|recexpr| (id, recexpr)))
-        .collect::<Result<_, _>>()?;
-
-    // 2. Join using the existing non-fallible logic
-    Ok(node
-        .clone()
-        .join_recexprs(|id| parts.get(&id).expect("missing child recexpr").clone()))
-}
-
 pub fn case_split_binary(
     op: &str,
     w_a: &RecExpr<ParamIR>,
