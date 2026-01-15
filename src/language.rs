@@ -301,27 +301,11 @@ impl ToZ3 for RecExpr<ModIR> {
     }
 }
 
-fn try_join_recexprs<L, E>(
-    ids: impl Iterator<Item = Id>,
-    mut f: impl FnMut(Id) -> Result<RecExpr<L>, E>,
-) -> Result<RecExpr<L>, E>
-where
-    L: egg::Language,
-{
-    let mut out = RecExpr::default();
-
-    for id in ids {
-        let expr = f(id)?;
-        join_into(&mut out, &expr); // your manual join
-    }
-
-    Ok(out)
-}
-
 #[derive(Debug, Default)]
-struct ParamInfo {
+pub struct ParamInfo {
     width_out: RecExpr<ParamIR>,
     // Vector holding the width conditions and the generated expression under those conditions
+    // expr_out: Vec<(&'a Vec<RecExpr<ParamIR>>, &'a RecExpr<ParamIR>)>,
     expr_out: Vec<(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>)>,
 }
 
@@ -375,23 +359,40 @@ pub fn case_split_binary(
     w_b: &RecExpr<ParamIR>,
     expr_b: &RecExpr<ParamIR>,
     w_out: &RecExpr<ParamIR>,
-) -> [RecExpr<ParamIR>; 3] {
+) -> [(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>); 3] {
     // three cases,
     // width_out > max(w(a), w(b))
-    let case_one: RecExpr<ParamIR> =
+    let case_one: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+        vec![
+            format!("(> {w_out} {w_a})").parse().unwrap(),
+            format!("(> {w_out} {w_b})").parse().unwrap(),
+        ],
         format!("(bvadd (zext (- {w_out} {w_a}) {expr_a}) (zext (- {w_out} {w_b}) {expr_b}))")
             .parse()
-            .unwrap();
+            .unwrap(),
+    );
     // width_out <= max(w(a), w(b)) & w(a) < w(b)
-    let case_two: RecExpr<ParamIR> =
+    let case_two: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+        vec![
+            format!("(<= {w_out} {w_a})").parse().unwrap(),
+            format!("(<= {w_out} {w_b})").parse().unwrap(),
+            format!("(< {w_a} {w_b})").parse().unwrap(),
+        ],
         format!("(trunc {w_out} (bvadd (zext (- {w_b} {w_a}) {expr_a}) {expr_b}))")
             .parse()
-            .unwrap();
+            .unwrap(),
+    );
     // width_out <= max(w(a), w(b)) & w(a) >= w(b)
-    let case_three: RecExpr<ParamIR> =
+    let case_three: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+        vec![
+            format!("(<= {w_out} {w_a})").parse().unwrap(),
+            format!("(<= {w_out} {w_b})").parse().unwrap(),
+            format!("(<= {w_b} {w_a})").parse().unwrap(),
+        ],
         format!("(trunc {w_out} (bvadd {expr_a} (zext (- {w_a} {w_b}) {expr_b})))")
             .parse()
-            .unwrap();
+            .unwrap(),
+    );
     [case_one, case_two, case_three]
 }
 
@@ -404,7 +405,7 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
 
                 let width_out = modir_w_to_paramir_w(expr_in, *w)?;
 
-                let combined_exprs: Vec<_> = info_a
+                let combined_exprs = info_a
                     .expr_out
                     .iter()
                     .flat_map(|(w_conds_a, expr_a)| {
@@ -416,13 +417,36 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
                                 expr_b,
                                 &width_out,
                             )
+                            .iter_mut()
+                            .map(|(cond, expr)| {
+                                cond.append(&mut w_conds_b.clone());
+                                cond.append(&mut w_conds_a.clone());
+                                let cond: Vec<RecExpr<ParamIR>> = cond.to_vec();
+                                let expr: RecExpr<ParamIR> = expr.clone();
+                                (cond, expr)
+                            })
+                            .collect::<Vec<_>>()
                         })
                     })
-                    .collect();
+                    .collect::<Vec<_>>();
 
-                println!("{:?}", combined_exprs);
-
-                Err("unfinishied".to_string())
+                for (widths, expr) in &combined_exprs {
+                    for w in widths {
+                        print!("{} and", w.to_string());
+                    }
+                    println!(". then: {}", expr.to_string());
+                }
+                Ok(ParamInfo {
+                    width_out,
+                    expr_out: combined_exprs,
+                })
+                // Err("unfinishied".to_string())
+            }
+            ModIR::Var(var) => {
+                return Ok(ParamInfo {
+                    width_out: modir_w_to_paramir_w(expr_in, *w)?,
+                    expr_out: vec![(vec![], RecExpr::from(vec![ParamIR::Var(*var)]))],
+                })
             }
             _ => todo!(),
         },

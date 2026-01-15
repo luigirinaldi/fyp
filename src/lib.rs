@@ -1,3 +1,4 @@
+use crate::language::modir_to_paramir;
 use crate::language::validate_bwlang;
 use crate::language::validate_precond;
 use crate::language::ToZ3;
@@ -442,5 +443,10 @@ for {nat_string} :: nat and {int_string} :: int\n",
             ));
         }
         return Ok(());
+    }
+
+    pub fn to_single_width_op(&self) -> Result<(), String> {
+        let _ = modir_to_paramir(&self.rhs, self.rhs.root());
+        Ok(())
     }
 }

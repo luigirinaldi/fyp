@@ -79,9 +79,9 @@ enum Command {
 
     // /// Convert the bwlang file to Integer Arithmetic
     // ToSmtIa,
+    /// Convert the bwlang file to SMT PBV
+    ToSmtPbv,
 
-    // /// Convert the bwlang file to SMT PBV
-    // ToSmtPbv,
     /// Convert to Isabelle
     GetProof {
         /// Store the generated theorem in this directory
@@ -112,7 +112,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut equiv: Equivalence = Equivalence::from(equiv_str);
     info!("Running parabit on file: {}", equiv.name);
     equiv.validate()?;
-    
+
     debug!(
         "\nlhs:\t{}\nrhs:\t{}\nprecond: {}",
         equiv.lhs.to_string(),
@@ -233,6 +233,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         // input validation happends after the equiv is constructed, hence no need to do anything
         Command::ValidateInput => return Ok(()),
+        Command::ToSmtPbv => return Ok(equiv.to_single_width_op()?),
     }
 
     if let Some(is_equiv) = equiv.equiv.clone() {
