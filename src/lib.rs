@@ -505,7 +505,10 @@ for {nat_string} :: nat and {int_string} :: int\n",
                 "(set-logic ALL)\n;; Implied conditions on the bitvector width variables:\n"
                     .to_string();
 
-            for c in conds.iter().map(|c| c.to_string()).collect::<HashSet<_>>() {
+            let implied_conds_in_string =
+                conds.iter().map(|c| c.to_string()).collect::<HashSet<_>>();
+
+            for c in &implied_conds_in_string {
                 string_out += &format!(";; {c}\n");
             }
 
@@ -526,9 +529,22 @@ for {nat_string} :: nat and {int_string} :: int\n",
                 string_out += &pbvvar_to_smt_string(&pbv);
                 string_out += "\n";
             }
+            string_out += ";; User provided pre-conditions\n";
+
             for cond in filtered_precs {
                 string_out += &format!("(assert {})", cond.to_string());
                 string_out += "\n";
+            }
+
+            // remove conditions containing variables that don't appear, and convert to set of string (to avoid duplicates)
+            let implied_conds_filtered = conds
+                .iter()
+                .filter(|c| c.get_width_var().is_subset(&width_vars))
+                .map(|p| p.to_string())
+                .collect::<HashSet<_>>();
+            string_out += ";; Implied conditions\n";
+            for c in implied_conds_filtered {
+                string_out += &format!("(assert {c})\n");
             }
             string_out += "(assert (distinct\n    ";
             string_out += &rewrite_var_to_wvar(&lhs).to_string();
