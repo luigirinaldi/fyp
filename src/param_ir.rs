@@ -195,12 +195,12 @@ fn case_split_binary(
             .parse()
             .unwrap(),
         ),
-        // width_out < max(w(a), w(b)) & w(a) < w(b)
+        // width_out < max(w(a), w(b))
+        // w_o < w(b) & w(b) > w(a)
         (
             vec![
-                format!("(< {w_out} {w_a})").parse().unwrap(),
                 format!("(< {w_out} {w_b})").parse().unwrap(),
-                format!("(< {w_a} {w_b})").parse().unwrap(),
+                format!("(> {w_b} {w_a})").parse().unwrap(),
             ],
             format!(
                 "(pextract (- {w_out} 1) 0 ({op} (pzero_extend (- {w_b} {w_a}) {expr_a}) {expr_b}))"
@@ -208,11 +208,10 @@ fn case_split_binary(
             .parse()
             .unwrap(),
         )
-        // width_out < max(w(a), w(b)) & w(a) = w(b)
+        // w_o < w(a) & w(a) = w(b)
         ,(
             vec![
                 format!("(< {w_out} {w_a})").parse().unwrap(),
-                format!("(< {w_out} {w_b})").parse().unwrap(),
                 format!("(= {w_a} {w_b})").parse().unwrap(),
             ],
             format!(
@@ -221,11 +220,10 @@ fn case_split_binary(
             .parse()
             .unwrap(),
         )
-        // width_out < max(w(a), w(b)) & w(a) > w(b)
+        // w_o < w(a) & w(a) > w(b)
         ,(
             vec![
                 format!("(< {w_out} {w_a})").parse().unwrap(),
-                format!("(< {w_out} {w_b})").parse().unwrap(),
                 format!("(> {w_a} {w_b})").parse().unwrap(),
             ],
             format!(
