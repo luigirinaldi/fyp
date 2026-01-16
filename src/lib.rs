@@ -1,6 +1,13 @@
 use crate::language::validate_bwlang;
 use crate::language::validate_precond;
 use crate::language::ToZ3;
+use crate::param_ir::compatible_conds;
+use crate::param_ir::modir_cond_to_paramir_cond;
+use crate::param_ir::modir_to_paramir;
+use crate::param_ir::pbvvar_to_smt_string;
+use crate::param_ir::rewrite_var_to_wvar;
+use crate::param_ir::wvar_to_smt_string;
+use crate::param_ir::ParamIR;
 use crate::Symbol;
 use egg::*;
 use language::ModAnalysis;
@@ -11,9 +18,11 @@ use std::time::Duration;
 use z3::SatResult;
 use z3::Solver;
 
+use crate::param_ir::ParamUtils;
 mod dot_equiv;
 mod extractor;
 mod language;
+mod param_ir;
 mod rewrite_rules;
 mod types;
 mod utils;
@@ -32,6 +41,7 @@ pub use types::EquivalenceString;
 pub struct Equivalence {
     pub name: String,
     pub preconditions: Vec<RecExpr<ModIR>>,
+    pub width_gt_zero: Vec<RecExpr<ModIR>>,
     pub lhs: RecExpr<ModIR>,
     pub rhs: RecExpr<ModIR>,
     pub equiv: Option<bool>,
@@ -100,15 +110,13 @@ impl Equivalence {
             e
         });
 
-        let precond_exprs: Vec<RecExpr<ModIR>> = preconditions
-            .iter()
-            .map(|&p| p.parse().unwrap())
-            .chain(extra_preconditions)
-            .collect::<Vec<_>>();
+        let precond_exprs: Vec<RecExpr<ModIR>> =
+            preconditions.iter().map(|&p| p.parse().unwrap()).collect();
 
         let ret_self = Self {
             name: String::from(name),
             preconditions: precond_exprs,
+            width_gt_zero: extra_preconditions.collect(),
             lhs: lhs_expr,
             rhs: rhs_expr,
             width_exprs: unique_bitwidth_expr,
@@ -442,5 +450,115 @@ for {nat_string} :: nat and {int_string} :: int\n",
             ));
         }
         return Ok(());
+    }
+
+    /// Produces a vector of smtlib-pbv compatible strings
+    pub fn to_single_width_op(&self) -> Result<Vec<String>, String> {
+        let lhs_single_w = modir_to_paramir(&self.lhs, self.lhs.root())?;
+        let rhs_single_w = modir_to_paramir(&self.rhs, self.rhs.root())?;
+        let preconds_single_w: Vec<RecExpr<ParamIR>> = self
+            .preconditions
+            .iter()
+            .map(|p| modir_cond_to_paramir_cond(p, p.root()))
+            .collect::<Result<Vec<_>, String>>()?;
+        println!(
+            "Finished processing lhs and rhs, rhs has {} cases, lhs has {} cases",
+            rhs_single_w.expr_out.len(),
+            lhs_single_w.expr_out.len()
+        );
+
+        let valid_pairs: Vec<_> = lhs_single_w
+            .expr_out
+            .iter()
+            .flat_map(|(conds_l, expr_l)| {
+                rhs_single_w.expr_out.iter().filter_map({
+                    let value = preconds_single_w.clone();
+                    move |(conds_r, expr_r)| {
+                        let conds = conds_r.iter().chain(conds_l).chain(&value);
+                        if compatible_conds(conds).unwrap() {
+                            Some((
+                                conds_r.iter().chain(conds_l).collect::<Vec<_>>(),
+                                expr_l.clone(),
+                                expr_r.clone(),
+                            ))
+                        } else {
+                            None
+                        }
+                    }
+                })
+            })
+            .collect::<Vec<_>>();
+
+        println!(
+            "{} total combinations, {} valid ones",
+            rhs_single_w.expr_out.len() * lhs_single_w.expr_out.len(),
+            valid_pairs.len()
+        );
+
+        fn generate_smt_string(
+            lhs: &RecExpr<ParamIR>,
+            rhs: &RecExpr<ParamIR>,
+            preconds: &[RecExpr<ParamIR>],
+            conds: &Vec<&RecExpr<ParamIR>>,
+        ) -> String {
+            let mut string_out: String =
+                "(set-logic ALL)\n;; Implied conditions on the bitvector width variables:\n"
+                    .to_string();
+
+            let implied_conds_in_string =
+                conds.iter().map(|c| c.to_string()).collect::<HashSet<_>>();
+
+            for c in &implied_conds_in_string {
+                string_out += &format!(";; {c}\n");
+            }
+
+            let mut width_vars: HashSet<_> = lhs.get_width_var();
+            width_vars.extend(rhs.get_width_var());
+            let mut bitvector_vars = lhs.get_vars();
+            bitvector_vars.extend(rhs.get_vars());
+            // only keep those preconditions whose variables are present in the set of variables of the terms
+            // because sometimes when constraining some variables may disappear
+            let filtered_precs = preconds
+                .into_iter()
+                .filter(|p| p.get_width_var().is_subset(&width_vars));
+            for w in &width_vars {
+                string_out += &wvar_to_smt_string(&w);
+                string_out += "\n";
+            }
+            for pbv in bitvector_vars {
+                string_out += &pbvvar_to_smt_string(&pbv);
+                string_out += "\n";
+            }
+            string_out += ";; User provided pre-conditions\n";
+
+            for cond in filtered_precs {
+                string_out += &format!("(assert {})", cond.to_string());
+                string_out += "\n";
+            }
+
+            // remove conditions containing variables that don't appear, and convert to set of string (to avoid duplicates)
+            let implied_conds_filtered = conds
+                .iter()
+                .filter(|c| c.get_width_var().is_subset(&width_vars))
+                .map(|p| p.to_string())
+                .collect::<HashSet<_>>();
+            string_out += ";; Implied conditions\n";
+            for c in implied_conds_filtered {
+                string_out += &format!("(assert {c})\n");
+            }
+            string_out += "(assert (distinct\n    ";
+            string_out += &rewrite_var_to_wvar(&lhs).to_string();
+            string_out += "\n    ";
+            string_out += &rewrite_var_to_wvar(&rhs).to_string();
+            string_out += "\n))\n(check-sat)";
+            string_out
+        }
+
+        Ok(valid_pairs
+            .into_iter()
+            .map(|(gen_cond, lhs, rhs)| {
+                generate_smt_string(&lhs, &rhs, preconds_single_w.as_slice(), &gen_cond)
+            })
+            .collect())
     }
 }

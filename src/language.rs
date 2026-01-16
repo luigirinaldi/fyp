@@ -206,7 +206,7 @@ pub trait ToZ3 {
 
 /// Apply the pow2 function to a Z3 Int
 /// pow2(n) = if n == 0 then 1 else 2 * pow2(n - 1)
-fn apply_pow2(a: &Int) -> Int {
+pub fn apply_pow2(a: &Int) -> Int {
     // Create recursive function declaration: pow2: Int -> Int
     let pow2 = RecFuncDecl::new("pow2", &[&Sort::int()], &Sort::int());
 

@@ -42,6 +42,7 @@ struct Cli {
     command: Option<Command>,
 
     /// Verbosity level, feed a RUST_LOG compatible string
+    /// For example: "parabit=debug" to get debug from parabit
     #[arg(short, long, default_value = "parabit=info")]
     verbosity: String,
 }
@@ -79,9 +80,13 @@ enum Command {
 
     // /// Convert the bwlang file to Integer Arithmetic
     // ToSmtIa,
+    /// Convert the bwlang file to SMT PBV
+    ToSmtPbv {
+        /// Store the generated theorem in this directory
+        #[arg(value_name = "DIR")]
+        dest_path: PathBuf,
+    },
 
-    // /// Convert the bwlang file to SMT PBV
-    // ToSmtPbv,
     /// Convert to Isabelle
     GetProof {
         /// Store the generated theorem in this directory
@@ -112,7 +117,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut equiv: Equivalence = Equivalence::from(equiv_str);
     info!("Running parabit on file: {}", equiv.name);
     equiv.validate()?;
-    
+
     debug!(
         "\nlhs:\t{}\nrhs:\t{}\nprecond: {}",
         equiv.lhs.to_string(),
@@ -233,6 +238,35 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         // input validation happends after the equiv is constructed, hence no need to do anything
         Command::ValidateInput => return Ok(()),
+        Command::ToSmtPbv { dest_path } => {
+            if !dest_path.exists() {
+                debug!("Creating directory {}", dest_path.to_string_lossy());
+                std::fs::create_dir_all(&dest_path)?;
+            }
+
+            let probs = equiv.to_single_width_op()?;
+
+            for (i, problem) in probs.into_iter().enumerate() {
+                let mut file_path = dest_path.clone();
+                file_path.push(format!("{}_{}.smt2", equiv.name, i));
+                let mut file = std::fs::File::create(&file_path)?;
+                let comment_header = format!(
+                    ";; Equivalence Name: {}\n;; Preconditions: {}\n;; LHS: {}\n;; RHS: {}\n\n",
+                    equiv.name,
+                    equiv
+                        .preconditions
+                        .iter()
+                        .map(|s| s.to_string())
+                        .collect::<Vec<String>>()
+                        .join(", "),
+                    equiv.lhs,
+                    equiv.rhs
+                );
+                std::io::Write::write_all(&mut file, comment_header.as_bytes())?;
+                std::io::Write::write_all(&mut file, problem.as_bytes())?;
+            }
+            return Ok(());
+        }
     }
 
     if let Some(is_equiv) = equiv.equiv.clone() {
