@@ -158,41 +158,39 @@ fn case_split_binary(
                 .parse()
                 .unwrap(),
         ),
-        // width_out = max(w(a), w(b)) & w(a) < w(b)
+        // width_out = max(w(a), w(b))
+        // w_o = w(a) & w(a) > w(b)
         (
             vec![
                 format!("(= {w_out} {w_a})").parse().unwrap(),
-                format!("(= {w_out} {w_b})").parse().unwrap(),
-                format!("(< {w_a} {w_b})").parse().unwrap(),
+                format!("(> {w_a} {w_b})").parse().unwrap(),
                 ],
             format!(
-                "({op} (pzero_extend (- {w_b} {w_a}) {expr_a}) {expr_b})"
+                "({op} {expr_a} (pzero_extend (- {w_a} {w_b}) {expr_b})))"
             )
             .parse()
             .unwrap(),
         ),
-        // width_out = max(w(a), w(b)) & w(a) = w(b)
+        // w_o = w(a) & w(a) = w(b)
         (
             vec![
                 format!("(= {w_out} {w_a})").parse().unwrap(),
-                format!("(= {w_out} {w_b})").parse().unwrap(),
                 format!("(= {w_a} {w_b})").parse().unwrap(),
-            ],
+                ],
             format!(
                 "({op} {expr_a} {expr_b})"
             )
             .parse()
             .unwrap(),
         ),
-        // width_out = max(w(a), w(b)) & w(a) > w(b)
+        // w_o = w(b) & w(a) < w(b)
         (
             vec![
-                format!("(= {w_out} {w_a})").parse().unwrap(),
                 format!("(= {w_out} {w_b})").parse().unwrap(),
-                format!("(> {w_a} {w_b})").parse().unwrap(),
-            ],
+                format!("(< {w_a} {w_b})").parse().unwrap(),
+                ],
             format!(
-                "({op} {expr_a} (pzero_extend (- {w_a} {w_b}) {expr_b})))"
+                "({op} (pzero_extend (- {w_b} {w_a}) {expr_a}) {expr_b})"
             )
             .parse()
             .unwrap(),
@@ -322,7 +320,20 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
                             })
                             .filter(|(cond, _expr)| {
                                 // Filter the generated conditions to the ones that are meaningful
-                                compatible_conds(cond).expect("Failed to evaluate condition")
+                                println!("{}", _expr.to_string());
+                                let width_gt_zero = cond
+                                    .into_iter()
+                                    .flat_map(|c| c.get_width_var())
+                                    .collect::<HashSet<ParamIR>>()
+                                    .into_iter()
+                                    .map(|w| {
+                                        format!("(> {} 0)", w.to_string())
+                                            .parse::<RecExpr<ParamIR>>()
+                                            .unwrap()
+                                    })
+                                    .collect::<Vec<RecExpr<ParamIR>>>();
+                                compatible_conds(cond.into_iter().chain(&width_gt_zero))
+                                    .expect("Failed to evaluate condition")
                             })
                             .collect::<Vec<_>>()
                         })
@@ -534,9 +545,10 @@ where
             );
         }
     }
-
     let res = solver.check();
-
+    println!("Checking condition:\n{}\n{:#?}", solver.to_string(), res);
+    // if res == SatResult::Sat {
+    // }
     if res == SatResult::Unknown {
         Err(format!(
             "Z3 returned unkown for this problem: {}",
