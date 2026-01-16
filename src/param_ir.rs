@@ -320,6 +320,10 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
                                 let expr: RecExpr<ParamIR> = expr.clone();
                                 (cond, expr)
                             })
+                            .filter(|(cond, _expr)| {
+                                // Filter the generated conditions to the ones that are meaningful
+                                compatible_conds(cond).expect("Failed to evaluate condition")
+                            })
                             .collect::<Vec<_>>()
                         })
                     })
