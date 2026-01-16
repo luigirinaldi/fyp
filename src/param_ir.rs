@@ -264,6 +264,34 @@ fn case_split_unary(
     [case_one, case_two, case_three]
 }
 
+fn case_split_mod(
+    w_a: &RecExpr<ParamIR>,
+    expr_a: &RecExpr<ParamIR>,
+    w_out: &RecExpr<ParamIR>,
+) -> [(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>); 3] {
+    // three cases
+    // w_out > w_a
+    let case_one: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+        vec![format!("(> {w_out} {w_a})").parse().unwrap()],
+        format!("(pzero_extend (- {w_out} {w_a}) {expr_a})")
+            .parse()
+            .unwrap(),
+    );
+    // w_out = w_a
+    let case_two: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+        vec![format!("(= {w_out} {w_a})").parse().unwrap()],
+        format!("{expr_a}").parse().unwrap(),
+    );
+    // w_out < w_a
+    let case_three: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+        vec![format!("(< {w_out} {w_a})").parse().unwrap()],
+        format!("(pextract (- {w_out} 1) 0 {expr_a})")
+            .parse()
+            .unwrap(),
+    );
+    [case_one, case_two, case_three]
+}
+
 /// This function takes a ModIR expression and enumerates all of the width conditions
 /// in order to generate all possible combinations of width extensions and truncations
 /// that would occur when performing verilog width processing.
@@ -318,7 +346,6 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
                             })
                             .filter(|(cond, _expr)| {
                                 // Filter the generated conditions to the ones that are meaningful
-                                println!("{}", _expr.to_string());
                                 let width_gt_zero = cond
                                     .into_iter()
                                     .flat_map(|c| c.get_width_var())
@@ -400,7 +427,32 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
                     )],
                 });
             }
-            ModIR::Mod(_) => todo!(),
+            ModIR::Mod([_w_child, _a]) => {
+                // Instead of analysing the child (a), recurse on the current node
+                // (bw p (bw q a)), here we are analysing (bw p (bw q ?))
+                // and we want to know what the resulting width of (bw q ?) and extend it or truncate it from q to p
+                // therefore, recurse on (bw q ?) to figure out that this is a variable a of width q
+                let info_a = modir_to_paramir(expr_in, *e)?;
+                let width_out = modir_w_to_paramir_w(expr_in, *w)?;
+                let combined_exprs = info_a
+                    .expr_out
+                    .iter()
+                    .flat_map(|(w_conds, expr_a)| {
+                        case_split_mod(&info_a.width_out, expr_a, &width_out)
+                            .iter_mut()
+                            .map(|(cond, expr)| {
+                                cond.append(&mut w_conds.clone());
+                                (cond.to_vec(), expr.clone())
+                            })
+                            .collect::<Vec<_>>()
+                    })
+                    .collect::<Vec<_>>();
+
+                Ok(ParamInfo {
+                    width_out,
+                    expr_out: combined_exprs,
+                })
+            }
             node => Err(format!("Invalid node type reached: {node}")),
         },
         _ => unreachable!(),
@@ -544,9 +596,6 @@ where
         }
     }
     let res = solver.check();
-    println!("Checking condition:\n{}\n{:#?}", solver.to_string(), res);
-    // if res == SatResult::Sat {
-    // }
     if res == SatResult::Unknown {
         Err(format!(
             "Z3 returned unkown for this problem: {}",
