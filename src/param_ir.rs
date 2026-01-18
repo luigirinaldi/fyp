@@ -41,6 +41,7 @@ define_language! {
         "<"  = LT([Id; 2]),
         "<=" = LTE([Id; 2]),
         "=" = Eq([Id;2]),
+        "int_to_pbv" = IntToPBV([Id;2]),
         // Numbers and associated width expr (must be num or var)
         Num(Num, Id),
         // Variables and associate width expr (must be num or var)
@@ -538,8 +539,6 @@ pub fn pbvvar_to_smt_string(var: &RecExpr<ParamIR>) -> String {
 }
 
 pub fn rewrite_var_to_wvar(expr: &RecExpr<ParamIR>) -> RecExpr<ParamIR> {
-    let mut expr_out: RecExpr<ParamIR> = RecExpr::default();
-
     fn rec_call<'a>(
         expr_in: &RecExpr<ParamIR>,
         id_in: Id,
@@ -550,6 +549,16 @@ pub fn rewrite_var_to_wvar(expr: &RecExpr<ParamIR>) -> RecExpr<ParamIR> {
             ParamIR::Var(sym, _w) => {
                 let id = exprout.add(ParamIR::WVar(*sym));
                 (id, exprout)
+            }
+            ParamIR::Num(val, w) => {
+                // Produce an smt pbv compliant bv
+                // either use int_to_pbv if the width isn't a constant, else use (_ bv{num} {width})
+                // or just use int_to_pbv
+                // do this as well by hacking the WVar which allows for arbitrary string
+                let (w_id, tmp) = rec_call(expr_in, *w, exprout);
+                let num_id = tmp.add(ParamIR::WNum(*val));
+                let id = tmp.add(ParamIR::IntToPBV([w_id, num_id]));
+                (id, tmp)
             }
             op => {
                 let mut new_childs = HashMap::<Id, Id>::new();
@@ -566,6 +575,7 @@ pub fn rewrite_var_to_wvar(expr: &RecExpr<ParamIR>) -> RecExpr<ParamIR> {
         }
     }
 
+    let mut expr_out: RecExpr<ParamIR> = RecExpr::default();
     let (_final_id, final_exp) = rec_call(expr, expr.root(), &mut expr_out);
 
     final_exp.clone()
