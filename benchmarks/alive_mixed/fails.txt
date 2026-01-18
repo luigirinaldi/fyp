@@ -1,7 +1,0 @@
-AndOrXor_2515
-InstCombineShift239
-InstCombineShift279
-InstCombineShift440
-InstCombineShift476
-InstCombineShift497a
-InstCombineShift582
