@@ -41,6 +41,7 @@ define_language! {
         "<"  = LT([Id; 2]),
         "<=" = LTE([Id; 2]),
         "=" = Eq([Id;2]),
+        "int_to_pbv" = IntToPBV([Id;2]),
         // Numbers and associated width expr (must be num or var)
         Num(Num, Id),
         // Variables and associate width expr (must be num or var)
@@ -158,10 +159,34 @@ fn case_split_binary(
                 .parse()
                 .unwrap(),
         ),
-        // width_out = max(w(a), w(b)) & w(a) < w(b)
+        // width_out = max(w(a), w(b))
+        // w_o = w(a) & w(a) > w(b)
         (
             vec![
                 format!("(= {w_out} {w_a})").parse().unwrap(),
+                format!("(> {w_a} {w_b})").parse().unwrap(),
+                ],
+            format!(
+                "({op} {expr_a} (pzero_extend (- {w_a} {w_b}) {expr_b})))"
+            )
+            .parse()
+            .unwrap(),
+        ),
+        // w_o = w(a) & w(a) = w(b)
+        (
+            vec![
+                format!("(= {w_out} {w_a})").parse().unwrap(),
+                format!("(= {w_a} {w_b})").parse().unwrap(),
+                ],
+            format!(
+                "({op} {expr_a} {expr_b})"
+            )
+            .parse()
+            .unwrap(),
+        ),
+        // w_o = w(b) & w(a) < w(b)
+        (
+            vec![
                 format!("(= {w_out} {w_b})").parse().unwrap(),
                 format!("(< {w_a} {w_b})").parse().unwrap(),
                 ],
@@ -171,38 +196,12 @@ fn case_split_binary(
             .parse()
             .unwrap(),
         ),
-        // width_out = max(w(a), w(b)) & w(a) = w(b)
+        // width_out < max(w(a), w(b))
+        // w_o < w(b) & w(b) > w(a)
         (
             vec![
-                format!("(= {w_out} {w_a})").parse().unwrap(),
-                format!("(= {w_out} {w_b})").parse().unwrap(),
-                format!("(= {w_a} {w_b})").parse().unwrap(),
-            ],
-            format!(
-                "({op} {expr_a} {expr_b})"
-            )
-            .parse()
-            .unwrap(),
-        ),
-        // width_out = max(w(a), w(b)) & w(a) > w(b)
-        (
-            vec![
-                format!("(= {w_out} {w_a})").parse().unwrap(),
-                format!("(= {w_out} {w_b})").parse().unwrap(),
-                format!("(> {w_a} {w_b})").parse().unwrap(),
-            ],
-            format!(
-                "({op} {expr_a} (pzero_extend (- {w_a} {w_b}) {expr_b})))"
-            )
-            .parse()
-            .unwrap(),
-        ),
-        // width_out < max(w(a), w(b)) & w(a) < w(b)
-        (
-            vec![
-                format!("(< {w_out} {w_a})").parse().unwrap(),
                 format!("(< {w_out} {w_b})").parse().unwrap(),
-                format!("(< {w_a} {w_b})").parse().unwrap(),
+                format!("(> {w_b} {w_a})").parse().unwrap(),
             ],
             format!(
                 "(pextract (- {w_out} 1) 0 ({op} (pzero_extend (- {w_b} {w_a}) {expr_a}) {expr_b}))"
@@ -210,11 +209,10 @@ fn case_split_binary(
             .parse()
             .unwrap(),
         )
-        // width_out < max(w(a), w(b)) & w(a) = w(b)
+        // w_o < w(a) & w(a) = w(b)
         ,(
             vec![
                 format!("(< {w_out} {w_a})").parse().unwrap(),
-                format!("(< {w_out} {w_b})").parse().unwrap(),
                 format!("(= {w_a} {w_b})").parse().unwrap(),
             ],
             format!(
@@ -223,11 +221,10 @@ fn case_split_binary(
             .parse()
             .unwrap(),
         )
-        // width_out < max(w(a), w(b)) & w(a) > w(b)
+        // w_o < w(a) & w(a) > w(b)
         ,(
             vec![
                 format!("(< {w_out} {w_a})").parse().unwrap(),
-                format!("(< {w_out} {w_b})").parse().unwrap(),
                 format!("(> {w_a} {w_b})").parse().unwrap(),
             ],
             format!(
@@ -262,6 +259,34 @@ fn case_split_unary(
     let case_three: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
         vec![format!("(< {w_out} {w_a})").parse().unwrap()],
         format!("(pextract (- {w_out} 1) 0 ({op} {expr_a}))")
+            .parse()
+            .unwrap(),
+    );
+    [case_one, case_two, case_three]
+}
+
+fn case_split_mod(
+    w_a: &RecExpr<ParamIR>,
+    expr_a: &RecExpr<ParamIR>,
+    w_out: &RecExpr<ParamIR>,
+) -> [(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>); 3] {
+    // three cases
+    // w_out > w_a
+    let case_one: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+        vec![format!("(> {w_out} {w_a})").parse().unwrap()],
+        format!("(pzero_extend (- {w_out} {w_a}) {expr_a})")
+            .parse()
+            .unwrap(),
+    );
+    // w_out = w_a
+    let case_two: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+        vec![format!("(= {w_out} {w_a})").parse().unwrap()],
+        format!("{expr_a}").parse().unwrap(),
+    );
+    // w_out < w_a
+    let case_three: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+        vec![format!("(< {w_out} {w_a})").parse().unwrap()],
+        format!("(pextract (- {w_out} 1) 0 {expr_a})")
             .parse()
             .unwrap(),
     );
@@ -319,6 +344,22 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
                                 let cond: Vec<RecExpr<ParamIR>> = cond.to_vec();
                                 let expr: RecExpr<ParamIR> = expr.clone();
                                 (cond, expr)
+                            })
+                            .filter(|(cond, _expr)| {
+                                // Filter the generated conditions to the ones that are meaningful
+                                let width_gt_zero = cond
+                                    .into_iter()
+                                    .flat_map(|c| c.get_width_var())
+                                    .collect::<HashSet<ParamIR>>()
+                                    .into_iter()
+                                    .map(|w| {
+                                        format!("(> {} 0)", w.to_string())
+                                            .parse::<RecExpr<ParamIR>>()
+                                            .unwrap()
+                                    })
+                                    .collect::<Vec<RecExpr<ParamIR>>>();
+                                compatible_conds(cond.into_iter().chain(&width_gt_zero))
+                                    .expect("Failed to evaluate condition")
                             })
                             .collect::<Vec<_>>()
                         })
@@ -387,7 +428,32 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
                     )],
                 });
             }
-            ModIR::Mod(_) => todo!(),
+            ModIR::Mod([_w_child, _a]) => {
+                // Instead of analysing the child (a), recurse on the current node
+                // (bw p (bw q a)), here we are analysing (bw p (bw q ?))
+                // and we want to know what the resulting width of (bw q ?) and extend it or truncate it from q to p
+                // therefore, recurse on (bw q ?) to figure out that this is a variable a of width q
+                let info_a = modir_to_paramir(expr_in, *e)?;
+                let width_out = modir_w_to_paramir_w(expr_in, *w)?;
+                let combined_exprs = info_a
+                    .expr_out
+                    .iter()
+                    .flat_map(|(w_conds, expr_a)| {
+                        case_split_mod(&info_a.width_out, expr_a, &width_out)
+                            .iter_mut()
+                            .map(|(cond, expr)| {
+                                cond.append(&mut w_conds.clone());
+                                (cond.to_vec(), expr.clone())
+                            })
+                            .collect::<Vec<_>>()
+                    })
+                    .collect::<Vec<_>>();
+
+                Ok(ParamInfo {
+                    width_out,
+                    expr_out: combined_exprs,
+                })
+            }
             node => Err(format!("Invalid node type reached: {node}")),
         },
         _ => unreachable!(),
@@ -473,8 +539,6 @@ pub fn pbvvar_to_smt_string(var: &RecExpr<ParamIR>) -> String {
 }
 
 pub fn rewrite_var_to_wvar(expr: &RecExpr<ParamIR>) -> RecExpr<ParamIR> {
-    let mut expr_out: RecExpr<ParamIR> = RecExpr::default();
-
     fn rec_call<'a>(
         expr_in: &RecExpr<ParamIR>,
         id_in: Id,
@@ -485,6 +549,16 @@ pub fn rewrite_var_to_wvar(expr: &RecExpr<ParamIR>) -> RecExpr<ParamIR> {
             ParamIR::Var(sym, _w) => {
                 let id = exprout.add(ParamIR::WVar(*sym));
                 (id, exprout)
+            }
+            ParamIR::Num(val, w) => {
+                // Produce an smt pbv compliant bv
+                // either use int_to_pbv if the width isn't a constant, else use (_ bv{num} {width})
+                // or just use int_to_pbv
+                // do this as well by hacking the WVar which allows for arbitrary string
+                let (w_id, tmp) = rec_call(expr_in, *w, exprout);
+                let num_id = tmp.add(ParamIR::WNum(*val));
+                let id = tmp.add(ParamIR::IntToPBV([w_id, num_id]));
+                (id, tmp)
             }
             op => {
                 let mut new_childs = HashMap::<Id, Id>::new();
@@ -501,6 +575,7 @@ pub fn rewrite_var_to_wvar(expr: &RecExpr<ParamIR>) -> RecExpr<ParamIR> {
         }
     }
 
+    let mut expr_out: RecExpr<ParamIR> = RecExpr::default();
     let (_final_id, final_exp) = rec_call(expr, expr.root(), &mut expr_out);
 
     final_exp.clone()
@@ -530,9 +605,7 @@ where
             );
         }
     }
-
     let res = solver.check();
-
     if res == SatResult::Unknown {
         Err(format!(
             "Z3 returned unkown for this problem: {}",

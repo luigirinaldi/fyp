@@ -143,17 +143,29 @@ fn main() {
                 output,
                 r#"
 #[test]
+#[allow(non_snake_case)]
+fn {fn_name}_validate() {{
+    let eq = Equivalence::new(
+        {name_literal},
+        &{preconditions},
+        {lhs_literal},
+        {rhs_literal},
+    );
+    assert!(eq.validate().is_ok(), "{{:#?}}", eq.validate().err());
+}}
+
+#[test]
 {should_panic_attr}#[cfg_attr(not(feature = "isabelle-check"), timeout(10000))]
 #[allow(non_snake_case)]
-fn {fn_name}() {{
+fn {fn_name}_find_equiv() {{
     let mut eq = Equivalence::new(
         {name_literal},
         &{preconditions},
         {lhs_literal},
         {rhs_literal},
     );
-    eq = eq.find_equivalence(&None);
     assert!(eq.validate().is_ok());
+    eq = eq.find_equivalence(&None);
     assert!(eq.equiv.is_some_and(|x| x), "Equivalence was not found.\n{{}}", eq.explanation_string());
     eq = eq.make_proof();
     let _expl = eq.explanation_string();
