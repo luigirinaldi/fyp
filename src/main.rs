@@ -7,7 +7,6 @@ use std::{
     time::Duration,
 };
 
-use dhat::assert;
 use env_logger;
 use log::{debug, info, trace};
 
