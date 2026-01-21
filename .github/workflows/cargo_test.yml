@@ -1,6 +1,8 @@
 on: [push, pull_request]
 
 name: CI/ Cargo Tests
+
+jobs:
   check:
     name: Check
     jobs:
@@ -17,7 +19,8 @@ name: CI/ Cargo Tests
             command: check
   test:
     name: Test
-    runs-on: ubuntu-latest
+    jobs:
+      runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v2
         - uses: actions-rs/toolchain@v1
