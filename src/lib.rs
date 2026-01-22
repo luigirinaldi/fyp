@@ -90,13 +90,8 @@ impl Equivalence {
             .cloned()
             .collect::<HashSet<_>>();
 
-        let all_bw_vars: HashSet<Symbol> =
-            unique_bitwidth_expr
-                .iter()
-                .fold(HashSet::<_>::from([]), |mut vars, expr| {
-                    vars.extend(get_vars(expr));
-                    vars
-                });
+        let mut all_bw_vars: HashSet<Symbol> = get_width_vars(&lhs_expr);
+        all_bw_vars.extend(&get_width_vars(&rhs_expr));
 
         let non_bw_vars = all_vars
             .iter()

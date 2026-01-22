@@ -134,7 +134,7 @@ pub fn validate_precond(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
     }
 }
 
-pub fn validate_width(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
+fn validate_width(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
     match &expr[id] {
         ModIR::Var(_) | ModIR::Num(_) => Ok(()),
         ModIR::Add(childs) | ModIR::Sub(childs) | ModIR::Mul(childs) => {
@@ -170,7 +170,7 @@ pub fn validate_term(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
     }
 }
 
-pub fn validate_bwlang(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
+fn validate_bwlang(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
     match &expr[id] {
         ModIR::Mod([width, term]) => {
             validate_width(expr, *width)?;
