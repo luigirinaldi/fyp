@@ -354,7 +354,7 @@ impl Equivalence {
                 };
                 proof_str += &format!(
                     "    {prefix}have \"{lhs} = {term}\" {proof}\n",
-                    prefix = if i == 0 { "" } else { "moreover " },
+                    prefix = if i == 0 { "" } else { "also " },
                     lhs = if i == 0 { "?lhs" } else { "..." },
                     term = next_term_str,
                     proof = proof_tactic
