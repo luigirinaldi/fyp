@@ -51,6 +51,13 @@ jobs:
           name: cargo-target
           path: target
 
+      # Rebuild again just because the tests are generated during the build step
+      - name: Cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+
       - name: Run validation
         uses: actions-rs/cargo@v1
         with:
@@ -77,6 +84,13 @@ jobs:
         with:
           name: cargo-target
           path: target
+
+      # Rebuild again just because the tests are generated during the build step
+      - name: Cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
 
       - name: Run equivalence finding
         uses: actions-rs/cargo@v1
