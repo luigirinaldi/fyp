@@ -302,6 +302,13 @@ impl Equivalence {
 
         let mut include_files: HashSet<String> = HashSet::<String>::new();
 
+        fn clean_rewrite(rw_in: &str) -> std::string::String {
+            rw_in
+                .to_string()
+                .replace("-rev", "") // remove the -rev introduced by two sided rewrites
+                .replace("isabelle-", "") // remove the isabelle- denoting a rule that uses isabelle definition
+        }
+
         let proof_string_out = if flat_terms.len() > 2 {
             let mut proof_str = format!("proof -\n{extra_facts}");
 
@@ -315,16 +322,17 @@ impl Equivalence {
                 let next_term_str =
                     print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false);
 
-                // Remove any '-rev' rewrites introduced by the double sided rewrite macro
-                let rewrite_str = rw.to_string().replace("-rev", "");
+                let rewrite_str = clean_rewrite(rw.into());
 
                 if let Some(file) = rule_to_file(&rewrite_str) {
                     include_files.insert(file.to_string());
                 } else {
-                    warn!(
-                        "Rewrite rule '{}' was not found in the lemma definitions.",
-                        rewrite_str
-                    );
+                    if rw.to_string().find("isabelle-").is_none() {
+                        warn!(
+                            "Rewrite rule '{}' was not found in the lemma definitions.",
+                            rw
+                        );
+                    }
                 }
 
                 // Proof tactic based on the rewrite, by default use "simp only"
@@ -361,10 +369,15 @@ impl Equivalence {
             } else {
                 fw.unwrap()
             };
-            if let Some(file) = rule_to_file(rw.into()) {
+            if let Some(file) = rule_to_file(&clean_rewrite(rw.into())) {
                 include_files.insert(file.to_string());
             } else {
-                warn!("Rewrite rule '{}' has no associated file", rw);
+                if rw.to_string().find("isabelle-").is_none() {
+                    warn!(
+                        "Rewrite rule '{}' was not found in the lemma definitions.",
+                        rw
+                    );
+                }
             }
             format!("using that by (simp only: {rw})\n",)
         } else if flat_terms.len() == 1 {
