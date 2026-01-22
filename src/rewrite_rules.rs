@@ -12,11 +12,11 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("isabelle-mult.commute";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("isabelle-mult.assoc";      "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
         // identities
-        rewrite!("mult_2";          "(* 2 ?a)" => "(+ ?a ?a)"),
         rewrite!("diff_self";       "(- ?a ?a)" => "0"),
         rewrite!("add_0";           "(+ 0 ?a)" => "?a"),
         rewrite!("mult_0";          "(* 0 ?a)" => "0"),
         rewrite!("mult_1";          "(* 1 ?a)" => "?a"),
+        rewrite!("mult_2";          "(* 2 ?a)" => "(+ ?a ?a)"),
         // ring identities?
         rewrite!("bw_pow_sum";      "(* (^ ?a (bw ?p ?b))
                                         (^ ?a (bw ?q ?c)))"     => "(^ ?a (+ (bw ?p ?b) (bw ?q ?c)))"),

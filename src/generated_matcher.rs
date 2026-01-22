@@ -3,6 +3,7 @@ AUTO-GENERATED FILE — DO NOT EDIT
 */
 pub fn rule_to_file(input: &str) -> Option<&'static str> {
     match input {
+        "add_0" => Some("arith_lemmas"),
         "add_as_xor_and" => Some("mixed_lemmas"),
         "add_eq_prec" => Some("arith_lemmas"),
         "add_full_prec" => Some("arith_lemmas"),
@@ -37,6 +38,7 @@ pub fn rule_to_file(input: &str) -> Option<&'static str> {
         "mul_remove_prec" => Some("arith_lemmas"),
         "mult_0" => Some("arith_lemmas"),
         "mult_1" => Some("arith_lemmas"),
+        "mult_2" => Some("arith_lemmas"),
         "neg_not" => Some("mixed_lemmas"),
         "not_bw_not" => Some("bitwise_lemmas"),
         "not_not" => Some("bitwise_lemmas"),

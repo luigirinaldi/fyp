@@ -102,6 +102,8 @@ qed
 
 lemma mult_0: "0 * a = 0" for a :: int by simp
 lemma mult_1: "1 * a = a" for a :: int by simp
+lemma mult_2: "2 * a = a + a" for a ::int by simp
+lemma add_0:  "0 + a = a" for a::int by simp
 lemma diff_self: "a - a = 0" for a:: int by simp
 lemma bw_1: "bw q 1 = 1" if "q > 0" using bw_def that by simp
 lemma bw_0: "bw q 0 = 0" using bw_def by simp
