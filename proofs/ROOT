@@ -1,3 +1,5 @@
 session ProofCheck = HOL + 
 theories
-  rewrite_lemmas
+  arith_lemmas
+  bitwise_lemmas
+  mixed_lemmas
