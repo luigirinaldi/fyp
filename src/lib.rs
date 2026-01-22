@@ -309,13 +309,18 @@ impl Equivalence {
             if let Some(file) = rule_to_file(&rewrite_str) {
                 include_files.insert(file.to_string());
                 Ok(rewrite_str)
-            } else if rw.find("isabelle-").is_none() {
+            } else if rw.find("isabelle-").is_some()
+                || rw == "shl_def"
+                || rw == "shr_def"
+                || rw == "constant_prop"
+            {
+                // If the rewrite is either an isabelle native or a constant prop then we can ignore it
+                Ok(rewrite_str)
+            } else {
                 Err(format!(
                     "Rewrite rule '{}' was not found in the lemma definitions.",
                     rewrite_str
                 ))
-            } else {
-                Ok(rewrite_str)
             }
         }
 
@@ -332,23 +337,10 @@ impl Equivalence {
                 let next_term_str =
                     print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false);
 
-                // let rewrite_str = clean_rewrite(rw.into());
-
-                // if let Some(file) = rule_to_file(&rewrite_str) {
-                //     include_files.insert(file.to_string());
-                // } else {
-                //     if rw.to_string().find("isabelle-").is_none() {
-                //         return Err(format!(
-                //             "Rewrite rule '{}' was not found in the lemma definitions.",
-                //             rw
-                //         ));
-                //     }
-                // }
                 let rewrite_str = process_rewrite(rw.to_string(), &mut include_files)?;
 
                 // Proof tactic based on the rewrite, by default use "simp only"
-                // to show that the single step in the equational reasoning
-                // is thanks to that rewrite
+                // to show that the single step in the equational reasoning is thanks to that rewrite
                 let proof_tactic = match rewrite_str.as_str() {
                     // Using add to allow for simplication of constants
                     "constant_prop" => String::from("by (simp add: bw_def)"),

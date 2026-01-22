@@ -19,13 +19,13 @@ RUST_FUNCTION_NAME = "rule_to_file"
 # ----------------------------------------
 
 
-def collect_matches(directory, filename_filter):
+def collect_matches(directory):
     compiled = re.compile(r"lemma ([^:]+):.*")
     results = {}
 
     for root, _, files in os.walk(directory):
         for filename in files:
-            if filename_filter not in filename:
+            if not filename.endswith(FILENAME_SUBSTRING):
                 continue
 
             file_path = Path(root) / filename
@@ -64,7 +64,6 @@ def main():
     print("Scanning directory...")
     matches = collect_matches(
         SEARCH_DIR,
-        FILENAME_SUBSTRING,
     )
 
     print(f"Found {len(matches)} unique pattern matches")
