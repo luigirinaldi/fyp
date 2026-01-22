@@ -36,7 +36,9 @@ lemma or_self: "or a a = a" by simp
 lemma and_not_self: "(and (bw p a) (bw p (not (bw p a)))) = 0" by (metis bit.xor_self or_self xor_and_or)
 lemma or_not_self: "(or (bw p a) (bw p (not (bw p a)))) = bw p (-1)" by (metis bit.disj_cancel_right bw_def take_bit_eq_mod take_bit_not_take_bit take_bit_or)
 
-lemma "bw q (or (bw p a) (bw r b)) = or (bw p a) (bw r b)" if "q \<ge> p" and "q >= r"
+lemma unused_generic_or_simpl: "bw q (or (bw p a) (bw r b)) = or (bw p a) (bw r b)" if "q \<ge> p" and "q >= r"
 by (metis bw_def reduce_mod take_bit_eq_mod take_bit_or that) 
+
+lemma not_0_allones: "bw p (not (bw p 0)) = (bw p (-1))" by (simp add: bw_0)
 
 end

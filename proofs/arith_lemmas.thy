@@ -108,6 +108,8 @@ lemma diff_self: "a - a = 0" for a:: int by simp
 lemma bw_1: "bw q 1 = 1" if "q > 0" using bw_def that by simp
 lemma bw_0: "bw q 0 = 0" using bw_def by simp
 
+lemma int_distrib: "a * (b + c) = (a * b) + (a * c)" for a b c ::int by algebra
+
 lemma sub_to_neg: "(a::int) - b = a + -1 * b" by simp
 
 lemma div_div_simp: "((a::int) div b) div c = a div (b * c)" if "a > 0" and "b > 0" and "c >0"
