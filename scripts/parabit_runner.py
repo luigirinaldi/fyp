@@ -5,12 +5,13 @@ Standalone CLI tool to run a binary on a set of files and save results to CSV.
 
 import argparse
 import csv
+import json
 import resource
 import subprocess
 import time
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import psutil
 from tqdm import tqdm
@@ -124,6 +125,29 @@ def run_binary_on_file(
         time_taken = time.time() - start_time
         return (base_name, False, str(e), time_taken, max_memory_mb)
 
+def extract_names_from_files(file_paths: list) -> Dict[str, str]:
+    """
+    Reads JSON files and extracts the 'name' key from each.
+    
+    Args:
+        file_paths: List of file paths to JSON files
+        
+    Returns:
+        Dictionary mapping filename to the 'name' value from the JSON
+    """
+    result = {}
+    
+    for file_path in file_paths:
+        path = Path(file_path)
+        try:
+            with open(path, 'r') as f:
+                data = json.load(f)
+                if 'name' in data:
+                    result[path.name] = data['name']
+        except Exception as e:
+            print(f"Error reading {file_path}: {e}")
+    
+    return result
 
 def run_binary_parallel(
     input_dir: Path,
@@ -146,6 +170,8 @@ def run_binary_parallel(
     if not input_files:
         print(f" No files matching '{file_pattern}' found in {input_dir}")
         return []
+
+    name_map = extract_names_from_files(input_files)
 
     print(
         f"\n= Running binary on {len(input_files)} files with {max_workers} parallel processes..."
@@ -183,6 +209,7 @@ def run_binary_parallel(
                 results.append(
                     {
                         "file": base_name,
+                        "problem_name": name_map[base_name],
                         "status": status,
                         "last_err_line": last_err_line,
                         "time_taken": time_taken,
@@ -204,6 +231,7 @@ def run_binary_parallel(
                 results.append(
                     {
                         "file": input_file.name,
+                        "problem_name": name_map[input_file.name],
                         "status": "FAILED",
                         "last_err_line": str(e),
                         "time_taken": 0.0,
@@ -231,6 +259,7 @@ def save_results_to_csv(results: List[dict], output_file: Path):
         "max_memory_mb",
         "timed_out",
         "last_err_line",
+        "problem_name",
     ]
 
     with open(output_file, "w", newline="") as csvfile:
@@ -290,7 +319,7 @@ def run_isabelle(results : List[dict], isabelle_dir : Path):
     
     for r in results:
         if r['status'] == "SUCCESS":
-            theorems_to_check.append(r['file'].replace(".bwlang", ""))
+            theorems_to_check.append(r['problem_name'])
 
     # 2. Create ROOT file in the destination directory
     root_path = isabelle_dir / "ROOT"
