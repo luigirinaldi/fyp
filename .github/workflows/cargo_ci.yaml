@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -20,22 +20,22 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release
 
-      # Upload target directory as artifact
+      # Upload target directory as artifact (v4)
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cargo-target
           path: target
+          retention-days: 1
 
-  test-a:
+  test-validate:
     name: Benchmark validation
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -43,9 +43,9 @@ jobs:
           toolchain: stable
           override: true
 
-      # Download build artifacts
+      # Download build artifacts (v4)
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: cargo-target
           path: target
@@ -56,13 +56,13 @@ jobs:
           command: test
           args: --release validate
 
-  test-b:
+  test-equiv:
     name: Test equivalence
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -70,9 +70,9 @@ jobs:
           toolchain: stable
           override: true
 
-      # Download build artifacts
+      # Download build artifacts (v4)
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: cargo-target
           path: target
