@@ -20,7 +20,6 @@ jobs:
           toolchain: stable
           override: true
 
-      # Rebuild again just because the tests are generated during the build step
       - name: Cargo build
         uses: actions-rs/cargo@v1
         with:
@@ -45,6 +44,12 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+
+      - name: Cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
 
       - name: Run equivalence finding
         uses: actions-rs/cargo@v1
