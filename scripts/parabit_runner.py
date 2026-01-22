@@ -337,7 +337,6 @@ def run_isabelle(results : List[dict], isabelle_dir : Path):
              ["docker", "run", "-v", f"{isabelle_dir.absolute()}:/build_dir/", 
             ISABELLE_DOCKER_IMAGE, "build", "-v", "-d", "/build_dir/", "-c", "CheckProofs"],
             cwd=isabelle_dir,
-            capture_output=True,
             text=True
         )
         
