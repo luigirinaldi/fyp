@@ -68,13 +68,13 @@ using diff_right_remove_prec by simp
 
 lemma reduce_mod:
 "bw p (bw q a) = bw q a"
-if "p > q"
+if "p \<ge> q"
 using bw_def 
-by (metis add.comm_neutral add_full_prec mod_0 that)
+by (simp add: mod_exp_eq that)
 
 lemma reduce_mod_bis:
 "bw p (bw q a) = bw p a"
-if "q > p"
+if "q \<ge> p"
 using bw_def
 by (simp add: mod_exp_eq that)
 
