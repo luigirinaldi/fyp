@@ -20,6 +20,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
+          args: --release
 
       # Upload target directory as artifact (v4)
       - name: Upload build artifacts
