@@ -244,11 +244,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                     let proof_file_path = path.join(format!("{}.thy", equiv.name));
                     let mut proof_file = File::create(proof_file_path).unwrap();
 
-                    proof_file.write(equiv.to_isabelle().as_bytes())?;
+                    proof_file.write(equiv.to_isabelle()?.as_bytes())?;
                     Ok(())
                 }
                 None => {
-                    println!("{}", equiv.to_isabelle());
+                    println!("{}", equiv.to_isabelle()?);
                     Ok(())
                 }
             }

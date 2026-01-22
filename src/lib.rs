@@ -10,6 +10,7 @@ use crate::param_ir::rewrite_var_to_wvar;
 use crate::param_ir::wvar_to_smt_string;
 use crate::param_ir::ParamIR;
 use crate::Symbol;
+use clap::error::Result;
 use egg::*;
 use language::ModAnalysis;
 use log::debug;
@@ -270,12 +271,12 @@ impl Equivalence {
         self
     }
 
-    fn get_isabelle_proof(&self) -> Option<(String, HashSet<String>)> {
+    fn get_isabelle_proof(&self) -> Result<Option<(String, HashSet<String>)>, String> {
         // Returns None if there is no proof
         let flat_terms = if let Some(expl) = &self.proof {
             expl
         } else {
-            return None;
+            return Ok(None);
         };
 
         assert!(!flat_terms.is_empty(), "Empty flat_terms vector");
@@ -302,11 +303,25 @@ impl Equivalence {
 
         let mut include_files: HashSet<String> = HashSet::<String>::new();
 
-        fn clean_rewrite(rw_in: &str) -> std::string::String {
-            rw_in
-                .to_string()
+        fn process_rewrite(
+            rw: String,
+            include_files: &mut HashSet<String>,
+        ) -> Result<String, String> {
+            let rewrite_str = rw
                 .replace("-rev", "") // remove the -rev introduced by two sided rewrites
-                .replace("isabelle-", "") // remove the isabelle- denoting a rule that uses isabelle definition
+                .replace("isabelle-", ""); // remove the isabelle- denoting a rule that uses isabelle definition
+
+            if let Some(file) = rule_to_file(&rewrite_str) {
+                include_files.insert(file.to_string());
+                Ok(rewrite_str)
+            } else if rw.find("isabelle-").is_none() {
+                Err(format!(
+                    "Rewrite rule '{}' was not found in the lemma definitions.",
+                    rewrite_str
+                ))
+            } else {
+                Ok(rewrite_str)
+            }
         }
 
         let proof_string_out = if flat_terms.len() > 2 {
@@ -322,18 +337,19 @@ impl Equivalence {
                 let next_term_str =
                     print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false);
 
-                let rewrite_str = clean_rewrite(rw.into());
+                // let rewrite_str = clean_rewrite(rw.into());
 
-                if let Some(file) = rule_to_file(&rewrite_str) {
-                    include_files.insert(file.to_string());
-                } else {
-                    if rw.to_string().find("isabelle-").is_none() {
-                        warn!(
-                            "Rewrite rule '{}' was not found in the lemma definitions.",
-                            rw
-                        );
-                    }
-                }
+                // if let Some(file) = rule_to_file(&rewrite_str) {
+                //     include_files.insert(file.to_string());
+                // } else {
+                //     if rw.to_string().find("isabelle-").is_none() {
+                //         return Err(format!(
+                //             "Rewrite rule '{}' was not found in the lemma definitions.",
+                //             rw
+                //         ));
+                //     }
+                // }
+                let rewrite_str = process_rewrite(rw.to_string(), &mut include_files)?;
 
                 // Proof tactic based on the rewrite, by default use "simp only"
                 // to show that the single step in the equational reasoning
@@ -350,11 +366,11 @@ impl Equivalence {
                     val @ ("div_pow_join" | "div_mult_self" | "div_same") => {
                         format!("using that inferred_facts by (simp only: {val})")
                     }
-                    other => format!("using that by (simp only: {})", other),
+                    other => format!("using {rule} that by (simp only: {rule})", rule = other),
                 };
                 proof_str += &format!(
                     "    {prefix}have \"{lhs} = {term}\" {proof}\n",
-                    prefix = if i == 0 { "" } else { "also " },
+                    prefix = if i == 0 { "" } else { "moreover " },
                     lhs = if i == 0 { "?lhs" } else { "..." },
                     term = next_term_str,
                     proof = proof_tactic
@@ -369,18 +385,9 @@ impl Equivalence {
             } else {
                 fw.unwrap()
             };
-            let rewrite_out = clean_rewrite(rw.into());
-            if let Some(file) = rule_to_file(&rewrite_out) {
-                include_files.insert(file.to_string());
-            } else {
-                if rw.to_string().find("isabelle-").is_none() {
-                    warn!(
-                        "Rewrite rule '{}' was not found in the lemma definitions.",
-                        rw
-                    );
-                }
-            }
-            format!("using that by (simp only: {rewrite_out})\n",)
+            let rewrite_str = process_rewrite(rw.to_string(), &mut include_files)?;
+
+            format!("using that by (simp only: {rewrite_str})\n",)
         } else if flat_terms.len() == 1 {
             // if the length is one then the two are trivially equal
             String::from("using that by simp\n")
@@ -388,16 +395,16 @@ impl Equivalence {
             unreachable!("Something went wrong, proof with 0 length flat terms");
         };
 
-        Some((proof_string_out, include_files))
+        Ok(Some((proof_string_out, include_files)))
     }
 
-    pub fn to_isabelle(&self) -> String {
+    pub fn to_isabelle(&self) -> Result<String, String> {
         // Clean up theorem name
         let proof_name = &self.name;
         let mut proof_string = String::new();
 
         let (proof_content, include_file_str) =
-            if let Some((proof, files)) = self.get_isabelle_proof() {
+            if let Some((proof, files)) = self.get_isabelle_proof()? {
                 let files_str: String = if files.len() == 0 {
                     "rewrite_defs".to_string()
                 } else {
@@ -441,7 +448,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
 
         proof_string.push_str(&proof_content);
         proof_string.push_str("\nend\n");
-        proof_string
+        Ok(proof_string)
     }
 
     pub fn check_proof(
