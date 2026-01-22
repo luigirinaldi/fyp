@@ -1,3 +1,9 @@
+"""
+This is a file to automatically generate the mappings from lemma name to .thy file.
+
+Run this from inside of this directory to create the corresponding rust file.
+"""
+
 import os
 import re
 from pathlib import Path
@@ -33,7 +39,7 @@ def collect_matches(directory, filename_filter):
             matches = compiled.findall(text)
 
             for match in matches:
-                results[match] = filename
+                results[match] = filename.replace(".thy", "")
 
     return results
 
