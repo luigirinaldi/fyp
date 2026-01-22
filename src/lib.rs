@@ -1,3 +1,4 @@
+use crate::generated_matcher::rule_to_file;
 use crate::language::validate_precond;
 use crate::language::validate_term;
 use crate::language::ToZ3;
@@ -12,6 +13,7 @@ use crate::Symbol;
 use egg::*;
 use language::ModAnalysis;
 use log::debug;
+use log::warn;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::time::Duration;
@@ -21,6 +23,7 @@ use z3::Solver;
 use crate::param_ir::ParamUtils;
 mod dot_equiv;
 mod extractor;
+mod generated_matcher;
 mod language;
 mod param_ir;
 mod rewrite_rules;
@@ -267,7 +270,7 @@ impl Equivalence {
         self
     }
 
-    fn get_isabelle_proof(&self) -> Option<String> {
+    fn get_isabelle_proof(&self) -> Option<(String, HashSet<String>)> {
         // Returns None if there is no proof
         let flat_terms = if let Some(expl) = &self.proof {
             expl
@@ -297,7 +300,9 @@ impl Equivalence {
                 facts + &note + "\n"
             });
 
-        if flat_terms.len() > 2 {
+        let mut include_files: HashSet<String> = HashSet::<String>::new();
+
+        let proof_string_out = if flat_terms.len() > 2 {
             let mut proof_str = format!("proof -\n{extra_facts}");
 
             for (i, term) in flat_terms.iter().skip(1).enumerate() {
@@ -312,6 +317,16 @@ impl Equivalence {
 
                 // Remove any '-rev' rewrites introduced by the double sided rewrite macro
                 let rewrite_str = rw.to_string().replace("-rev", "");
+
+                if let Some(file) = rule_to_file(&rewrite_str) {
+                    include_files.insert(file.to_string());
+                } else {
+                    warn!(
+                        "Rewrite rule '{}' was not found in the lemma definitions.",
+                        rewrite_str
+                    );
+                }
+
                 // Proof tactic based on the rewrite, by default use "simp only"
                 // to show that the single step in the equational reasoning
                 // is thanks to that rewrite
@@ -338,7 +353,7 @@ impl Equivalence {
                 );
             }
             proof_str += "ultimately show ?thesis by argo\nqed\n";
-            Some(proof_str)
+            proof_str
         } else if flat_terms.len() == 2 {
             let (bw, fw) = flat_terms[1].get_rewrite();
             let rw = if bw.is_some() {
@@ -346,22 +361,41 @@ impl Equivalence {
             } else {
                 fw.unwrap()
             };
-            Some(format!(
-                "using that by (simp only: {rw_rule})\n",
-                rw_rule = rw
-            ))
+            if let Some(file) = rule_to_file(rw.into()) {
+                include_files.insert(file.to_string());
+            } else {
+                warn!("Rewrite rule '{}' has no associated file", rw);
+            }
+            format!("using that by (simp only: {rw})\n",)
         } else if flat_terms.len() == 1 {
             // if the length is one then the two are trivially equal
-            Some(String::from("using that by simp\n"))
+            String::from("using that by simp\n")
         } else {
             unreachable!("Something went wrong, proof with 0 length flat terms");
-        }
+        };
+
+        Some((proof_string_out, include_files))
     }
 
     pub fn to_isabelle(&self, use_lemmas: bool) -> String {
         // Clean up theorem name
         let proof_name = &self.name;
         let mut proof_string = String::new();
+
+        let (proof_content, include_file_str) =
+            if let Some((proof, files)) = self.get_isabelle_proof() {
+                let files_str: String = if files.len() == 0 {
+                    "rewrite_defs".to_string()
+                } else {
+                    files.iter().fold(String::new(), |a, b| format!("{a} {b}"))
+                };
+                (proof, files_str)
+            } else {
+                (
+                    "proof -\n  show ?thesis sorry\nqed\n".to_string(),
+                    "rewrite_defs".to_string(),
+                )
+            };
 
         let nat_string = self
             .bw_vars
@@ -385,9 +419,9 @@ theorem {th_name}_th:
 if {preconditions}
 for {nat_string} :: nat and {int_string} :: int\n",
             imports = if use_lemmas {
-                "rewrite_lemmas"
+                include_file_str
             } else {
-                "rewrite_defs"
+                "rewrite_defs".to_string()
             },
             th_name = proof_name,
             lhs = print_infix(&self.lhs, &self.bw_vars, false),
@@ -395,12 +429,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
             preconditions = self.precond_str()
         ));
 
-        if let Some(proof) = self.get_isabelle_proof() {
-            proof_string.push_str(&proof);
-        } else {
-            proof_string.push_str("proof -\n  show ?thesis sorry\nqed\n");
-        }
-
+        proof_string.push_str(&proof_content);
         proof_string.push_str("\nend\n");
         proof_string
     }
