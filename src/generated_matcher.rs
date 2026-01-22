@@ -24,6 +24,7 @@ pub fn rule_to_file(input: &str) -> Option<&'static str> {
         "diff_left_remove_prec" => Some("arith_lemmas"),
         "diff_right_eq_prec" => Some("arith_lemmas"),
         "diff_right_remove_prec" => Some("arith_lemmas"),
+        "diff_self" => Some("arith_lemmas"),
         "div_div_simp" => Some("arith_lemmas"),
         "div_gte" => Some("arith_lemmas"),
         "div_mult_self" => Some("arith_lemmas"),
