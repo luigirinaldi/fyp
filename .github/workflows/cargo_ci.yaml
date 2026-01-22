@@ -1,0 +1,84 @@
+on: [push, pull_request]
+
+name: CI / Cargo Build & Parallel Tests
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+
+      # Upload target directory as artifact
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: cargo-target
+          path: target
+
+  test-a:
+    name: Benchmark validation
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      # Download build artifacts
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: cargo-target
+          path: target
+
+      - name: Run validation
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --release validate
+
+  test-b:
+    name: Test equivalence
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      # Download build artifacts
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: cargo-target
+          path: target
+
+      - name: Run equivalence finding
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --release find_equiv
