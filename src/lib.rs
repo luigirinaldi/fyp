@@ -390,7 +390,7 @@ impl Equivalence {
         Some((proof_string_out, include_files))
     }
 
-    pub fn to_isabelle(&self, use_lemmas: bool) -> String {
+    pub fn to_isabelle(&self) -> String {
         // Clean up theorem name
         let proof_name = &self.name;
         let mut proof_string = String::new();
@@ -431,11 +431,7 @@ theorem {th_name}_th:
 \"{lhs}={rhs}\" (is \"?lhs = ?rhs\")
 if {preconditions}
 for {nat_string} :: nat and {int_string} :: int\n",
-            imports = if use_lemmas {
-                include_file_str
-            } else {
-                "rewrite_defs".to_string()
-            },
+            imports = include_file_str,
             th_name = proof_name,
             lhs = print_infix(&self.lhs, &self.bw_vars, false),
             rhs = print_infix(&self.rhs, &self.bw_vars, false),

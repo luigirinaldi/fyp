@@ -92,13 +92,9 @@ enum Command {
         #[arg(long, value_name = "FILE")]
         theorem_path: Option<PathBuf>,
 
-        /// Only use the rewrite_defs, not the lemmas, when generating a theorem
+        /// Generates an empty theorem, skips searching for a proof
         #[arg(short, long, default_value = "false")]
-        def_only: bool,
-
-        /// Generate an empty theorem
-        #[arg(short, long, default_value = "false")]
-        skip_equiv: bool,
+        make_template: bool,
     },
 }
 
@@ -148,6 +144,16 @@ fn main() -> Result<(), Box<dyn Error>> {
             } else {
                 println!("{}", explanation_string)
             }
+
+            if let Some(is_equiv) = equiv.equiv.clone() {
+                if is_equiv {
+                    return Ok(());
+                } else {
+                    return Err("Equivalence wasn't found".into());
+                }
+            } else {
+                return Err("Something went wrong".into());
+            }
         }
         Command::GetStats {
             stats_path,
@@ -170,6 +176,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                         equiv = equiv.find_equivalence(&None);
                     }
                     let elapsed = now.elapsed();
+                    if let Some(is_equiv) = &equiv.equiv {
+                        if !is_equiv {
+                            return Err("Equivalence wasn't found".into());
+                        }
+                    }
                     #[cfg(feature = "get-heap-info")]
                     {
                         let after_stats = dhat::HeapStats::get();
@@ -212,14 +223,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                     equiv.runner.report()
                 ),
             };
+            return Ok(());
         }
         Command::GetProof {
             theorem_path,
-            def_only,
-            skip_equiv,
+            make_template,
         } => {
-            if !skip_equiv {
+            if !make_template {
                 equiv = equiv.find_equivalence(&None).make_proof();
+                if let Some(is_equiv) = &equiv.equiv {
+                    if !is_equiv {
+                        return Err("Equivalence wasn't found".into());
+                    }
+                }
             }
 
             match theorem_path {
@@ -228,10 +244,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                     let proof_file_path = path.join(format!("{}.thy", equiv.name));
                     let mut proof_file = File::create(proof_file_path).unwrap();
 
-                    proof_file.write(equiv.to_isabelle(!def_only).as_bytes())?;
+                    proof_file.write(equiv.to_isabelle().as_bytes())?;
+                    Ok(())
                 }
                 None => {
-                    println!("{}", equiv.to_isabelle(!def_only));
+                    println!("{}", equiv.to_isabelle());
+                    Ok(())
                 }
             }
         }
@@ -266,15 +284,5 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             return Ok(());
         }
-    }
-
-    if let Some(is_equiv) = equiv.equiv.clone() {
-        if is_equiv {
-            return Ok(());
-        } else {
-            return Err("Equivalence wasn't found".into());
-        }
-    } else {
-        return Err("Something went wrong".into());
     }
 }
