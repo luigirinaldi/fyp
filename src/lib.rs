@@ -141,8 +141,8 @@ impl Equivalence {
 
     pub fn precond_str(&self) -> String {
         self.preconditions
-            .clone()
             .iter()
+            .chain(&self.width_gt_zero)
             .map(|e| format!("\"{}\"", print_infix(e, &self.bw_vars, false)))
             .collect::<Vec<_>>()
             .join(" and ")
@@ -369,7 +369,8 @@ impl Equivalence {
             } else {
                 fw.unwrap()
             };
-            if let Some(file) = rule_to_file(&clean_rewrite(rw.into())) {
+            let rewrite_out = clean_rewrite(rw.into());
+            if let Some(file) = rule_to_file(&rewrite_out) {
                 include_files.insert(file.to_string());
             } else {
                 if rw.to_string().find("isabelle-").is_none() {
@@ -379,7 +380,7 @@ impl Equivalence {
                     );
                 }
             }
-            format!("using that by (simp only: {rw})\n",)
+            format!("using that by (simp only: {rewrite_out})\n",)
         } else if flat_terms.len() == 1 {
             // if the length is one then the two are trivially equal
             String::from("using that by simp\n")
