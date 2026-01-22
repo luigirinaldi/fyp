@@ -59,7 +59,7 @@ def run_binary_on_file(
         with open(out_file, "w") as stdout_f, open(err_file, "w") as stderr_f:
             # Start the process
             process = subprocess.Popen(
-                [binary_path, str(input_file), str(args)] if args else [binary_path, str(input_file)],
+                [binary_path, str(input_file)] + args.split() if args else [binary_path, str(input_file)],
                 stdout=stdout_f,
                 stderr=stderr_f,
                 preexec_fn=lambda: set_memory_limit(
@@ -290,7 +290,7 @@ def run_isabelle(results : List[dict], isabelle_dir : Path):
     
     for r in results:
         if r['status'] == "SUCCESS":
-            theorems_to_check.append(r['file'])
+            theorems_to_check.append(r['file'].replace(".bwlang", ""))
 
     # 2. Create ROOT file in the destination directory
     root_path = isabelle_dir / "ROOT"
@@ -418,7 +418,7 @@ def main():
         timeout=args.timeout,
         memory_limit_gb=args.memory,
         file_pattern=args.pattern,
-        args=args.extra_commands,
+        args=extra_parabit_args,
     )
 
     # Save results to CSV
