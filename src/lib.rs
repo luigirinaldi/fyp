@@ -1,5 +1,6 @@
 use crate::language::validate_bwlang;
 use crate::language::validate_precond;
+use crate::language::validate_term;
 use crate::language::ToZ3;
 use crate::param_ir::compatible_conds;
 use crate::param_ir::modir_cond_to_paramir_cond;
@@ -420,8 +421,8 @@ for {nat_string} :: nat and {int_string} :: int\n",
             .iter()
             .map(|precond| validate_precond(precond, precond.root()))
             .collect::<Result<(), String>>()?;
-        validate_bwlang(&self.rhs, self.rhs.root())?;
-        validate_bwlang(&self.lhs, self.lhs.root())?;
+        validate_term(&self.rhs, self.rhs.root())?;
+        validate_term(&self.lhs, self.lhs.root())?;
 
         let solver = Solver::new();
         for expr in &self.width_exprs {
