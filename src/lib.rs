@@ -1,4 +1,3 @@
-use crate::language::validate_bwlang;
 use crate::language::validate_precond;
 use crate::language::validate_term;
 use crate::language::ToZ3;
