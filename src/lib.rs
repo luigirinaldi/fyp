@@ -1,5 +1,6 @@
-use crate::language::validate_bwlang;
+use crate::generated_matcher::rule_to_file;
 use crate::language::validate_precond;
+use crate::language::validate_term;
 use crate::language::ToZ3;
 use crate::param_ir::compatible_conds;
 use crate::param_ir::modir_cond_to_paramir_cond;
@@ -9,9 +10,11 @@ use crate::param_ir::rewrite_var_to_wvar;
 use crate::param_ir::wvar_to_smt_string;
 use crate::param_ir::ParamIR;
 use crate::Symbol;
+use clap::error::Result;
 use egg::*;
 use language::ModAnalysis;
 use log::debug;
+use log::warn;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::time::Duration;
@@ -21,6 +24,7 @@ use z3::Solver;
 use crate::param_ir::ParamUtils;
 mod dot_equiv;
 mod extractor;
+mod generated_matcher;
 mod language;
 mod param_ir;
 mod rewrite_rules;
@@ -86,13 +90,8 @@ impl Equivalence {
             .cloned()
             .collect::<HashSet<_>>();
 
-        let all_bw_vars: HashSet<Symbol> =
-            unique_bitwidth_expr
-                .iter()
-                .fold(HashSet::<_>::from([]), |mut vars, expr| {
-                    vars.extend(get_vars(expr));
-                    vars
-                });
+        let mut all_bw_vars: HashSet<Symbol> = get_width_vars(&lhs_expr);
+        all_bw_vars.extend(&get_width_vars(&rhs_expr));
 
         let non_bw_vars = all_vars
             .iter()
@@ -138,8 +137,8 @@ impl Equivalence {
 
     pub fn precond_str(&self) -> String {
         self.preconditions
-            .clone()
             .iter()
+            .chain(&self.width_gt_zero)
             .map(|e| format!("\"{}\"", print_infix(e, &self.bw_vars, false)))
             .collect::<Vec<_>>()
             .join(" and ")
@@ -267,12 +266,12 @@ impl Equivalence {
         self
     }
 
-    fn get_isabelle_proof(&self) -> Option<String> {
+    fn get_isabelle_proof(&self) -> Result<Option<(String, HashSet<String>)>, String> {
         // Returns None if there is no proof
         let flat_terms = if let Some(expl) = &self.proof {
             expl
         } else {
-            return None;
+            return Ok(None);
         };
 
         assert!(!flat_terms.is_empty(), "Empty flat_terms vector");
@@ -297,7 +296,35 @@ impl Equivalence {
                 facts + &note + "\n"
             });
 
-        if flat_terms.len() > 2 {
+        let mut include_files: HashSet<String> = HashSet::<String>::new();
+
+        fn process_rewrite(
+            rw: String,
+            include_files: &mut HashSet<String>,
+        ) -> Result<String, String> {
+            let rewrite_str = rw
+                .replace("-rev", "") // remove the -rev introduced by two sided rewrites
+                .replace("isabelle-", ""); // remove the isabelle- denoting a rule that uses isabelle definition
+
+            if let Some(file) = rule_to_file(&rewrite_str) {
+                include_files.insert(file.to_string());
+                Ok(rewrite_str)
+            } else if rw.find("isabelle-").is_some()
+                || rw == "shl_def"
+                || rw == "shr_def"
+                || rw == "constant_prop"
+            {
+                // If the rewrite is either an isabelle native or a constant prop then we can ignore it
+                Ok(rewrite_str)
+            } else {
+                Err(format!(
+                    "Rewrite rule '{}' was not found in the lemma definitions.",
+                    rewrite_str
+                ))
+            }
+        }
+
+        let proof_string_out = if flat_terms.len() > 2 {
             let mut proof_str = format!("proof -\n{extra_facts}");
 
             for (i, term) in flat_terms.iter().skip(1).enumerate() {
@@ -310,11 +337,10 @@ impl Equivalence {
                 let next_term_str =
                     print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false);
 
-                // Remove any '-rev' rewrites introduced by the double sided rewrite macro
-                let rewrite_str = rw.to_string().replace("-rev", "");
+                let rewrite_str = process_rewrite(rw.to_string(), &mut include_files)?;
+
                 // Proof tactic based on the rewrite, by default use "simp only"
-                // to show that the single step in the equational reasoning
-                // is thanks to that rewrite
+                // to show that the single step in the equational reasoning is thanks to that rewrite
                 let proof_tactic = match rewrite_str.as_str() {
                     // Using add to allow for simplication of constants
                     "constant_prop" => String::from("by (simp add: bw_def)"),
@@ -327,7 +353,7 @@ impl Equivalence {
                     val @ ("div_pow_join" | "div_mult_self" | "div_same") => {
                         format!("using that inferred_facts by (simp only: {val})")
                     }
-                    other => format!("using that by (simp only: {})", other),
+                    other => format!("using {rule} that by (simp only: {rule}; fail | simp add: {rule}; fail | blast; fail | metis)", rule = other),
                 };
                 proof_str += &format!(
                     "    {prefix}have \"{lhs} = {term}\" {proof}\n",
@@ -338,7 +364,7 @@ impl Equivalence {
                 );
             }
             proof_str += "ultimately show ?thesis by argo\nqed\n";
-            Some(proof_str)
+            proof_str
         } else if flat_terms.len() == 2 {
             let (bw, fw) = flat_terms[1].get_rewrite();
             let rw = if bw.is_some() {
@@ -346,22 +372,38 @@ impl Equivalence {
             } else {
                 fw.unwrap()
             };
-            Some(format!(
-                "using that by (simp only: {rw_rule})\n",
-                rw_rule = rw
-            ))
+            let rewrite_str = process_rewrite(rw.to_string(), &mut include_files)?;
+
+            format!("using that by (simp only: {rewrite_str})\n",)
         } else if flat_terms.len() == 1 {
             // if the length is one then the two are trivially equal
-            Some(String::from("using that by simp\n"))
+            String::from("using that by simp\n")
         } else {
             unreachable!("Something went wrong, proof with 0 length flat terms");
-        }
+        };
+
+        Ok(Some((proof_string_out, include_files)))
     }
 
-    pub fn to_isabelle(&self, use_lemmas: bool) -> String {
+    pub fn to_isabelle(&self) -> Result<String, String> {
         // Clean up theorem name
         let proof_name = &self.name;
         let mut proof_string = String::new();
+
+        let (proof_content, include_file_str) =
+            if let Some((proof, files)) = self.get_isabelle_proof()? {
+                let files_str: String = if files.len() == 0 {
+                    "rewrite_defs".to_string()
+                } else {
+                    files.iter().fold(String::new(), |a, b| format!("{a} {b}"))
+                };
+                (proof, files_str)
+            } else {
+                (
+                    "proof -\n  show ?thesis sorry\nqed\n".to_string(),
+                    "rewrite_defs".to_string(),
+                )
+            };
 
         let nat_string = self
             .bw_vars
@@ -384,25 +426,16 @@ theorem {th_name}_th:
 \"{lhs}={rhs}\" (is \"?lhs = ?rhs\")
 if {preconditions}
 for {nat_string} :: nat and {int_string} :: int\n",
-            imports = if use_lemmas {
-                "rewrite_lemmas"
-            } else {
-                "rewrite_defs"
-            },
+            imports = include_file_str,
             th_name = proof_name,
             lhs = print_infix(&self.lhs, &self.bw_vars, false),
             rhs = print_infix(&self.rhs, &self.bw_vars, false),
             preconditions = self.precond_str()
         ));
 
-        if let Some(proof) = self.get_isabelle_proof() {
-            proof_string.push_str(&proof);
-        } else {
-            proof_string.push_str("proof -\n  show ?thesis sorry\nqed\n");
-        }
-
+        proof_string.push_str(&proof_content);
         proof_string.push_str("\nend\n");
-        proof_string
+        Ok(proof_string)
     }
 
     pub fn check_proof(
@@ -420,8 +453,8 @@ for {nat_string} :: nat and {int_string} :: int\n",
             .iter()
             .map(|precond| validate_precond(precond, precond.root()))
             .collect::<Result<(), String>>()?;
-        validate_bwlang(&self.rhs, self.rhs.root())?;
-        validate_bwlang(&self.lhs, self.lhs.root())?;
+        validate_term(&self.rhs, self.rhs.root())?;
+        validate_term(&self.lhs, self.lhs.root())?;
 
         let solver = Solver::new();
         for expr in &self.width_exprs {

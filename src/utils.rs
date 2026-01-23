@@ -89,6 +89,35 @@ pub fn get_bitwidth_exprs(expr: &RecExpr<ModIR>) -> Vec<RecExpr<ModIR>> {
     return bw_vars;
 }
 
+pub fn get_width_vars(expr: &RecExpr<ModIR>) -> HashSet<Symbol> {
+    fn get_width_rec(expr: &RecExpr<ModIR>, id: Id, is_width: bool) -> HashSet<Symbol> {
+        match &expr[id] {
+            ModIR::Var(s) => {
+                if is_width {
+                    HashSet::from([*s])
+                } else {
+                    HashSet::new()
+                }
+            }
+            ModIR::Num(_) => HashSet::new(),
+            ModIR::Mod([w, e]) => {
+                let mut vars_w = get_width_rec(expr, *w, true);
+                vars_w.extend(get_width_rec(expr, *e, false));
+                vars_w
+            }
+            other => other
+                .children()
+                .into_iter()
+                .map(|c| get_width_rec(expr, *c, is_width))
+                .fold(HashSet::<Symbol>::new(), |mut acc, x| {
+                    acc.extend(&x);
+                    acc
+                }),
+        }
+    }
+    return get_width_rec(expr, expr.root(), false);
+}
+
 pub fn get_vars(expr: &RecExpr<ModIR>) -> HashSet<Symbol> {
     expr.iter()
         .filter_map(|node| {

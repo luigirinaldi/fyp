@@ -1,8 +1,6 @@
-theory rewrite_lemmas
+theory arith_lemmas
     imports rewrite_defs 
 begin
-
-(* Arithmetic lemmas *)
 
 lemma bw_max_val:
 "bw p a \<le> 2^p - 1"
@@ -68,13 +66,13 @@ using diff_right_remove_prec by simp
 
 lemma reduce_mod:
 "bw p (bw q a) = bw q a"
-if "p > q"
+if "p \<ge> q"
 using bw_def 
-by (metis add.comm_neutral add_full_prec mod_0 that)
+by (simp add: mod_exp_eq that)
 
 lemma reduce_mod_bis:
 "bw p (bw q a) = bw p a"
-if "q > p"
+if "q \<ge> p"
 using bw_def
 by (simp add: mod_exp_eq that)
 
@@ -104,9 +102,13 @@ qed
 
 lemma mult_0: "0 * a = 0" for a :: int by simp
 lemma mult_1: "1 * a = a" for a :: int by simp
-
+lemma mult_2: "2 * a = a + a" for a ::int by simp
+lemma add_0:  "0 + a = a" for a::int by simp
+lemma diff_self: "a - a = 0" for a:: int by simp
 lemma bw_1: "bw q 1 = 1" if "q > 0" using bw_def that by simp
 lemma bw_0: "bw q 0 = 0" using bw_def by simp
+
+lemma int_distrib: "a * (b + c) = (a * b) + (a * c)" for a b c ::int by algebra
 
 lemma sub_to_neg: "(a::int) - b = a + -1 * b" by simp
 
@@ -129,65 +131,5 @@ using that by force
 
 lemma div_mult_self: "(a + b * c) div b = a div b + c" if "b \<noteq> 0" for a::int 
 using that by simp 
-
-(* Bitwise operations *)
-
-lemma "bw q (or (bw p a) (bw r b)) = or (bw p a) (bw r b)" if "q \<ge> p" and "q >= r"
-by (metis bw_def reduce_mod take_bit_eq_mod take_bit_or that) 
-
-lemma add_as_xor_and: "bw p a + bw q b = xor (bw p a) (bw q b) + 2 * (and (bw p a) (bw q b))"
-for p q :: nat and a b c :: int
-by (smt (verit) and.commute and.left_commute and.right_neutral and_eq_not_not_or bit.conj_disj_distrib 
-    bit.conj_disj_distrib2 bit.conj_xor_distrib2 bit.xor_cancel_left bit.xor_def bit.xor_def2 bit.xor_one_left 
-    bit.xor_one_right or.idem or_eq_not_not_and plus_and_or xor.assoc xor.right_neutral)
-
-lemma xor_as_or_and: "xor (bw p a) (bw q b) = (or (bw p a) (bw q b)) - (and (bw p a) (bw q b))" 
-by (smt (verit, ccfv_SIG) add_as_xor_and plus_and_or)
-
-lemma neg_not: "-(bw p a) = (not (bw p a)) + 1" by (simp only: minus_eq_not_plus_1)
-
-(* Bitwise identities *)
-
-(* value "xor (bw 1 (-1)) (bw 1 (-1))"
-value "(bw 1 (not (bw 1 (-1))))" *)
-
-(* sledgehammer_params[timeout = 300] *)
-
-(* lemma "bw p (xor (bw p a) (bw p (-1))) = bw p (not (bw p a))" if "p > 0"
-sorry *)
-
-lemma and_allones: "and (bw p a) (bw p (-1)) = (bw p a)"
-    by (metis and.right_neutral bw_def take_bit_and take_bit_eq_mod)
-lemma or_allones: "or (bw p a) (bw p (-1)) = bw p (-1)"
-    by (metis bit.disj_one_right bw_def take_bit_int_def take_bit_or)
-lemma xor_allones: "(bw p (xor a (bw p (-1)))) = (bw p (not a))" 
-    by (metis bit.xor_one_right bw_def mod_eq take_bit_eq_mod take_bit_xor)
-
-lemma and_zero: "and a 0 = 0" by (simp only: Bit_Operations.semiring_bit_operations_class.and_zero_eq)
-lemma or_zero: "or a 0 = a" by (simp only: Bit_Operations.semiring_bit_operations_class.or.comm_neutral)
-
-(* lemma not_not: "a = not (not a)" for a :: int by simp *)
-lemma and_remove: "(bw p (and (bw p a) (bw p b))) = (and (bw p a) (bw p b))" by (simp add: bw_def)
-lemma or_remove: "(bw p (or (bw p a) (bw p b))) = (or (bw p a) (bw p b))" by (simp add: OR_upper bw_def)
-lemma xor_remove: "(bw p (xor (bw p a) (bw p b))) = (xor (bw p a) (bw p b))" by (simp add: XOR_upper bw_def)
-
-lemma demorg_and: "(bw p (not (and (bw p a) (bw p b)))) = bw p (or (bw p (not (bw p a))) (bw p (not (bw p b))))" using bw_def by (metis bit.de_Morgan_conj or_remove take_bit_eq_mod take_bit_or)
-lemma demorg_or: "(bw p (not (or (bw p a) (bw p b)))) = bw p (and (bw p (not (bw p a))) (bw p (not (bw p b))))" using bw_def by (metis and_remove bit.de_Morgan_disj take_bit_and take_bit_eq_mod)
-
-lemma and_assoc: "(and (and a b) c) = (and a (and b c))" by (simp only: and.assoc)
-lemma or_assoc: "(or (or a b) c) = (or a (or b c))" by (simp only: or.assoc)
-lemma not_bw_not: "bw p (not (bw p (not (bw p a)))) = (bw p a)" if "p>0" by (metis bit.double_compl bw_def take_bit_int_def take_bit_not_take_bit)
-
-lemma and_distrib: "and a (or b c) = or (and a b) (and a c)" for a b c :: int by (simp only: Bit_Operations.ring_bit_operations_class.bit.conj_disj_distrib and.commute)
-
-lemma xor_and_or_help: "and (or a b) (or (not a) (not b)) = xor a b" for a b :: int by (simp add: bit.xor_def2)
-
-lemma xor_and_or: "and (or (bw p a) (bw p b)) (or (bw p (not (bw p a))) (bw p (not (bw p b)))) = xor (bw p a) (bw p b)" for a b :: int 
-using xor_and_or_help by (metis bw_def take_bit_and take_bit_eq_mod take_bit_not_take_bit take_bit_or take_bit_xor)
-
-lemma and_self: "and a a = a" by simp
-lemma or_self: "or a a = a" by simp
-lemma and_not_self: "(and (bw p a) (bw p (not (bw p a)))) = 0" by (metis bit.xor_self or_self xor_and_or)
-lemma or_not_self: "(or (bw p a) (bw p (not (bw p a)))) = bw p (-1)" by (metis bit.disj_cancel_right bw_def take_bit_eq_mod take_bit_not_take_bit take_bit_or)
 
 end
