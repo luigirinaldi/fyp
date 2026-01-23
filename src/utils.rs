@@ -191,6 +191,14 @@ pub fn print_infix(
     }
 }
 
+pub fn sanitise_vars(expr: &RecExpr<ModIR>) -> RecExpr<ModIR> {
+    let root_node: &ModIR = &expr[expr.root()];
+    root_node.build_recexpr(|id| match expr[id] {
+        ModIR::Var(var) => ModIR::Var(var.clone().to_string().replace("%", "var_").into()),
+        _ => expr[id].clone(),
+    })
+}
+
 /// Represents a session and its failing theories
 type FailingTheories = HashMap<String, Vec<String>>;
 
@@ -238,118 +246,4 @@ fn find_failing_theories(log: &str) -> Result<FailingTheories, Error> {
     }
 
     Result::Ok(result)
-}
-
-// // Example usage
-// fn main() {
-//     let log_data = r#"
-// Session1 failed (see also "isabelle build_log -H Error Session1")
-// Session2 failed (see also "isabelle build_log -H Error Session2")
-// "#;
-
-//     let failing = find_failing_theories(log_data);
-
-//     for (session, theories) in failing {
-//         println!("Session: {}", session);
-//         for theory in theories {
-//             println!("  Failing Theory: {}", theory);
-//         }
-//     }
-// }
-
-pub fn check_isabelle_proof(
-    theorems: &Vec<String>,
-    session_name: String,
-    path: &Path,
-) -> Result<Option<HashMap<String, Vec<String>>>, Error> {
-    // Copy rewrite lemma file
-    if let Err(e) = fs::copy(
-        "./proofs/rewrite_lemmas.thy",
-        path.join("rewrite_lemmas.thy"),
-    ) {
-        eprintln!("Failed to copy file: {}", e);
-        std::process::exit(1);
-    }
-
-    // Copy rewrite def file
-    if let Err(e) = fs::copy("./proofs/rewrite_defs.thy", path.join("rewrite_defs.thy")) {
-        eprintln!("Failed to copy file: {}", e);
-        std::process::exit(1);
-    }
-
-    // 2. Create ROOT file in the destination directory
-    let root_path = path.join("ROOT");
-
-    let mut file = match File::create(&root_path) {
-        Ok(f) => f,
-        Err(e) => {
-            eprintln!("Failed to create ROOT file: {}", e);
-            std::process::exit(1);
-        }
-    };
-
-    if let Err(e) = write!(
-        file,
-        "session {session_name} = HOL + theories\n  {}",
-        theorems.join("\n")
-    ) {
-        eprintln!("Failed to write to ROOT file: {}", e);
-        std::process::exit(1);
-    }
-
-    // 3. Run bash command inside the destination directory
-    println!("Checking proof with Isabelle");
-    let output = Command::new("bash")
-        .arg("-c")
-        .arg(format!("isabelle build -v -d ./ -c {session_name}"))
-        .current_dir(path)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .output();
-
-    match output {
-        Ok(o) => {
-            if !o.status.success() {
-                eprintln!(
-                    "Isabelle proof check failed:\n{}",
-                    &String::from_utf8_lossy(&o.stdout)
-                );
-
-                match find_failing_theories(&String::from_utf8_lossy(&o.stdout)) {
-                    Ok(failing_theorems) => Ok(Some(failing_theorems)),
-                    Err(e) => {
-                        eprintln!("Error while processing the logs: {}", e);
-                        Err(e)
-                    }
-                }
-            } else {
-                println!("Proof verified by Isabelle!");
-                Ok(None)
-            }
-        }
-        Err(e) => {
-            eprintln!("Failed to run bash command: {}", e);
-            Err(e)
-        }
-    }
-}
-
-pub fn prepare_output_dir(output_dir: &PathBuf, delete_old: bool) {
-    if output_dir.exists() {
-        if delete_old {
-            // Empty the directory
-            for entry in fs::read_dir(&output_dir).unwrap() {
-                let entry = entry.unwrap();
-                let path = entry.path();
-                if path.is_dir() {
-                    fs::remove_dir_all(&path).unwrap();
-                } else {
-                    fs::remove_file(&path).unwrap();
-                }
-            }
-        }
-    } else {
-        // Create the directory (and parent folders)
-        fs::create_dir_all(&output_dir).unwrap();
-    }
 }

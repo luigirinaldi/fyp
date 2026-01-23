@@ -9,6 +9,7 @@ use crate::param_ir::pbvvar_to_smt_string;
 use crate::param_ir::rewrite_var_to_wvar;
 use crate::param_ir::wvar_to_smt_string;
 use crate::param_ir::ParamIR;
+use crate::utils::sanitise_vars;
 use crate::Symbol;
 use clap::error::Result;
 use egg::*;
@@ -34,9 +35,6 @@ use crate::extractor::EGraphCostFn;
 use crate::language::ModIR;
 use crate::rewrite_rules::rules;
 use crate::utils::*;
-
-pub use utils::check_isabelle_proof;
-pub use utils::prepare_output_dir;
 
 use std::path::{Path, PathBuf};
 pub use types::EquivalenceString;
@@ -72,12 +70,31 @@ impl From<EquivalenceString> for Equivalence {
     }
 }
 
+fn sanitise_and_warn(inputs: &Vec<String>) -> Vec<RecExpr<ModIR>> {
+    let exprs_in: Vec<RecExpr<ModIR>> = inputs.iter().map(|s| s.parse().unwrap()).collect();
+    let exprs: Vec<RecExpr<ModIR>> = exprs_in.iter().map(|e| sanitise_vars(e)).collect();
+
+    for (i, (expr_in, expr)) in exprs_in.iter().zip(exprs.iter()).enumerate() {
+        let str_in = expr_in.to_string();
+        let str_sanitised = expr.to_string();
+
+        if str_sanitised != str_in {
+            warn!(
+                "Sanitised input expression {} from:\n{}\nto:\n{}",
+                i, str_in, str_sanitised
+            );
+        }
+    }
+
+    exprs
+}
+
 impl Equivalence {
     pub fn new(name: &str, preconditions: &[&str], lhs: &str, rhs: &str) -> Self {
         // construct an equivalence struct
         // infer extra pre-conditions, mainly around which values need to be greater than 0
-        let lhs_expr: RecExpr<ModIR> = lhs.parse().unwrap();
-        let rhs_expr: RecExpr<ModIR> = rhs.parse().unwrap();
+        let lhs_expr: RecExpr<ModIR> = sanitise_and_warn(&vec![lhs.to_string()])[0].clone();
+        let rhs_expr: RecExpr<ModIR> = sanitise_and_warn(&vec![rhs.to_string()])[0].clone();
 
         let unique_bitwidth_expr: HashSet<_> = get_bitwidth_exprs(&lhs_expr)
             .iter()
@@ -109,8 +126,12 @@ impl Equivalence {
             e
         });
 
-        let precond_exprs: Vec<RecExpr<ModIR>> =
-            preconditions.iter().map(|&p| p.parse().unwrap()).collect();
+        let precond_exprs: Vec<RecExpr<ModIR>> = sanitise_and_warn(
+            &preconditions
+                .iter()
+                .map(|&p| p.parse().unwrap())
+                .collect::<Vec<_>>(),
+        );
 
         let ret_self = Self {
             name: String::from(name),
@@ -436,16 +457,6 @@ for {nat_string} :: nat and {int_string} :: int\n",
         proof_string.push_str(&proof_content);
         proof_string.push_str("\nend\n");
         Ok(proof_string)
-    }
-
-    pub fn check_proof(
-        &self,
-        path: &Path,
-    ) -> Result<
-        std::option::Option<HashMap<std::string::String, Vec<std::string::String>>>,
-        std::io::Error,
-    > {
-        return check_isabelle_proof(&vec![self.name.clone()], self.name.clone(), path);
     }
 
     pub fn validate(&self) -> Result<(), String> {
