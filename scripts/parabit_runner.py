@@ -215,6 +215,7 @@ def run_binary_parallel(
                         "time_taken": time_taken,
                         "max_memory_mb": max_memory_mb,
                         "timed_out": timed_out,
+                        "verified": None,
                     }
                 )
                 # Update tqdm line with result
@@ -237,6 +238,7 @@ def run_binary_parallel(
                         "time_taken": 0.0,
                         "max_memory_mb": 0.0,
                         "timed_out": False,
+                        "verified": None,
                     }
                 )
             finally:
@@ -260,6 +262,7 @@ def save_results_to_csv(results: List[dict], output_file: Path):
         "timed_out",
         "last_err_line",
         "problem_name",
+        "verified"
     ]
 
     with open(output_file, "w", newline="") as csvfile:
@@ -330,6 +333,8 @@ def run_isabelle(results : List[dict], isabelle_dir : Path):
 
     theorems_to_check = []
     
+    results_out = []
+    
     for r in results:
         if r['status'] == "SUCCESS":
             file_path = isabelle_dir / f"{r['problem_name']}.thy"
@@ -343,9 +348,12 @@ def run_isabelle(results : List[dict], isabelle_dir : Path):
      ███ ███  ██   ██ ██   ██ ██   ████ ██ ██   ████  ██████  
     """)
                 print(f"Skipping {r['problem_name']} because {num_lines} are too many liens for isabelle")
-                continue
+                r['verified'] = False
+                results_out.append(r)
             else:
                 theorems_to_check.append(r['problem_name'])
+                r['verified'] = True
+                results_out.append(r)
 
     # 2. Create ROOT file in the destination directory
     root_path = isabelle_dir / "ROOT"
@@ -485,6 +493,10 @@ def main():
     if args.check_isabelle:
         # Verify the generated results
         run_isabelle(results, isabelle_dir)
+        # Save results again
+        save_results_to_csv(results, csv_path)
+
+
 
     return 0
 
