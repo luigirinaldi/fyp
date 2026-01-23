@@ -17,7 +17,6 @@ use language::ModAnalysis;
 use log::debug;
 use log::info;
 use log::warn;
-use std::collections::HashMap;
 use std::collections::HashSet;
 use std::time::Duration;
 use z3::SatResult;
@@ -37,7 +36,7 @@ use crate::language::ModIR;
 use crate::rewrite_rules::rules;
 use crate::utils::*;
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 pub use types::EquivalenceString;
 
 #[derive(Debug)]

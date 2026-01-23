@@ -1,20 +1,15 @@
 use crate::Symbol;
 use egg::*;
 use std::collections::HashSet;
-use std::fs::File;
-use std::path::Path;
 
 use crate::language::ModAnalysis;
 use crate::language::ModIR;
 
-use std::io::{Error, Write};
-use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::io::Error;
+use std::process::Command;
 
 use regex::Regex;
 use std::collections::HashMap;
-
-use std::fs;
 
 pub fn get_inferred_truths(
     egraph: &EGraph<ModIR, ModAnalysis>,
@@ -197,53 +192,4 @@ pub fn sanitise_vars(expr: &RecExpr<ModIR>) -> RecExpr<ModIR> {
         ModIR::Var(var) => ModIR::Var(var.clone().to_string().replace("%", "var_").into()),
         _ => expr[id].clone(),
     })
-}
-
-/// Represents a session and its failing theories
-type FailingTheories = HashMap<String, Vec<String>>;
-
-/// Process the input log, detect failing sessions, parse failing theories
-fn find_failing_theories(log: &str) -> Result<FailingTheories, Error> {
-    let mut result: FailingTheories = HashMap::new();
-
-    // Regex to find lines like `{a} failed (see also "isabelle build_log -H Error {a}")`
-    let failure_regex =
-        Regex::new(r#"(?m)^(\w+) FAILED \(see also "isabelle build_log -H Error (\w+)"\)$"#)
-            .unwrap();
-
-    // Regex to find lines like `Theory "{a}.{b}" (in {a})`
-    let theory_regex = Regex::new(r#"Theory\s+"(\w+).(\w+)"\s+\(in\s+(\w+)\):"#).unwrap();
-
-    // Iterate over each failure match
-    for cap in failure_regex.captures_iter(log) {
-        let session = cap[1].to_string();
-        assert!(cap[1] == cap[2], "captured session doesn't match");
-
-        // Run `isabelle build_log -H Error {session}`
-        let output = Command::new("isabelle")
-            .args(["build_log", "-H", "Error", &session])
-            .output();
-
-        match output {
-            Ok(o) => {
-                let stdout = String::from_utf8_lossy(&o.stdout);
-
-                // Parse output for theory failures
-                for cap in theory_regex.captures_iter(&stdout) {
-                    assert!(cap[1] == cap[3], "captured session doesn't match");
-
-                    let _session_check = &cap[1];
-                    let theory = cap[2].to_string();
-                    // println!("Found broken theory: {theory} in session {_session_check}");
-                    result.entry(session.clone()).or_default().push(theory);
-                }
-            }
-            Err(e) => {
-                eprintln!("Error found when running build_log -H for {session}");
-                return Err(e);
-            }
-        }
-    }
-
-    Result::Ok(result)
 }
