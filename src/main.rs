@@ -95,6 +95,10 @@ enum Command {
         /// Generates an empty theorem, skips searching for a proof
         #[arg(short, long, default_value = "false")]
         make_template: bool,
+
+        /// Generate a more compact proof
+        #[arg(short, long, default_value = "false")]
+        short_proof: bool,
     },
 }
 
@@ -228,6 +232,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Command::GetProof {
             theorem_path,
             make_template,
+            short_proof,
         } => {
             if !make_template {
                 equiv = equiv.find_equivalence(&None).make_proof();
@@ -244,11 +249,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                     let proof_file_path = path.join(format!("{}.thy", equiv.name));
                     let mut proof_file = File::create(proof_file_path).unwrap();
 
-                    proof_file.write(equiv.to_isabelle()?.as_bytes())?;
+                    proof_file.write(equiv.to_isabelle(*short_proof)?.as_bytes())?;
                     Ok(())
                 }
                 None => {
-                    println!("{}", equiv.to_isabelle()?);
+                    println!("{}", equiv.to_isabelle(*short_proof)?);
                     Ok(())
                 }
             }

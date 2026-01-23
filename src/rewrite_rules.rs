@@ -7,16 +7,16 @@ use crate::language::ModIR;
 pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     let mut rules = vec![
         // normal arithmetic
-        rewrite!("isabelle-add.commute";     "(+ ?a ?b)" => "(+ ?b ?a)"),
+        rewrite!("skip-isabelle-add.commute";     "(+ ?a ?b)" => "(+ ?b ?a)"),
         rewrite!("isabelle-add.assoc";       "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
-        rewrite!("isabelle-mult.commute";    "(* ?a ?b)" => "(* ?b ?a)"),
+        rewrite!("skip-isabelle-mult.commute";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("isabelle-mult.assoc";      "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
         // identities
-        rewrite!("diff_self";       "(- ?a ?a)" => "0"),
-        rewrite!("add_0";           "(+ 0 ?a)" => "?a"),
-        rewrite!("mult_0";          "(* 0 ?a)" => "0"),
-        rewrite!("mult_1";          "(* 1 ?a)" => "?a"),
-        rewrite!("mult_2";          "(* 2 ?a)" => "(+ ?a ?a)"),
+        rewrite!("skip-diff_self";       "(- ?a ?a)" => "0"),
+        rewrite!("skip-add_0";           "(+ 0 ?a)" => "?a"),
+        rewrite!("skip-mult_0";          "(* 0 ?a)" => "0"),
+        rewrite!("skip-mult_1";          "(* 1 ?a)" => "?a"),
+        rewrite!("skip-mult_2";          "(* 2 ?a)" => "(+ ?a ?a)"),
         // ring identities?
         rewrite!("bw_pow_sum";      "(* (^ ?a (bw ?p ?b))
                                         (^ ?a (bw ?q ?c)))"     => "(^ ?a (+ (bw ?p ?b) (bw ?q ?c)))"),
@@ -27,8 +27,8 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         /////////////////////////
         //      MOD RELATED    //
         /////////////////////////
-        rewrite!("bw_1"; "(bw ?p 1)" => "1"),
-        rewrite!("bw_0"; "(bw ?p 0)" => "0"),
+        rewrite!("skip-bw_1"; "(bw ?p 1)" => "1"),
+        rewrite!("skip-bw_0"; "(bw ?p 0)" => "0"),
         // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
         rewrite!("add_remove_prec";    "(bw ?p (+ (bw ?q ?a) ?b))"
                                     => "(bw ?p (+ ?a ?b))"
@@ -78,20 +78,20 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("shl_def"; "(<< (bw ?p ?a) (bw ?q ?b))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
         rewrite!("shr_def"; "(>> (bw ?p ?a) (bw ?q ?b))" => "(div (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
         // bitwise ring? properties
-        rewrite!("isabelle-or.commute";     "(or ?a ?b)" => "(or ?b ?a)"),
+        rewrite!("skip-isabelle-or.commute";     "(or ?a ?b)" => "(or ?b ?a)"),
         rewrite!("isabelle-or_assoc";       "(or (or ?a ?b) ?c)" => "(or ?a (or ?b ?c))"),
-        rewrite!("isabelle-and.commute";    "(and ?a ?b)" => "(and ?b ?a)"),
+        rewrite!("skip-isabelle-and.commute";    "(and ?a ?b)" => "(and ?b ?a)"),
         rewrite!("isabelle-and_assoc";      "(and (and ?a ?b) ?c)" => "(and ?a (and ?b ?c))"),
         // bitwise identities
         rewrite!("and_allones";     "(and (bw ?p ?a) (bw ?p -1))" => "(bw ?p ?a)"),
         rewrite!("or_allones";      "(or (bw ?p ?a) (bw ?p -1))" => "(bw ?p -1)"),
         rewrite!("xor_allones";     "(bw ?p (xor (bw ?p ?a) (bw ?p -1)))" => "(bw ?p (not (bw ?p ?a)))"),
-        rewrite!("and_self";        "(and ?a ?a)" => "?a"),
-        rewrite!("or_self";         "(or ?a ?a)" =>  "?a"),
+        rewrite!("skip-and_self";        "(and ?a ?a)" => "?a"),
+        rewrite!("skip-or_self";         "(or ?a ?a)" =>  "?a"),
         rewrite!("and_not_self";    "(and (bw ?p ?a) (bw ?p (not (bw ?p ?a))))" => "0"),
         rewrite!("or_not_self";     "(or (bw ?p ?a) (not (bw ?p ?a)))" => "(bw ?p -1)"),
-        rewrite!("and_zero";        "(and ?a 0)" => "0"),
-        rewrite!("or_zero";         "(or ?a 0)" => "?a"),
+        rewrite!("skip-and_zero";        "(and ?a 0)" => "0"),
+        rewrite!("skip-or_zero";         "(or ?a 0)" => "?a"),
         // bitwise remove prec
         rewrite!("and_remove"; "(bw ?p (and (bw ?p ?a) (bw ?p ?b)))" => "(and (bw ?p ?a) (bw ?p ?b))"),
         rewrite!("or_remove";  "(bw ?p (or (bw ?p ?a) (bw ?p ?b)))" => "(or (bw ?p ?a) (bw ?p ?b))"),
@@ -119,7 +119,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     rules.extend(rewrite!("not_0_allones"; "(bw ?p (not (bw ?p 0)))" <=> "(bw ?p -1)"));
 
     rules.extend(rewrite!("int_distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
-    rules.extend(rewrite!("isabelle-Num.ring_1_class.mult_minus1"; "(- ?b)" <=> "(* -1 ?b)"));
+    rules.extend(rewrite!("skip-isabelle-Num.ring_1_class.mult_minus1"; "(- ?b)" <=> "(* -1 ?b)"));
     rules.extend(rewrite!("sub_to_neg"; "(- ?a ?b)" <=> "(+ ?a (* -1 ?b))"));
     // multliplication across the mod (this works because mod b implies mod 2^b)
     // c * (a mod b) = (c * a mod b * c)

@@ -345,8 +345,7 @@ impl Equivalence {
 
             let string_rw = rw.to_string();
 
-            let is_skippable =
-                string_rw.find("isabelle-").is_some() || string_rw.find("skip-").is_some();
+            let is_skippable = string_rw.find("skip-").is_some();
 
             let rewrite_str = string_rw
                 .replace("-rev", "") // remove the -rev introduced by two sided rewrites
@@ -448,13 +447,13 @@ impl Equivalence {
         Ok(Some((proof_string_out, include_files)))
     }
 
-    pub fn to_isabelle(&self) -> Result<String, String> {
+    pub fn to_isabelle(&self, short_proof: bool) -> Result<String, String> {
         // Clean up theorem name
         let proof_name = &self.name;
         let mut proof_string = String::new();
 
         let (proof_content, include_file_str) =
-            if let Some((proof, files)) = self.get_isabelle_proof(true)? {
+            if let Some((proof, files)) = self.get_isabelle_proof(short_proof)? {
                 let files_str: String = if files.len() == 0 {
                     "rewrite_defs".to_string()
                 } else {
