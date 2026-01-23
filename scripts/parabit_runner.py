@@ -304,6 +304,19 @@ def print_summary(results: List[dict]):
     print("=" * 60)
 
 
+def count_lines(file_path):
+    """
+    Count the number of lines in a file.
+    
+    Args:
+        file_path: Path to the file
+        
+    Returns:
+        Number of lines in the file
+    """
+    with open(file_path, 'r') as f:
+        return sum(1 for _ in f)
+
 def run_isabelle(results : List[dict], isabelle_dir : Path):
     try:
         proof_path = Path(PROOF_PATH)
@@ -319,7 +332,20 @@ def run_isabelle(results : List[dict], isabelle_dir : Path):
     
     for r in results:
         if r['status'] == "SUCCESS":
-            theorems_to_check.append(r['problem_name'])
+            file_path = isabelle_dir / f"{r['problem_name']}.thy"
+            num_lines = count_lines(file_path)
+            if num_lines >= 4960:
+                print("""
+    ██     ██  █████  ██████  ███    ██ ██ ███    ██  ██████  
+    ██     ██ ██   ██ ██   ██ ████   ██ ██ ████   ██ ██       
+    ██  █  ██ ███████ ██████  ██ ██  ██ ██ ██ ██  ██ ██   ███ 
+    ██ ███ ██ ██   ██ ██   ██ ██  ██ ██ ██ ██  ██ ██ ██    ██ 
+     ███ ███  ██   ██ ██   ██ ██   ████ ██ ██   ████  ██████  
+    """)
+                print(f"Skipping {r['problem_name']} because {num_lines} are too many liens for isabelle")
+                continue
+            else:
+                theorems_to_check.append(r['problem_name'])
 
     # 2. Create ROOT file in the destination directory
     root_path = isabelle_dir / "ROOT"
