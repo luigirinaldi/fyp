@@ -5,11 +5,7 @@ use std::collections::HashSet;
 use crate::language::ModAnalysis;
 use crate::language::ModIR;
 
-use std::io::Error;
-use std::process::Command;
 
-use regex::Regex;
-use std::collections::HashMap;
 
 pub fn get_inferred_truths(
     egraph: &EGraph<ModIR, ModAnalysis>,
