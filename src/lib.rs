@@ -375,7 +375,7 @@ impl Equivalence {
         let proof_string_out: String = if flat_terms.len() > 2 {
             let mut proof_str = format!("proof -\n{extra_facts}");
 
-            let mut iter = flat_terms.iter().skip(1).enumerate();
+            let mut iter = flat_terms.iter().skip(1).enumerate().peekable();
             while let Some((i, term)) = iter.next() {
                 let (rewrite_str, is_skippable) = process_rewrite(term, &mut include_files)?;
 
@@ -386,16 +386,19 @@ impl Equivalence {
                 let mut skip = is_skippable;
 
                 while skip && short_proof {
-                    if let Some((_next_i, next_term)) = iter.next() {
+                    if let Some((_next_i, next_term)) = iter.peek() {
                         println!("Skpping {_next_i} rewrite step");
                         let (rewrite_str, is_skippable) =
                             process_rewrite(next_term, &mut include_files)?;
-                        rewrites_to_use.push(rewrite_str);
-                        next_term_str = print_infix(
-                            &next_term.remove_rewrites().get_recexpr(),
-                            &self.bw_vars,
-                            false,
-                        );
+                        if is_skippable {
+                            rewrites_to_use.push(rewrite_str);
+                            next_term_str = print_infix(
+                                &next_term.remove_rewrites().get_recexpr(),
+                                &self.bw_vars,
+                                false,
+                            );
+                            iter.next();
+                        }
                         skip = is_skippable;
                     } else {
                         skip = false;
