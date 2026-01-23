@@ -103,8 +103,35 @@ impl Analysis<ModIR> for ModAnalysis {
                 println!("{a} mod (2^{b} = {bexp}) = {res}");
                 Some((res, format!("(bw {b} {a})").parse().unwrap()))
             }
+            ModIR::Neg(id) => Some((-1 * get(id)?, format!("(- {})", get(id)?).parse().unwrap())),
+            ModIR::And([a_id, b_id]) => {
+                let a = get(a_id)?;
+                let b = get(b_id)?;
+                Some((a & b, format!("(and {a} {b})").parse().unwrap()))
+            }
+            ModIR::Or([a_id, b_id]) => {
+                let a = get(a_id)?;
+                let b = get(b_id)?;
+                Some((a | b, format!("(or {a} {b})").parse().unwrap()))
+            }
+            ModIR::Xor([a_id, b_id]) => {
+                let a = get(a_id)?;
+                let b = get(b_id)?;
+                Some((a ^ b, format!("(xor {a} {b})").parse().unwrap()))
+            }
+            ModIR::Not(id) => Some((
+                -1 * get(id)? - 1,
+                format!("(not {})", get(id)?).parse().unwrap(),
+            )),
             ModIR::Var(_) => None,
-            _ => None,
+            ModIR::Sign(_) => None,
+            ModIR::ShiftR(_) => None,
+            ModIR::ShiftL(_) => None,
+            ModIR::GT(_) => None,
+            ModIR::GTE(_) => None,
+            ModIR::LT(_) => None,
+            ModIR::LTE(_) => None,
+            ModIR::Bool(_) => None,
         };
         result
     }
