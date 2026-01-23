@@ -379,20 +379,47 @@ impl Equivalence {
             while let Some((i, term)) = iter.next() {
                 let (rewrite_str, is_skippable) = process_rewrite(term, &mut include_files)?;
 
-                let next_term_str =
+                let mut rewrites_to_use = vec![rewrite_str.clone()];
+                let mut next_term_str =
                     print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false);
+
+                let mut skip = is_skippable;
+
+                while skip && short_proof {
+                    if let Some((_next_i, next_term)) = iter.next() {
+                        println!("Skpping {_next_i} rewrite step");
+                        let (rewrite_str, is_skippable) =
+                            process_rewrite(next_term, &mut include_files)?;
+                        rewrites_to_use.push(rewrite_str);
+                        next_term_str = print_infix(
+                            &next_term.remove_rewrites().get_recexpr(),
+                            &self.bw_vars,
+                            false,
+                        );
+                        skip = is_skippable;
+                    } else {
+                        skip = false;
+                    }
+                }
 
                 let extra_assm = if self.inferred_truths.is_some()
                     && self.inferred_truths.as_ref().unwrap().len() > 0
                 {
-                    "inferred_facts"
+                    "inferred_facts "
                 } else {
                     ""
                 };
 
                 // Proof tactic based on the rewrite, by default use "simp only"
                 // to show that the single step in the equational reasoning is thanks to that rewrite
-                let proof_tactic = format!("using {rule} {extra_assm} that by (simp only: {rule}; fail | simp; fail | blast; fail | metis)", rule = rewrite_str);
+                let proof_tactic = if rewrites_to_use.len() == 1 {
+                    format!("using {rule} {extra_assm}that by (simp only: {rule}; fail | simp; fail | blast; fail | metis)", rule = rewrites_to_use[0])
+                } else {
+                    format!(
+                        "using {rule} {extra_assm}that by (simp; fail | blast; fail | metis)",
+                        rule = rewrites_to_use.join(" ")
+                    )
+                };
 
                 proof_str += &format!(
                     "    {prefix}have \"{lhs} = {term}\" {proof}\n",
