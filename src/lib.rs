@@ -15,6 +15,7 @@ use clap::error::Result;
 use egg::*;
 use language::ModAnalysis;
 use log::debug;
+use log::info;
 use log::warn;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -244,6 +245,12 @@ impl Equivalence {
         self.runner = self
             .runner
             .with_hook(move |runner| {
+                info!(
+                    "Iteration {}: {} nodes, {} classes",
+                    runner.iterations.len(),
+                    runner.egraph.total_size(),
+                    runner.egraph.number_of_classes()
+                );
                 if let Some(out_path) = &make_dot {
                     let iter_num = runner.iterations.len();
                     let dot = dot_equiv::make_dot(&runner.egraph, &lhs_for_dot, &rhs_for_dot);
