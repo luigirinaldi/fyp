@@ -68,25 +68,32 @@ impl Analysis<ModIR> for ModAnalysis {
                     format!("(- {a_val} {b_val})").parse().unwrap(),
                 ))
             }
-            // ModIR::Mul([a, b]) => Some(get(a)? * get(b)?),
-            // ModIR::Div([a, b]) => {
-            //     let a = get(a)?;
-            //     let b = *get(b)?;
-            //     if b != 0 {
-            //         Some(a.div_euclid(b))
-            //     } else {
-            //         None
-            //     }
-            // }
-            // ModIR::Pow([a, b]) => {
-            //     let a = get(a)?;
-            //     let b = *get(b)?;
-            //     if let Some(exp) = u32::try_from(b).ok() {
-            //         Some(a.pow(exp))
-            //     } else {
-            //         None
-            //     }
-            // }
+            ModIR::Mul([a, b]) => {
+                let a_val = get(a)?;
+                let b_val = get(b)?;
+                Some((
+                    a_val * b_val,
+                    format!("(* {a_val} {b_val})").parse().unwrap(),
+                ))
+            }
+            ModIR::Div([a_in, b_in]) => {
+                let a = get(a_in)?;
+                let b = get(b_in)?;
+                if b != 0 {
+                    Some((a.div_euclid(b), format!("({a} div {b})").parse().unwrap()))
+                } else {
+                    panic!("Dividing by 0! {a} div {b}")
+                }
+            }
+            ModIR::Pow([a_id, b_id]) => {
+                let a = get(a_id)?;
+                let b = get(b_id)?;
+                if let Some(exp) = u32::try_from(b).ok() {
+                    Some((a.pow(exp), format!("(^ {a} {b})").parse().unwrap()))
+                } else {
+                    panic!("Found negative value in the exponent field: {b}")
+                }
+            }
             ModIR::Mod([width, expr]) => {
                 // implement euclidean mod
                 let a = get(expr)?;
@@ -99,8 +106,6 @@ impl Analysis<ModIR> for ModAnalysis {
             ModIR::Var(_) => None,
             _ => None,
         };
-
-        // println!("Make: {:?} -> {:?}", enode, result);
         result
     }
 
@@ -113,7 +118,6 @@ impl Analysis<ModIR> for ModAnalysis {
 
     fn modify(egraph: &mut EGraph<ModIR, Self>, id: Id) {
         if let Some(c) = egraph[id].data.clone() {
-            // println!("Combining data: {:#} {:#} into {:#?}", c.0, c.1, egraph[id]);
             egraph.union_instantiations(
                 &c.1,
                 &c.0.to_string().parse().unwrap(),
