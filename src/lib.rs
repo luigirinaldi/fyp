@@ -294,10 +294,7 @@ impl Equivalence {
         self
     }
 
-    fn get_isabelle_proof(
-        &self,
-        short_proof: bool,
-    ) -> Result<Option<(String, HashSet<String>)>, String> {
+    fn get_isabelle_proof(&self) -> Result<Option<(String, HashSet<String>)>, String> {
         // Returns None if there is no proof
         let flat_terms = if let Some(expl) = &self.proof {
             expl
@@ -355,46 +352,24 @@ impl Equivalence {
             }
         }
 
-        let proof_string_out: Result<String, String> = if short_proof {
-            let rewrites: Result<HashSet<String>, String> = flat_terms
-                .iter()
-                .skip(1)
-                .map(|term| {
-                    let (bw, fw) = term.get_rewrite();
-                    let rw = if bw.is_some() {
-                        bw.unwrap()
-                    } else {
-                        fw.unwrap()
-                    };
-                    rw
-                })
-                .map(|rw| process_rewrite(rw.to_string(), &mut include_files))
-                .collect();
-            let joined = rewrites?
-                .iter()
-                .map(|s| s.as_str())
-                .collect::<Vec<_>>()
-                .join(" ");
-            Ok(format!("using that {joined} by (auto; fail | metis)"))
-        } else {
-            let string = if flat_terms.len() > 2 {
-                let mut proof_str = format!("proof -\n{extra_facts}");
+        let proof_string_out = if flat_terms.len() > 2 {
+            let mut proof_str = format!("proof -\n{extra_facts}");
 
-                for (i, term) in flat_terms.iter().skip(1).enumerate() {
-                    let (bw, fw) = term.get_rewrite();
-                    let rw = if bw.is_some() {
-                        bw.unwrap()
-                    } else {
-                        fw.unwrap()
-                    };
-                    let next_term_str =
-                        print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false);
+            for (i, term) in flat_terms.iter().skip(1).enumerate() {
+                let (bw, fw) = term.get_rewrite();
+                let rw = if bw.is_some() {
+                    bw.unwrap()
+                } else {
+                    fw.unwrap()
+                };
+                let next_term_str =
+                    print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false);
 
-                    let rewrite_str = process_rewrite(rw.to_string(), &mut include_files)?;
+                let rewrite_str = process_rewrite(rw.to_string(), &mut include_files)?;
 
-                    // Proof tactic based on the rewrite, by default use "simp only"
-                    // to show that the single step in the equational reasoning is thanks to that rewrite
-                    let proof_tactic = match rewrite_str.as_str() {
+                // Proof tactic based on the rewrite, by default use "simp only"
+                // to show that the single step in the equational reasoning is thanks to that rewrite
+                let proof_tactic = match rewrite_str.as_str() {
                     // Using add to allow for simplication of constants
                     "constant_prop" => String::from("by (simp add: bw_def)"),
                     // use add instead of only to convert between nat type and int
@@ -408,36 +383,34 @@ impl Equivalence {
                     }
                     other => format!("using {rule} that by (simp only: {rule}; fail | simp add: {rule}; fail | blast; fail | metis)", rule = other),
                 };
-                    proof_str += &format!(
-                        "    {prefix}have \"{lhs} = {term}\" {proof}\n",
-                        prefix = if i == 0 { "" } else { "moreover " },
-                        lhs = if i == 0 { "?lhs" } else { "..." },
-                        term = next_term_str,
-                        proof = proof_tactic
-                    );
-                }
-                proof_str += "ultimately show ?thesis by argo\nqed\n";
-                proof_str
-            } else if flat_terms.len() == 2 {
-                let (bw, fw) = flat_terms[1].get_rewrite();
-                let rw = if bw.is_some() {
-                    bw.unwrap()
-                } else {
-                    fw.unwrap()
-                };
-                let rewrite_str = process_rewrite(rw.to_string(), &mut include_files)?;
-
-                format!("using that by (simp only: {rewrite_str})\n",)
-            } else if flat_terms.len() == 1 {
-                // if the length is one then the two are trivially equal
-                String::from("using that by simp\n")
+                proof_str += &format!(
+                    "    {prefix}have \"{lhs} = {term}\" {proof}\n",
+                    prefix = if i == 0 { "" } else { "moreover " },
+                    lhs = if i == 0 { "?lhs" } else { "..." },
+                    term = next_term_str,
+                    proof = proof_tactic
+                );
+            }
+            proof_str += "ultimately show ?thesis by argo\nqed\n";
+            proof_str
+        } else if flat_terms.len() == 2 {
+            let (bw, fw) = flat_terms[1].get_rewrite();
+            let rw = if bw.is_some() {
+                bw.unwrap()
             } else {
-                unreachable!("Something went wrong, proof with 0 length flat terms");
+                fw.unwrap()
             };
-            Ok(string)
+            let rewrite_str = process_rewrite(rw.to_string(), &mut include_files)?;
+
+            format!("using that by (simp only: {rewrite_str})\n",)
+        } else if flat_terms.len() == 1 {
+            // if the length is one then the two are trivially equal
+            String::from("using that by simp\n")
+        } else {
+            unreachable!("Something went wrong, proof with 0 length flat terms");
         };
 
-        Ok(Some((proof_string_out?, include_files)))
+        Ok(Some((proof_string_out, include_files)))
     }
 
     pub fn to_isabelle(&self) -> Result<String, String> {
@@ -446,7 +419,7 @@ impl Equivalence {
         let mut proof_string = String::new();
 
         let (proof_content, include_file_str) =
-            if let Some((proof, files)) = self.get_isabelle_proof(true)? {
+            if let Some((proof, files)) = self.get_isabelle_proof()? {
                 let files_str: String = if files.len() == 0 {
                     "rewrite_defs".to_string()
                 } else {
