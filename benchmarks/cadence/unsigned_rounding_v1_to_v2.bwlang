@@ -1,6 +1,6 @@
 {
     "name": "unsigned_rounding_v1_to_v2",
-    "preconditions": ["(> w2 1)"],
-    "lhs": "(bw w2 (+ (bw w2 (>> (bw (+ w2 1) a) (bw 1 1))) (bw w2 (bw 1 (bw (+ w2 1) a)))))",
+    "preconditions": ["(> w2 1)", "(>= (- (+ w2 1) w2) 1)", "(> 2 0)"],
+    "lhs": "(bw w2 (+ (bw w2 (>> (bw (+ w2 1) a) (bw 1 1))) (bw w2 (bw 1 a))))",
     "rhs": "(bw w2 (>> (bw (+ w2 1) (+ (bw (+ w2 1) a) (bw 1 1))) (bw 1 1)))"
 }
