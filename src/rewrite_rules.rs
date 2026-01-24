@@ -221,7 +221,7 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
     let mut truth_reason = match &condition[condition.root()] {
         ModIR::GT([a, b]) => match (&condition[*a], &condition[*b]) {
             // any expression of the form  (> (^ _ _) 0) is true, by simp
-            (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"),
+            (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("hardcoded"),
             _ => None,
         },
         _ => None,

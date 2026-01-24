@@ -318,10 +318,15 @@ impl Equivalence {
                 let (facts, note) = inf_t.iter().enumerate().fold(
                     (String::from(""), String::from("note inferred_facts =")),
                     |(acc, end), (i, (reason, expr))| {
+                        let (tactic_str, print_type) = match reason.as_str() {
+                            "z3" => ("using that by simp", false),
+                            "hardcoded" => ("by simp", true),
+                            any => panic!("Uknown reason for inferred condition {any}"),
+                        };
                         (
                             acc + &format!(
-                                "have fact_{i}: \"{}\" by {reason}\n",
-                                print_infix(expr, &self.bw_vars, true)
+                                "have fact_{i}: \"{}\" {tactic_str}\n",
+                                print_infix(expr, &self.bw_vars, print_type)
                             ),
                             end + &format!("fact_{i} "),
                         )
