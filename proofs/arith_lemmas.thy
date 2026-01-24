@@ -132,7 +132,9 @@ using that by force
 lemma div_mult_self: "(a + b * c) div b = a div b + c" if "b \<noteq> 0" for a::int 
 using that by simp 
 
-lemma mul_by_bit: "(bw p ((bw q a) * (bw 1 b))) = (bw q a) * (bw 1 b)" if "p >0" and "q>0" and "p \<ge> q"
-by (metis Suc_eq_plus1 antisym arith_lemmas.mult_1 bw_0 bw_def mod_eq mul_full_prec mult.commute not_less_eq_eq not_mod_2_eq_0_eq_1 power_one_right that(3) times_int_code(1))
+lemma mul_by_bit: "(bw p ((bw q a) * (bw 1 b))) = (bw q a) * (bw 1 b)" if "p \<ge> q"
+by (metis Suc_eq_plus1 antisym arith_lemmas.mult_1 bw_0 bw_def mod_eq mul_full_prec mult.commute not_less_eq_eq not_mod_2_eq_0_eq_1 power_one_right that times_int_code(1))
+
+lemma mul_by_bit_eq:  "(bw p ((bw p a) * (bw 1 b))) = (bw p a) * (bw 1 b)" using mul_by_bit by blast
 
 end
