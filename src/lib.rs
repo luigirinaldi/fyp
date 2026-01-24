@@ -337,63 +337,67 @@ impl Equivalence {
 
         let mut include_files: HashSet<String> = HashSet::<String>::new();
 
+        /// Given a flat term, extract the rewrite, either forward or backwards
+        /// Check if this is a "skippable" step, determined by the presence of a skip term
+        /// Convert into the appropriate string
         fn process_rewrite(
-            rw: String,
+            term: &FlatTerm<ModIR>,
             include_files: &mut HashSet<String>,
         ) -> Result<String, String> {
-            let rewrite_str = rw
+            let (bw, fw) = term.get_rewrite();
+            let rw = if bw.is_some() {
+                bw.unwrap()
+            } else {
+                fw.unwrap()
+            };
+
+            let string_rw = rw.to_string();
+
+            let rewrite_str = string_rw
                 .replace("-rev", "") // remove the -rev introduced by two sided rewrites
                 .replace("isabelle-", ""); // remove the isabelle- denoting a rule that uses isabelle definition
 
-            if let Some(file) = rule_to_file(&rewrite_str) {
+            let str_out = if let Some(file) = rule_to_file(&rewrite_str) {
                 include_files.insert(file.to_string());
                 Ok(rewrite_str)
-            } else if rw.find("isabelle-").is_some()
-                || rw == "shl_def"
-                || rw == "shr_def"
-                || rw == "constant_prop"
-            {
-                // If the rewrite is either an isabelle native or a constant prop then we can ignore it
+            } else if string_rw.find("isabelle-").is_some() {
                 Ok(rewrite_str)
             } else {
-                Err(format!(
-                    "Rewrite rule '{}' was not found in the lemma definitions.",
-                    rewrite_str
-                ))
-            }
+                match rewrite_str.as_str() {
+                    val @ ("shl_def" | "shr_def") => Ok(val.to_string()),
+                    "constant_prop" => Ok("bw_def".to_string()),
+                    _ => Err(format!(
+                        "Rewrite rule '{}' was not found in the lemma definitions.",
+                        rewrite_str
+                    )),
+                }
+            };
+
+            str_out
         }
 
-        let proof_string_out = if flat_terms.len() > 2 {
+        let proof_string_out: String = if flat_terms.len() > 2 {
             let mut proof_str = format!("proof -\n{extra_facts}");
 
-            for (i, term) in flat_terms.iter().skip(1).enumerate() {
-                let (bw, fw) = term.get_rewrite();
-                let rw = if bw.is_some() {
-                    bw.unwrap()
-                } else {
-                    fw.unwrap()
-                };
+            let mut iter = flat_terms.iter().skip(1).enumerate().peekable();
+            while let Some((i, term)) = iter.next() {
+                let rewrite_str = process_rewrite(term, &mut include_files)?;
+
                 let next_term_str =
                     print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false);
 
-                let rewrite_str = process_rewrite(rw.to_string(), &mut include_files)?;
+                let extra_assm = if self.inferred_truths.is_some()
+                    && self.inferred_truths.as_ref().unwrap().len() > 0
+                {
+                    "inferred_facts "
+                } else {
+                    ""
+                };
 
                 // Proof tactic based on the rewrite, by default use "simp only"
                 // to show that the single step in the equational reasoning is thanks to that rewrite
-                let proof_tactic = match rewrite_str.as_str() {
-                    // Using add to allow for simplication of constants
-                    "constant_prop" => String::from("by (simp add: bw_def)"),
-                    // use add instead of only to convert between nat type and int
-                    val @ ("shl_def" | "shr_def") => format!("by (simp add: {val})"),
-                    // need to use blast for diff_eq
-                    val @ ("diff_left_eq_prec" | "diff_right_eq_prec") => {
-                        format!("using that {val} by metis")
-                    }
-                    val @ ("div_pow_join" | "div_mult_self" | "div_same") => {
-                        format!("using that inferred_facts by (simp only: {val})")
-                    }
-                    other => format!("using {rule} that by (simp only: {rule}; fail | simp add: {rule}; fail | blast; fail | metis)", rule = other),
-                };
+                let proof_tactic = format!("using {rule} {extra_assm}that by (simp only: {rule}; fail | simp; fail | blast; fail | metis)", rule = rewrite_str);
+
                 proof_str += &format!(
                     "    {prefix}have \"{lhs} = {term}\" {proof}\n",
                     prefix = if i == 0 { "" } else { "moreover " },
@@ -405,13 +409,7 @@ impl Equivalence {
             proof_str += "ultimately show ?thesis by argo\nqed\n";
             proof_str
         } else if flat_terms.len() == 2 {
-            let (bw, fw) = flat_terms[1].get_rewrite();
-            let rw = if bw.is_some() {
-                bw.unwrap()
-            } else {
-                fw.unwrap()
-            };
-            let rewrite_str = process_rewrite(rw.to_string(), &mut include_files)?;
+            let rewrite_str = process_rewrite(&flat_terms[1], &mut include_files)?;
 
             format!("using that by (simp only: {rewrite_str})\n",)
         } else if flat_terms.len() == 1 {
