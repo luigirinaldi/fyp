@@ -44,83 +44,113 @@ define_language! {
 pub struct ModAnalysis;
 
 impl Analysis<ModIR> for ModAnalysis {
-    type Data = Option<Num>;
+    type Data = Option<(Num, PatternAst<ModIR>)>;
 
     fn make(egraph: &mut EGraph<ModIR, Self>, enode: &ModIR) -> Self::Data {
         // first, we make a getter function that grabs the data for a given e-class id
-        let get = |id: &Id| egraph[*id].data.as_ref();
+        let get = |id: &Id| egraph[*id].data.as_ref().map(|c| c.0);
 
-        match enode {
-            ModIR::Num(n) => Some(n.clone()),
-            ModIR::Add([a, b]) => Some(get(a)? + get(b)?),
-            ModIR::Sub([a, b]) => Some(get(a)? - get(b)?),
-            ModIR::Mul([a, b]) => Some(get(a)? * get(b)?),
-            ModIR::Div([a, b]) => {
-                let a = get(a)?;
-                let b = *get(b)?;
+        let result = match enode {
+            ModIR::Num(n) => Some((*n, n.to_string().parse().unwrap())),
+            ModIR::Add([a, b]) => {
+                let a_val = get(a)?;
+                let b_val = get(b)?;
+                Some((
+                    a_val + b_val,
+                    format!("(+ {a_val} {b_val})").parse().unwrap(),
+                ))
+            }
+            ModIR::Sub([a, b]) => {
+                let a_val = get(a)?;
+                let b_val = get(b)?;
+                Some((
+                    a_val - b_val,
+                    format!("(- {a_val} {b_val})").parse().unwrap(),
+                ))
+            }
+            ModIR::Mul([a, b]) => {
+                let a_val = get(a)?;
+                let b_val = get(b)?;
+                Some((
+                    a_val * b_val,
+                    format!("(* {a_val} {b_val})").parse().unwrap(),
+                ))
+            }
+            ModIR::Div([a_in, b_in]) => {
+                let a = get(a_in)?;
+                let b = get(b_in)?;
                 if b != 0 {
-                    Some(a.div_euclid(b))
+                    Some((a.div_euclid(b), format!("({a} div {b})").parse().unwrap()))
                 } else {
-                    None
+                    panic!("Dividing by 0! {a} div {b}")
                 }
             }
-            ModIR::Pow([a, b]) => {
-                let a = get(a)?;
-                let b = *get(b)?;
+            ModIR::Pow([a_id, b_id]) => {
+                let a = get(a_id)?;
+                let b = get(b_id)?;
                 if let Some(exp) = u32::try_from(b).ok() {
-                    Some(a.pow(exp))
+                    Some((a.pow(exp), format!("(^ {a} {b})").parse().unwrap()))
                 } else {
-                    None
+                    panic!("Found negative value in the exponent field: {b}")
                 }
             }
-            ModIR::Mod([a, b]) => {
+            ModIR::Mod([width, expr]) => {
                 // implement euclidean mod
-                let a = get(a)?;
-                let b = *get(b)?;
+                let a = get(expr)?;
+                let b = get(width)?;
                 let bexp = 2_i32.pow(b.to_u32()?);
-                Some(a.rem_euclid(bexp))
+                let res = a.rem_euclid(bexp);
+                println!("{a} mod (2^{b} = {bexp}) = {res}");
+                Some((res, format!("(bw {b} {a})").parse().unwrap()))
             }
+            ModIR::Neg(id) => Some((-1 * get(id)?, format!("(- {})", get(id)?).parse().unwrap())),
+            ModIR::And([a_id, b_id]) => {
+                let a = get(a_id)?;
+                let b = get(b_id)?;
+                Some((a & b, format!("(and {a} {b})").parse().unwrap()))
+            }
+            ModIR::Or([a_id, b_id]) => {
+                let a = get(a_id)?;
+                let b = get(b_id)?;
+                Some((a | b, format!("(or {a} {b})").parse().unwrap()))
+            }
+            ModIR::Xor([a_id, b_id]) => {
+                let a = get(a_id)?;
+                let b = get(b_id)?;
+                Some((a ^ b, format!("(xor {a} {b})").parse().unwrap()))
+            }
+            ModIR::Not(id) => Some((
+                -1 * get(id)? - 1,
+                format!("(not {})", get(id)?).parse().unwrap(),
+            )),
             ModIR::Var(_) => None,
-            _ => None,
-        }
+            ModIR::Sign(_) => None,
+            ModIR::ShiftR(_) => None,
+            ModIR::ShiftL(_) => None,
+            ModIR::GT(_) => None,
+            ModIR::GTE(_) => None,
+            ModIR::LT(_) => None,
+            ModIR::LTE(_) => None,
+            ModIR::Bool(_) => None,
+        };
+        result
     }
 
     fn merge(&mut self, to: &mut Self::Data, from: Self::Data) -> DidMerge {
-        match (to.as_mut(), from) {
-            // Neither side is known to be a constant so there's nothing
-            // to do when they merge.
-            (None, None) => DidMerge(false, false),
-
-            // Both sides are constants, so we should just make sure
-            // they're the same.
-            (Some(a), Some(b)) => {
-                assert_eq!(a, &b, "bad merge!");
-                DidMerge(false, false)
-            }
-
-            // The right side is a constant, so update `to` to be the same.
-            (None, Some(x)) => {
-                *to = Some(x);
-                DidMerge(true, false)
-            }
-
-            // The left side is a constant and the right is not, so there's
-            // nothing to do when they merge.
-            (Some(_), None) => DidMerge(false, false),
-        }
+        merge_option(to, from, |a, b| {
+            assert_eq!(a.0, b.0, "Merged non-equal constants");
+            DidMerge(false, false)
+        })
     }
 
     fn modify(egraph: &mut EGraph<ModIR, Self>, id: Id) {
-        if let Some(n) = egraph[id].data.clone() {
-            // add a num node
-            let id2 = egraph.add(ModIR::Num(n));
-            egraph.union_trusted(id, id2, "constant_prop");
-            // // add a mod node (only really works for positive n)
-            // let min_width = (n as u32).next_power_of_two().ilog2() + 1;
-            // println!("adding {} of bw {}", n, min_width as i32);
-            // let bw_id = egraph.add(ModIR::Num(min_width as i32));
-            // let id3 = egraph.add(ModIR::Mod([bw_id, id2]));
-            // egraph.union(id, id3);
+        if let Some(c) = egraph[id].data.clone() {
+            egraph.union_instantiations(
+                &c.1,
+                &c.0.to_string().parse().unwrap(),
+                &Default::default(),
+                "constant_prop".to_string(),
+            );
         }
     }
 }
