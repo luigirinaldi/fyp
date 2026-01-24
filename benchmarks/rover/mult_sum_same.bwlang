@@ -2,7 +2,6 @@
     "name": "mult_sum_same",
     "preconditions": [
         "(> t p)",
-        "(> t 1)",
         "(>= s (+ p q))"
     ],
     "lhs": "(bw r (+ (bw s (* (bw p a) (bw q b))) (bw q b)))",

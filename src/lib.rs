@@ -280,6 +280,13 @@ impl Equivalence {
                 .union_trusted(truth_id, p_id, "preconditions");
         }
 
+        for precond in &self.width_gt_zero {
+            let p_id = self.runner.egraph.add_expr(precond);
+            self.runner
+                .egraph
+                .union_trusted(truth_id, p_id, "preconditions");
+        }
+
         let rewrite_rules = &rules();
 
         self.runner = self.runner.run(rewrite_rules);
