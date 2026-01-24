@@ -377,29 +377,39 @@ impl Equivalence {
             str_out
         }
 
-        let proof_string_out: String = if flat_terms.len() > 2 {
+        let proof_string_out = if flat_terms.len() > 2 {
             let mut proof_str = format!("proof -\n{extra_facts}");
 
-            let mut iter = flat_terms.iter().skip(1).enumerate().peekable();
-            while let Some((i, term)) = iter.next() {
-                let rewrite_str = process_rewrite(term, &mut include_files)?;
-
+            for (i, term) in flat_terms.iter().skip(1).enumerate() {
                 let next_term_str =
                     print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false);
 
-                // Proof tactic based on the rewrite, by default use "simp only"
-                // to show that the single step in the equational reasoning is thanks to that rewrite
-                let proof_tactic = if self.inferred_truths.is_some()
+                let rewrite_str = process_rewrite(term, &mut include_files)?;
+
+                let inferred_str = if self.inferred_truths.is_some()
                     && self.inferred_truths.as_ref().unwrap().len() > 0
                 {
-                    format!("using {rule} inferred_facts that by (simp only: {rule}; fail | simp; fail | metis)", rule = rewrite_str)
+                    "inferred_facts "
                 } else {
-                    format!(
-                        "using {rule} that by (simp only: {rule}; fail | simp; fail | metis)",
-                        rule = rewrite_str
-                    )
+                    ""
                 };
 
+                // Proof tactic based on the rewrite, by default use "simp only"
+                // to show that the single step in the equational reasoning is thanks to that rewrite
+                let proof_tactic = match rewrite_str.as_str() {
+                    // Using add to allow for simplication of constants
+                    "constant_prop" => String::from("by (simp add: bw_def)"),
+                    // use add instead of only to convert between nat type and int
+                    val @ ("shl_def" | "shr_def") => format!("by (simp add: {val})"),
+                    // need to use blast for diff
+                    val @ ("diff_left_eq_prec" | "diff_right_eq_prec" | "diff_left_remove_prec" | "diff_right_remove_prec") => {
+                        format!("using that {val} {inferred_str}by (simp only: {val}; fail | simp; fail | blast; fail | metis)")
+                    }
+                    val @ ("div_pow_join" | "div_mult_self" | "div_same") => {
+                        format!("using that {inferred_str}by (simp only: {val})")
+                    }
+                    other => format!("using {rule} {inferred_str}that by (simp only: {rule}; fail | simp; fail | metis)", rule = other),
+                };
                 proof_str += &format!(
                     "    {prefix}have \"{lhs} = {term}\" {proof}\n",
                     prefix = if i == 0 { "" } else { "moreover " },
