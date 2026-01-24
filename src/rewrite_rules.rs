@@ -44,12 +44,12 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
                                     => "(+ (bw ?q ?a) (bw ?r ?b))"
                                     if precondition(&["(< ?q ?p)","(< ?r ?p)"])),
         // mod diff rewrite where outer bitwidth (p) is lower precision that inner (q)
-        rewrite!("diff_left_rm_prec";  "(bw ?p (- (bw ?q ?a) ?b))"
+        rewrite!("diff_left_remove_prec";  "(bw ?p (- (bw ?q ?a) ?b))"
                                     => "(bw ?p (- ?a ?b))"
                                         if precondition(&["(>= ?q ?p)"])),
         rewrite!("diff_left_eq_prec";  "(bw ?p (- (bw ?p ?a) ?b))"
                                     => "(bw ?p (- ?a ?b))"),
-        rewrite!("diff_right_rm_prec"; "(bw ?p (- ?a (bw ?q ?b)))"
+        rewrite!("diff_right_remove_prec"; "(bw ?p (- ?a (bw ?q ?b)))"
                                     => "(bw ?p (- ?a ?b))"
                                         if precondition(&["(>= ?q ?p)"])),
         rewrite!("diff_right_eq_prec"; "(bw ?p (- ?a (bw ?p ?b)))"
@@ -251,7 +251,18 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
             );
             solver.assert(!z3_cond);
             if solver.check() == SatResult::Unsat {
-                truth_reason = Some("z3")
+                if let Ok(res) = condition.is_const_cond() {
+                    if res {
+                        truth_reason = Some("z3_int")
+                    } else {
+                        truth_reason = Some("z3")
+                    }
+                } else {
+                    panic!(
+                        "Condition could not be evaluted to be constant {:#}",
+                        condition
+                    );
+                }
             }
         } else {
             error!("condition {} cannot be converted to z3", condition);

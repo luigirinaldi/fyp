@@ -320,6 +320,7 @@ impl Equivalence {
                     |(acc, end), (i, (reason, expr))| {
                         let (tactic_str, print_type) = match reason.as_str() {
                             "z3" => ("using that by simp", false),
+                            "z3_int" => ("using that by simp", true),
                             "hardcoded" => ("by simp", true),
                             any => panic!("Uknown reason for inferred condition {any}"),
                         };
@@ -386,17 +387,18 @@ impl Equivalence {
                 let next_term_str =
                     print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false);
 
-                let extra_assm = if self.inferred_truths.is_some()
-                    && self.inferred_truths.as_ref().unwrap().len() > 0
-                {
-                    "inferred_facts "
-                } else {
-                    ""
-                };
-
                 // Proof tactic based on the rewrite, by default use "simp only"
                 // to show that the single step in the equational reasoning is thanks to that rewrite
-                let proof_tactic = format!("using {rule} {extra_assm}that by (simp only: {rule}; fail | simp; fail | blast; fail | metis)", rule = rewrite_str);
+                let proof_tactic = if self.inferred_truths.is_some()
+                    && self.inferred_truths.as_ref().unwrap().len() > 0
+                {
+                    format!("using {rule} inferred_facts that by (simp only: {rule}; fail | simp; fail | metis)", rule = rewrite_str)
+                } else {
+                    format!(
+                        "using {rule} that by (simp only: {rule}; fail | simp; fail | metis)",
+                        rule = rewrite_str
+                    )
+                };
 
                 proof_str += &format!(
                     "    {prefix}have \"{lhs} = {term}\" {proof}\n",
