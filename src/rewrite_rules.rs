@@ -56,7 +56,10 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mul_full_prec";   "(bw ?r (* (bw ?q ?a) (bw ?p ?b)))"
                                  => "(* (bw ?q ?a) (bw ?p ?b))"
                                     if precondition(&["(>= ?r (+ ?p ?q))"])),
-        rewrite!("mul_by_bit";      "(bw ?p (* (bw ?p ?a) (bw 1 ?b)))"
+        rewrite!("mul_by_bit";      "(bw ?p (* (bw ?q ?a) (bw 1 ?b)))"
+                                    => "(* (bw ?q ?a) (bw 1 ?b))"
+                                    if precondition(&["(>= ?p ?q)"])),
+        rewrite!("mul_by_bit_eq";      "(bw ?p (* (bw ?p ?a) (bw 1 ?b)))"
                                     => "(* (bw ?p ?a) (bw 1 ?b))"),
         // precision loss due to smaller outer mod
         rewrite!("mul_remove_prec"; "(bw ?q (* (bw ?p ?a) ?b))"
@@ -81,7 +84,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // shift operations
         rewrite!("shl_def"; "(<< (bw ?p ?a) (bw ?q ?b))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
         rewrite!("shr_def"; "(>> (bw ?p ?a) (bw ?q ?b))" => "(div (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
-        rewrite!("shr_by_pos"; "(>> ?a ?b)" => "(div ?a (^ 2 ?b))" if precondition(&["(> ?b 0)"])),
+        // rewrite!("shr_by_pos"; "(>> ?a ?b)" => "(div ?a (^ 2 ?b))" if precondition(&["(> ?b 0)"])),
         // bitwise ring? properties
         rewrite!("isabelle-or.commute";     "(or ?a ?b)" => "(or ?b ?a)"),
         rewrite!("isabelle-or_assoc";       "(or (or ?a ?b) ?c)" => "(or ?a (or ?b ?c))"),
@@ -92,7 +95,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("and_one";         "(and (bw ?p ?a) 1)" => "(bw 1 ?a)"),
         rewrite!("or_allones";      "(or (bw ?p ?a) (bw ?p -1))" => "(bw ?p -1)"),
         rewrite!("xor_allones";     "(bw ?p (xor (bw ?p ?a) (bw ?p -1)))" => "(bw ?p (not (bw ?p ?a)))"),
-        rewrite!("xor_one";         "(xor (bw ?p ?a) 1)" => "(+ (* (div (bw ?p ?a) 2) 2) (bw 1 (not (bw 1 ?a))))"),
+        // rewrite!("xor_one";         "(xor (bw ?p ?a) 1)" => "(+ (* (div (bw ?p ?a) 2) 2) (bw 1 (not (bw 1 ?a))))"),
         rewrite!("and_self";        "(and ?a ?a)" => "?a"),
         rewrite!("or_self";         "(or ?a ?a)" =>  "?a"),
         rewrite!("and_not_self";    "(and (bw ?p ?a) (bw ?p (not (bw ?p ?a))))" => "0"),
@@ -105,7 +108,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("xor_remove"; "(bw ?p (xor (bw ?p ?a) (bw ?p ?b)))" => "(xor (bw ?p ?a) (bw ?p ?b))"),
         rewrite!("demorg_and"; "(bw ?p (not (and (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("demorg_or";  "(bw ?p (not (or (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (and (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
-        rewrite!("select-to-mult"; "(SEL (bw 1 ?cond) (bw ?p ?a) (bw ?p ?b))" => "(+ (bw ?p (* (bw ?p ?a) (bw 1 ?cond))) (bw ?p (* (bw ?p ?b) (bw 1 (not (bw 1 ?cond))))))"),
+        rewrite!("sel-def"; "(bw ?p (sel ?cond ?a ?b))" => "(bw ?p (+ (* ?a (bw 1 ?cond)) (* ?b (bw 1 (not (bw 1 ?cond))))))"),
     ];
     rules.extend(rewrite!("xor_and_or";      "(and (or (bw ?p ?a) (bw ?p ?b)) (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))" <=> "(xor (bw ?p ?a) (bw ?p ?b))"));
     // bitwise to arith

@@ -26,7 +26,7 @@ define_language! {
         "or" = Or([Id;2]),
         "xor" = Xor([Id;2]),
         "not" = Not(Id),
-        "SEL" = Select([Id;3]),
+        "sel" = Select([Id;3]),
         // Operators to handle preconditions
         ">"  = GT([Id; 2]),
         ">=" = GTE([Id; 2]),
