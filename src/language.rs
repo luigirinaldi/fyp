@@ -231,8 +231,8 @@ fn validate_bwlang(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
 pub trait ToZ3 {
     fn width_to_z3(&self, id: Id) -> Result<Int, String>;
     fn to_z3_cond(&self) -> Result<Bool, String>;
-    fn is_const_cond(&self) -> Result<bool, String>;
-    fn is_const_width(&self, id: Id) -> Result<bool, String>;
+    fn get_const_cond(&self) -> Result<bool, String>;
+    fn get_const_width(&self, id: Id) -> Result<Num, String>;
 }
 
 /// Apply the pow2 function to a Z3 Int
@@ -294,21 +294,32 @@ impl ToZ3 for RecExpr<ModIR> {
             _ => Err("Reached an invalid node type".to_string()),
         }
     }
-    fn is_const_cond(&self) -> Result<bool, String> {
+    fn get_const_cond(&self) -> Result<bool, String> {
         match &self[self.root()] {
-            ModIR::GT([a, b]) | ModIR::GTE([a, b]) | ModIR::LT([a, b]) | ModIR::LTE([a, b]) => {
-                Ok(self.is_const_width(*a)? && self.is_const_width(*b)?)
-            }
+            ModIR::GT([a, b]) => Ok(self.get_const_width(*a)? > (self.get_const_width(*b)?)),
+            ModIR::GTE([a, b]) => Ok(self.get_const_width(*a)? >= (self.get_const_width(*b)?)),
+            ModIR::LT([a, b]) => Ok(self.get_const_width(*a)? < (self.get_const_width(*b)?)),
+            ModIR::LTE([a, b]) => Ok(self.get_const_width(*a)? <= (self.get_const_width(*b)?)),
             _ => unreachable!("Z3 comp is not valid comparison operation: {}", self),
         }
     }
 
-    fn is_const_width(&self, id: Id) -> Result<bool, String> {
+    fn get_const_width(&self, id: Id) -> Result<Num, String> {
         match &self[id] {
-            ModIR::Var(_) => Ok(false),
-            ModIR::Num(_) => Ok(true),
-            ModIR::Add([a, b]) | ModIR::Mul([a, b]) | ModIR::Sub([a, b]) | ModIR::Pow([a, b]) => {
-                Ok(self.is_const_width(*a)? && self.is_const_width(*b)?)
+            ModIR::Var(_) => Err("Not a constant num".to_string()),
+            ModIR::Num(num) => Ok(*num),
+            ModIR::Add([a, b]) => Ok(self.get_const_width(*a)? + self.get_const_width(*b)?),
+            ModIR::Mul([a, b]) => Ok(self.get_const_width(*a)? * self.get_const_width(*b)?),
+            ModIR::Sub([a, b]) => Ok(self.get_const_width(*a)? - self.get_const_width(*b)?),
+            ModIR::Pow([a, b]) => {
+                if self[*a] == ModIR::Num(2) {
+                    Ok(2_i32.pow(self.get_const_width(*b)?.try_into().unwrap()))
+                } else {
+                    Err(format!(
+                        "Only powers of two are allowed, base is: {}",
+                        &self[*a]
+                    ))
+                }
             }
             _ => Err("Reached an invalid node type".to_string()),
         }

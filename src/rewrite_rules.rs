@@ -228,7 +228,15 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
     };
 
     if truth_reason.is_none() {
-        // println!("Trying to check the condition: {}", condition.to_string());
+        if let Ok(res) = condition.get_const_cond() {
+            if res {
+                // if the condition evaluates to true
+                println!("Condition evaluted to true: {}", condition.to_string());
+                truth_reason = Some("z3_int")
+            }
+        }
+    }
+    if truth_reason.is_none() {
         let z3_cond_opt = condition.to_z3_cond();
         if let Ok(z3_cond) = z3_cond_opt {
             // let vars = get_z3_variables(&z3_cond);
@@ -251,18 +259,7 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
             );
             solver.assert(!z3_cond);
             if solver.check() == SatResult::Unsat {
-                if let Ok(res) = condition.is_const_cond() {
-                    if res {
-                        truth_reason = Some("z3_int")
-                    } else {
-                        truth_reason = Some("z3")
-                    }
-                } else {
-                    panic!(
-                        "Condition could not be evaluted to be constant {:#}",
-                        condition
-                    );
-                }
+                truth_reason = Some("z3");
             }
         } else {
             error!("condition {} cannot be converted to z3", condition);
