@@ -210,16 +210,31 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
         for expr in &cond_exprs {
             let cond_subst: RecExpr<ModIR> = apply_subst(expr, subst, egraph);
 
-            let mut is_true = egraph
-                .lookup_expr_ids(&cond_subst)
-                .and_then(|ids| {
-                    egraph
-                        .lookup(ModIR::Bool(true))
-                        .and_then(|truth| Some(ids.iter().any(|&id| id == truth)))
-                })
-                .unwrap_or(false);
+            let known_value = egraph.lookup_expr_ids(&cond_subst).and_then(|ids| {
+                let truth_id = egraph.lookup(ModIR::Bool(true));
+                let false_id = egraph.lookup(ModIR::Bool(false));
+
+                if let Some(truth) = truth_id {
+                    if ids.iter().any(|&id| id == truth) {
+                        return Some(true);
+                    }
+                }
+
+                if let Some(falsity) = false_id {
+                    if ids.iter().any(|&id| id == falsity) {
+                        return Some(false);
+                    }
+                }
+
+                None
+            });
+
+            let is_true = match known_value {
+                Some(value) => value,
+                None => infer_conditions(&cond_subst, egraph),
+            };
             if !is_true {
-                is_true = infer_conditions(&cond_subst, egraph);
+                return false;
             }
             // println!(
             //     "{:#?} => {:#?}",
@@ -334,8 +349,18 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
                 solver.to_string()
             );
             solver.assert(!z3_cond);
-            if solver.check() == SatResult::Unsat {
+            let result = solver.check();
+
+            if result == SatResult::Unsat {
                 truth_reason = Some("z3");
+            } else if result == SatResult::Sat {
+                // Condition is false under current constraints
+                println!("Inferred false condition: {} because of z3", condition);
+                let cond_id = egraph.add_expr(condition);
+                // get the false id, it should exist within the egraph at this point
+                let false_id = egraph.lookup(ModIR::Bool(false)).unwrap();
+                let union_reason = String::from("inferred_z3_false");
+                egraph.union_trusted(false_id, cond_id, union_reason);
             }
         } else {
             // error!("condition {} cannot be converted to z3", condition);

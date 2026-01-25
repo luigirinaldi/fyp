@@ -272,6 +272,8 @@ impl Equivalence {
 
         // Create the true node
         let truth_id = self.runner.egraph.add(ModIR::Bool(true));
+        // Create the false node
+        let _false_id = self.runner.egraph.add(ModIR::Bool(false));
         // Add the preconditions to the truth node of the egraph
         for precond in &self.preconditions {
             let p_id = self.runner.egraph.add_expr(precond);
