@@ -36,11 +36,14 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("bw_1"; "(bw ?p 1)" => "1"),
         rewrite!("bw_0"; "(bw ?p 0)" => "0"),
         // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
-        rewrite!("add_remove_prec";    "(bw ?p (+ (bw ?q ?a) ?b))"
+        rewrite!("add_remove_prec_left";    "(bw ?p (+ (bw ?q ?a) ?b))"
                                     => "(bw ?p (+ ?a ?b))"
                                         if precondition(&["(>= ?q ?p)"])),
-        rewrite!("add_eq_prec";        "(bw ?p (+ (bw ?p ?a) ?b))"
-                                    => "(bw ?p (+ ?a ?b))"),
+        rewrite!("add_remove_prec_right";    "(bw ?p (+ ?a (bw ?q ?b)))"
+                                    => "(bw ?p (+ ?a ?b))"
+                                        if precondition(&["(>= ?q ?p)"])),
+        // rewrite!("add_eq_prec";        "(bw ?p (+ (bw ?p ?a) ?b))"
+        //                             => "(bw ?p (+ ?a ?b))"),
         // mod sum rewrite preserving full precision
         rewrite!("add_full_prec";      "(bw ?p (+ (bw ?q ?a) (bw ?r ?b)))"
                                     => "(+ (bw ?q ?a) (bw ?r ?b))"
@@ -76,19 +79,46 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
                                     if precondition(&["(>= ?p ?q)"])),
         rewrite!("reduce_mod";      "(bw ?q (bw ?p ?a))"
                                  => "(bw ?p ?a)"
-                                    if precondition(&["(> ?q ?p)"])),
+                                    if precondition(&["(>= ?q ?p)"])),
         rewrite!("reduce_mod_bis";  "(bw ?q (bw ?p ?a))"
                                  => "(bw ?q ?a)"
-                                    if precondition(&["(> ?p ?q)"])),
-        rewrite!("mod_prop_sum";    "(bw ?p (+ ?a ?b))"
-                                 => "(bw ?p (+ (bw ?p ?a) (bw ?p ?b)))"
-                                    if not_already_bw("?p", "?a")
-                                    if not_already_bw("?p", "?b")),
+                                    if precondition(&["(>= ?p ?q)"])),
+        // if not_already_bw("?p", "?b")),
         rewrite!("mod_eq";          "(bw ?p (bw ?p ?a))"
                                  => "(bw ?p ?a)"),
         rewrite!("mul_pow2";        "(bw ?s (* (bw ?p ?a) (^ 2 (bw ?q ?b))))"
                                  => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"
                                     if precondition(&["(>= ?s (+ ?p (- (^ 2 ?q) 1)))"])),
+        rewrite!("mod_prop_sum";    "(bw ?p (+ ?a ?b))"
+                            => "(bw ?p (+ (bw ?p ?a) ?b))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_mul";    "(bw ?p (* ?a ?b))"
+                            => "(bw ?p (* (bw ?p ?a) ?b))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_sub";    "(bw ?p (- ?a ?b))"
+                            => "(bw ?p (- (bw ?p ?a) ?b))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_div";    "(bw ?p (div ?a ?b))"
+                            => "(bw ?p (div (bw ?p ?a) ?b))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_or";    "(bw ?p (or ?a ?b))"
+                            => "(bw ?p (or (bw ?p ?a) ?b))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_and";    "(bw ?p (and ?a ?b))"
+                            => "(bw ?p (and (bw ?p ?a) ?b))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_xor";    "(bw ?p (xor ?a ?b))"
+                            => "(bw ?p (xor (bw ?p ?a) ?b))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_not";    "(bw ?p (not ?a))"
+                            => "(bw ?p (not (bw ?p ?a)))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_neg";    "(bw ?p (- ?a))"
+                            => "(bw ?p (- (bw ?p ?a)))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_mod";    "(bw ?p ?a)"
+                            => "(bw ?p (bw ?p ?a))"
+                            if not_already_bw("?p", "?a")),
         // shift operations
         rewrite!("shl_def"; "(<< (bw ?p ?a) (bw ?q ?b))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
         rewrite!("shr_def"; "(>> (bw ?p ?a) (bw ?q ?b))" => "(div (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
@@ -283,13 +313,16 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
         let z3_cond_opt = condition.to_z3_cond();
         if let Ok(z3_cond) = z3_cond_opt {
             // let vars = get_z3_variables(&z3_cond);
+            let mut params = z3::Params::new();
+            params.set_u32("timeout", 100); // timeout in milliseconds
             let solver = Solver::new();
+            solver.set_params(&params);
             for expr in get_true_exprs(egraph) {
                 let z3_true_cond = expr.to_z3_cond();
                 if let Ok(cond) = z3_true_cond {
                     solver.assert(cond);
                 } else {
-                    error!("{} cannot be converted to z3", expr);
+                    // error!("{} cannot be converted to z3", expr);
                 }
             }
             solver.push();
@@ -305,7 +338,7 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
                 truth_reason = Some("z3");
             }
         } else {
-            error!("condition {} cannot be converted to z3", condition);
+            // error!("condition {} cannot be converted to z3", condition);
         }
     }
 
