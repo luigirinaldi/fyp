@@ -33,6 +33,7 @@ pub fn rule_to_file(input: &str) -> Option<&'static str> {
         "div_same" => Some("arith_lemmas"),
         "int_distrib" => Some("arith_lemmas"),
         "mod_eq" => Some("arith_lemmas"),
+        "mod_prop_sum" => Some("arith_lemmas"),
         "mul_by_bit" => Some("arith_lemmas"),
         "mul_by_bit_eq" => Some("arith_lemmas"),
         "mul_eq_prec" => Some("arith_lemmas"),

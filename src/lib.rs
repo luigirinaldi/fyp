@@ -147,9 +147,9 @@ impl Equivalence {
             equiv: None,
             runner: Runner::<ModIR, ModAnalysis>::default()
                 .with_explanations_enabled()
-                .with_time_limit(Duration::from_secs(10))
-                .with_iter_limit(1000)
-                .with_node_limit(200000)
+                .with_time_limit(Duration::from_secs(300))
+                .with_iter_limit(2000)
+                .with_node_limit(1000000)
                 .with_scheduler(SimpleScheduler),
         };
 
@@ -339,6 +339,7 @@ impl Equivalence {
             } else if rw.find("isabelle-").is_some()
                 || rw == "shl_def"
                 || rw == "shr_def"
+                || rw == "sel_def"
                 || rw == "constant_prop"
             {
                 // If the rewrite is either an isabelle native or a constant prop then we can ignore it
@@ -372,7 +373,7 @@ impl Equivalence {
                     // Using add to allow for simplication of constants
                     "constant_prop" => String::from("by (simp add: bw_def)"),
                     // use add instead of only to convert between nat type and int
-                    val @ ("shl_def" | "shr_def") => format!("by (simp add: {val})"),
+                    val @ ("shl_def" | "shr_def" | "sel_def") => format!("by (simp add: {val})"),
                     // need to use blast for diff_eq
                     val @ ("diff_left_eq_prec" | "diff_right_eq_prec") => {
                         format!("using that {val} by metis")

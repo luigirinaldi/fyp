@@ -24,8 +24,8 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("div_pow_join";    "(div (div ?a ?b) ?c)"      => "(div ?a (* ?b ?c))" if precondition(&["(> ?c 0)"])),
         rewrite!("div_mult_self";   "(div (+ ?a (* ?b ?c)) ?b)" => "(+ (div ?a ?b) ?c)" if precondition(&["(> ?b 0)"])),
         rewrite!("div_same";        "(div (* ?a ?b) ?a)"        => "?b"                 if precondition(&["(> ?a 0)"])),
-        rewrite!("shift_mod"; "(bw ?q (>> (bw ?p ?a) ?b))" => "(bw ?q (>> ?a ?b))" if precondition(&["(>= (- ?p ?q) ?b)"])),
-        rewrite!("div-by-more"; "(div (bw 1 ?a) 2)" => "0"),
+        // rewrite!("shift_mod"; "(bw ?q (>> (bw ?p ?a) ?b))" => "(bw ?q (>> ?a ?b))" if precondition(&["(>= (- ?p ?q) ?b)"])),
+        // rewrite!("div-by-more"; "(div (bw 1 ?a) 2)" => "0"),
         /////////////////////////
         //      MOD RELATED    //
         /////////////////////////
@@ -76,6 +76,10 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("reduce_mod_bis";  "(bw ?q (bw ?p ?a))"
                                  => "(bw ?q ?a)"
                                     if precondition(&["(> ?p ?q)"])),
+        rewrite!("mod_prop_sum";    "(bw ?p (+ ?a ?b))"
+                                 => "(bw ?p (+ (bw ?p ?a) (bw ?p ?b)))"
+                                    if not_already_bw("?p", "?a")
+                                    if not_already_bw("?p", "?b")),
         rewrite!("mod_eq";          "(bw ?p (bw ?p ?a))"
                                  => "(bw ?p ?a)"),
         rewrite!("mul_pow2";        "(bw ?s (* (bw ?p ?a) (^ 2 (bw ?q ?b))))"
@@ -108,7 +112,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("xor_remove"; "(bw ?p (xor (bw ?p ?a) (bw ?p ?b)))" => "(xor (bw ?p ?a) (bw ?p ?b))"),
         rewrite!("demorg_and"; "(bw ?p (not (and (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("demorg_or";  "(bw ?p (not (or (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (and (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
-        rewrite!("sel-def"; "(bw ?p (sel ?cond ?a ?b))" => "(bw ?p (+ (* ?a (bw 1 ?cond)) (* ?b (bw 1 (not (bw 1 ?cond))))))"),
+        rewrite!("sel_def"; "(bw ?p (sel ?cond ?a ?b))" => "(bw ?p (+ (* ?a (bw 1 ?cond)) (* ?b (bw 1 (not (bw 1 ?cond))))))"),
     ];
     rules.extend(rewrite!("xor_and_or";      "(and (or (bw ?p ?a) (bw ?p ?b)) (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))" <=> "(xor (bw ?p ?a) (bw ?p ?b))"));
     // bitwise to arith
@@ -194,6 +198,34 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
     }
 }
 
+fn not_already_bw(
+    var_p: &str,
+    var_x: &str,
+) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
+    let var_p = var_p.parse().unwrap();
+    let var_x = var_x.parse().unwrap();
+
+    move |egraph, _, subst| {
+        let p = subst[var_p];
+        let x = subst[var_x];
+
+        // Get the eclass for x
+        let x_eclass = &egraph[x];
+
+        // Check if any node in x's eclass is (bw p ...)
+        for node in &x_eclass.nodes {
+            // Check if this node is a "bw" operation
+            if let ModIR::Mod([bw_p, _]) = node {
+                // Check if the first argument is in the same eclass as p
+                if egraph.find(*bw_p) == egraph.find(p) {
+                    return false; // Already has form (bw p ...), don't apply rewrite
+                }
+            }
+        }
+
+        true // Not in the form (bw p ...), allow the rewrite
+    }
+}
 // Given some condition that needs to be true, set it to be true based on some known truths
 fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAnalysis>) {
     // println!("trying to infer truth for {}", condition.to_string());

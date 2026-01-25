@@ -101,7 +101,6 @@ impl Analysis<ModIR> for ModAnalysis {
                 let b = get(width)?;
                 let bexp = 2_i32.pow(b.to_u32()?);
                 let res = a.rem_euclid(bexp);
-                println!("{a} mod (2^{b} = {bexp}) = {res}");
                 Some((res, format!("(bw {b} {a})").parse().unwrap()))
             }
             ModIR::Neg(id) => Some((-1 * get(id)?, format!("(- {})", get(id)?).parse().unwrap())),
