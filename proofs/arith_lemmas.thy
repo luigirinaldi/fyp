@@ -137,4 +137,6 @@ by (metis Suc_eq_plus1 antisym arith_lemmas.mult_1 bw_0 bw_def mod_eq mul_full_p
 
 lemma mul_by_bit_eq:  "(bw p ((bw p a) * (bw 1 b))) = (bw p a) * (bw 1 b)" using mul_by_bit by blast
 
+lemma mod_prop_sum: "(bw p (a + b)) = (bw p ((bw p a) + (bw p b)))" using bw_def by presburger
+
 end
