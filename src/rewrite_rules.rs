@@ -92,11 +92,11 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mod_prop_mul";    "(bw ?p (* ?a ?b))"
                             => "(bw ?p (* (bw ?p ?a) ?b))"
                             if not_already_bw("?p", "?a")),
-        rewrite!("mod_prop_sub";    "(bw ?p (- ?a ?b))"
+        rewrite!("mod_prop_sub_left";    "(bw ?p (- ?a ?b))"
                             => "(bw ?p (- (bw ?p ?a) ?b))"
                             if not_already_bw("?p", "?a")),
-        rewrite!("mod_prop_div";    "(bw ?p (div ?a ?b))"
-                            => "(bw ?p (div (bw ?p ?a) ?b))"
+        rewrite!("mod_prop_sub_right";    "(bw ?p (- ?a ?b))"
+                            => "(bw ?p (- ?a (bw ?p ?b)))"
                             if not_already_bw("?p", "?a")),
         rewrite!("mod_prop_or";    "(bw ?p (or ?a ?b))"
                             => "(bw ?p (or (bw ?p ?a) ?b))"
@@ -281,7 +281,7 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
             if res {
                 // if the condition evaluates to true
                 println!("Condition evaluted to true: {}", condition.to_string());
-                truth_reason = Some("const_cond")
+                truth_reason = Some("simp")
             } else {
                 return false;
             }
