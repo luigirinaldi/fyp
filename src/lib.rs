@@ -375,8 +375,8 @@ impl Equivalence {
                     // use add instead of only to convert between nat type and int
                     val @ ("shl_def" | "shr_def" | "sel_def") => format!("by (simp add: {val})"),
                     // need to use blast for diff_eq
-                    val @ ("diff_left_eq_prec" | "diff_right_eq_prec") => {
-                        format!("using that {val} by metis")
+                    val @ ("diff_left_eq_prec" | "diff_right_eq_prec" | "mod_prop_sum") => {
+                        format!("using that {val} by (blast; fail | metis)")
                     }
                     val @ ("div_pow_join" | "div_mult_self" | "div_same") => {
                         format!("using that inferred_facts by (simp only: {val})")

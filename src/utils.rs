@@ -5,8 +5,6 @@ use std::collections::HashSet;
 use crate::language::ModAnalysis;
 use crate::language::ModIR;
 
-
-
 pub fn get_inferred_truths(
     egraph: &EGraph<ModIR, ModAnalysis>,
 ) -> Vec<(String, egg::RecExpr<ModIR>)> {
@@ -162,7 +160,15 @@ pub fn print_infix(
         ModIR::Num(num) if add_type_hint => format!("({num}::int)"),
         ModIR::Num(num) if *num < 0 => format!("({num})"),
         other => {
-            if other.children().len() == 2 {
+            if other.children().len() == 3 {
+                format!(
+                    "({} {} {} {})",
+                    other.to_string(),
+                    get_child_str(expr, &other.children()[0]),
+                    get_child_str(expr, &other.children()[1]),
+                    get_child_str(expr, &other.children()[2])
+                )
+            } else if other.children().len() == 2 {
                 format!(
                     "({} {} {})",
                     get_child_str(expr, &other.children()[0]),
@@ -175,8 +181,10 @@ pub fn print_infix(
                     other.to_string(),
                     get_child_str(expr, &other.children()[0])
                 )
-            } else {
+            } else if other.children().len() == 0 {
                 other.to_string()
+            } else {
+                panic!("Unknown operator : {}", other);
             }
         }
     }
