@@ -1,3 +1,2 @@
 AndOrXor_1288
-AndOrXor_2063
 AndOrXor_2231
