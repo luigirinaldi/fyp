@@ -12,7 +12,6 @@ lemma xor_allones: "(bw p (xor a (bw p (-1)))) = (bw p (not a))"
 lemma and_zero: "and a 0 = 0" by (simp only: Bit_Operations.semiring_bit_operations_class.and_zero_eq)
 lemma or_zero: "or a 0 = a" by (simp only: Bit_Operations.semiring_bit_operations_class.or.comm_neutral)
 
-(* lemma not_not: "a = not (not a)" for a :: int by simp *)
 lemma and_remove: "(bw p (and (bw p a) (bw p b))) = (and (bw p a) (bw p b))" by (simp add: bw_def)
 lemma or_remove: "(bw p (or (bw p a) (bw p b))) = (or (bw p a) (bw p b))" by (simp add: OR_upper bw_def)
 lemma xor_remove: "(bw p (xor (bw p a) (bw p b))) = (xor (bw p a) (bw p b))" by (simp add: XOR_upper bw_def)

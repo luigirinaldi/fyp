@@ -154,9 +154,9 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         "(+ (xor (bw ?p ?a) (bw ?q ?b)) (* 2 (and (bw ?p ?a) (bw ?q ?b))))"
     ));
     rules.extend(rewrite!("xor_as_or_and";
-        "(xor (bw ?p ?a) (bw ?p ?b))"
+        "(xor (bw ?p ?a) (bw ?q ?b))"
         <=>
-        "(- (or (bw ?p ?a) (bw ?p ?b)) (and (bw ?p ?a) (bw ?p ?b)))"
+        "(- (or (bw ?p ?a) (bw ?q ?b)) (and (bw ?p ?a) (bw ?q ?b)))"
     ));
     rules.extend(rewrite!("and_distrib"; "(and ?a (or ?b ?c))" <=> "(or (and ?a ?b) (and ?a ?c))"));
     rules
