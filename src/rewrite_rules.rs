@@ -3,6 +3,7 @@ use std::str::FromStr;
 
 use crate::language::ModAnalysis;
 use crate::language::ModIR;
+use crate::language::ToZ3;
 
 pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     let mut rules = vec![
@@ -145,54 +146,62 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     rules
 }
 
+fn apply_subst(
+    expr: &RecExpr<ModIR>,
+    subst: &Subst,
+    egraph: &EGraph<ModIR, ModAnalysis>,
+) -> RecExpr<ModIR> {
+    match &expr[expr.root()] {
+        ModIR::Var(s) => {
+            return egraph.id_to_expr(*subst.get(Var::from_str(s.as_str()).unwrap()).unwrap());
+        }
+        other => {
+            // traverse through each node and return another recexpr
+            return other.join_recexprs(|id| {
+                apply_subst(
+                    &expr[id].build_recexpr(|id1| expr[id1].clone()),
+                    subst,
+                    egraph,
+                )
+            });
+        }
+    }
+}
+
 // given a list of preconditions, returns a function that checks that they are all satisfied
-// TODO reimplement this using multipatterns https://github.com/luigirinaldi/fyp/issues/1
 fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
     let cond_exprs: Vec<RecExpr<ModIR>> = conds.iter().map(|expr| expr.parse().unwrap()).collect();
     // look up the expr in the egraph then check that they are in the same eclass as the truth node
     move |egraph, _root, subst| {
         let mut res = true;
         for expr in &cond_exprs {
-            fn copy_expr(
-                expr: &RecExpr<ModIR>,
-                subst: &Subst,
-                egraph: &EGraph<ModIR, ModAnalysis>,
-            ) -> RecExpr<ModIR> {
-                match &expr[expr.root()] {
-                    ModIR::Var(s) => {
-                        return egraph
-                            .id_to_expr(*subst.get(Var::from_str(s.as_str()).unwrap()).unwrap());
-                    }
-                    other => {
-                        // traverse through each node and return another recexpr
-                        return other.join_recexprs(|id| {
-                            copy_expr(
-                                &expr[id].build_recexpr(|id1| expr[id1].clone()),
-                                subst,
-                                egraph,
-                            )
-                        });
+            let cond_subst: RecExpr<ModIR> = apply_subst(expr, subst, egraph);
+
+            let known_value = egraph.lookup_expr_ids(&cond_subst).and_then(|ids| {
+                let truth_id = egraph.lookup(ModIR::Bool(true));
+
+                if let Some(truth) = truth_id {
+                    if ids.iter().any(|&id| id == truth) {
+                        return Some(true);
                     }
                 }
+
+                None
+            });
+
+            let is_true = match known_value {
+                Some(value) => value,
+                None => infer_conditions(&cond_subst, egraph),
+            };
+            if !is_true {
+                return false;
             }
-
-            let cond_subst: RecExpr<ModIR> = copy_expr(expr, subst, egraph);
-
-            infer_conditions(&cond_subst, egraph);
-
             // println!(
             //     "{:#?} => {:#?}",
             //     expr.to_string(),
             //     cond_subst.to_string(),
             // );
-            res &= egraph
-                .lookup_expr_ids(&cond_subst)
-                .and_then(|ids| {
-                    egraph
-                        .lookup(ModIR::Bool(true))
-                        .and_then(|truth| Some(ids.iter().any(|&id| id == truth)))
-                })
-                .unwrap_or(false);
+            res &= is_true
         }
         res
     }
@@ -227,18 +236,31 @@ fn not_already_bw(
     }
 }
 // Given some condition that needs to be true, set it to be true based on some known truths
-fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAnalysis>) {
-    // println!("trying to infer truth for {}", condition.to_string());
-    let truth_reason = match &condition[condition.root()] {
+fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAnalysis>) -> bool {
+    let mut truth_reason = match &condition[condition.root()] {
         ModIR::GT([a, b]) => match (&condition[*a], &condition[*b]) {
-            (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"), // any expression of the form  (> (^ _ _) 0) is true, by simp
+            // any expression of the form  (> (^ _ _) 0) is true, by simp
+            (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"),
             _ => None,
         },
         _ => None,
     };
 
+    if truth_reason.is_none() {
+        if let Ok(res) = condition.get_const_cond() {
+            if res {
+                // if the condition evaluates to true
+                println!("Condition evaluted to true: {}", condition.to_string());
+                truth_reason = Some("const_cond")
+            } else {
+                return false;
+            }
+        }
+    }
+
     // add to the egraph in case the inference is successful
     if let Some(just) = truth_reason {
+        // println!("Inferred true condition: {} because of {}", condition, just);
         // println!("found new truth {} because {just}", condition.to_string());
         let cond_id = egraph.add_expr(condition);
         // get the truth id, it should exist within the egraph at this point
@@ -248,4 +270,5 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
         let union_reason = String::from("inferred_") + &String::from(just);
         egraph.union_trusted(truth_id, cond_id, union_reason);
     }
+    return truth_reason.is_some();
 }
