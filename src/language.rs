@@ -81,7 +81,7 @@ impl Analysis<ModIR> for ModAnalysis {
                 let a = get(a_in)?;
                 let b = get(b_in)?;
                 if b != 0 {
-                    Some((a.div_euclid(b), format!("({a} div {b})").parse().unwrap()))
+                    Some((a.div_euclid(b), format!("(div {a} {b})").parse().unwrap()))
                 } else {
                     panic!("Dividing by 0! {a} div {b}")
                 }
