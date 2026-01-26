@@ -341,7 +341,7 @@ def run_isabelle(results : List[dict], isabelle_dir : Path, csv_path):
             file_path = isabelle_dir / f"{r['problem_name']}.thy"
             num_lines = count_lines(file_path)
             r['theorem_size'] = num_lines
-            if num_lines >= 4960:
+            if num_lines >= 3500:
                 print("""
     ██     ██  █████  ██████  ███    ██ ██ ███    ██  ██████  
     ██     ██ ██   ██ ██   ██ ████   ██ ██ ████   ██ ██       

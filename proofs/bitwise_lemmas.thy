@@ -40,4 +40,6 @@ by (metis bw_def reduce_mod take_bit_eq_mod take_bit_or that)
 
 lemma not_0_allones: "bw p (not (bw p 0)) = (bw p (-1))" by (simp add: bw_0)
 
+lemma and_one: "and (bw p a) 1 = bw 1 a" if "p > 0" by (metis One_nat_def and_one_eq bw_0 bw_1 bw_def mod_by_1 not_less_eq_eq power_0 power_one_right reduce_mod_bis that zero_neq_one)
+
 end

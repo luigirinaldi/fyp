@@ -13,6 +13,7 @@ pub fn rule_to_file(input: &str) -> Option<&'static str> {
         "and_assoc" => Some("bitwise_lemmas"),
         "and_distrib" => Some("bitwise_lemmas"),
         "and_not_self" => Some("bitwise_lemmas"),
+        "and_one" => Some("bitwise_lemmas"),
         "and_remove" => Some("bitwise_lemmas"),
         "and_self" => Some("bitwise_lemmas"),
         "and_zero" => Some("bitwise_lemmas"),
