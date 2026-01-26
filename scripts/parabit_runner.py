@@ -262,7 +262,8 @@ def save_results_to_csv(results: List[dict], output_file: Path):
         "timed_out",
         "last_err_line",
         "problem_name",
-        "verified"
+        "verified",
+        "theorem_size"
     ]
 
     with open(output_file, "w", newline="") as csvfile:
@@ -320,7 +321,7 @@ def count_lines(file_path):
     with open(file_path, 'r') as f:
         return sum(1 for _ in f)
 
-def run_isabelle(results : List[dict], isabelle_dir : Path):
+def run_isabelle(results : List[dict], isabelle_dir : Path, csv_path):
     try:
         proof_path = Path(PROOF_PATH)
         
@@ -339,6 +340,7 @@ def run_isabelle(results : List[dict], isabelle_dir : Path):
         if r['status'] == "SUCCESS":
             file_path = isabelle_dir / f"{r['problem_name']}.thy"
             num_lines = count_lines(file_path)
+            r['theorem_size'] = num_lines
             if num_lines >= 4960:
                 print("""
     ██     ██  █████  ██████  ███    ██ ██ ███    ██  ██████  
@@ -352,8 +354,10 @@ def run_isabelle(results : List[dict], isabelle_dir : Path):
                 results_out.append(r)
             else:
                 theorems_to_check.append(r['problem_name'])
-                r['verified'] = True
+                r['verified'] = None
                 results_out.append(r)
+
+    save_results_to_csv(results, csv_path)
 
     # 2. Create ROOT file in the destination directory
     root_path = isabelle_dir / "ROOT"
@@ -384,6 +388,9 @@ def run_isabelle(results : List[dict], isabelle_dir : Path):
             #     raise e
         else:
             print("Proof verified by Isabelle!")
+            for r in results:
+                if r['verified'] is None:
+                    r['verified'] = True
             return True
             
     except Exception as e:
@@ -492,7 +499,7 @@ def main():
 
     if args.check_isabelle:
         # Verify the generated results
-        run_isabelle(results, isabelle_dir)
+        run_isabelle(results, isabelle_dir, csv_path)
         # Save results again
         save_results_to_csv(results, csv_path)
 
