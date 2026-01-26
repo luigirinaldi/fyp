@@ -27,6 +27,7 @@ define_language! {
         "bvor" = Or([Id;2]),
         "bvxor" = Xor([Id;2]),
         "bvnot" = Not(Id),
+        "ite" = ITE([Id; 3]),
         // Width manip
         "pextract" = Extract([Id; 3]), // perform bitvector extraction
         "pzero_extend" = Zext([Id; 2]), // Take an expression and the number of width to zero extend it by
@@ -236,6 +237,111 @@ fn case_split_binary(
     }
 }
 
+fn case_split_select(
+    w_a: &RecExpr<ParamIR>,
+    expr_a: &RecExpr<ParamIR>,
+    w_b: &RecExpr<ParamIR>,
+    expr_b: &RecExpr<ParamIR>,
+    w_out: &RecExpr<ParamIR>,
+    cond_expr: &RecExpr<ParamIR>,
+) -> Vec<(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>)> {
+    let sel_string = format!("ite (= (pextract 0 0 {}) (1 1))", cond_expr.to_string());
+    if w_a.to_string() == w_b.to_string() && w_a.to_string() == w_out.to_string() {
+        // shortcut for if the widths are all syntactically the same
+        return vec![(
+            vec![],
+            format!("({sel_string} {expr_a} {expr_b})").parse().unwrap(),
+        )];
+    } else {
+        // all cases assuming the widths are all different
+        vec![
+        // width_out > max(w(a), w(b))
+        (
+            vec![
+                format!("(> {w_out} {w_a})").parse().unwrap(),
+                format!("(> {w_out} {w_b})").parse().unwrap(),
+                ],
+            format!("({sel_string} (pzero_extend (- {w_out} {w_a}) {expr_a}) (pzero_extend (- {w_out} {w_b}) {expr_b}))")
+                .parse()
+                .unwrap(),
+        ),
+        // width_out = max(w(a), w(b))
+        // w_o = w(a) & w(a) > w(b)
+        (
+            vec![
+                format!("(= {w_out} {w_a})").parse().unwrap(),
+                format!("(> {w_a} {w_b})").parse().unwrap(),
+                ],
+            format!(
+                "({sel_string} {expr_a} (pzero_extend (- {w_a} {w_b}) {expr_b})))"
+            )
+            .parse()
+            .unwrap(),
+        ),
+        // w_o = w(a) & w(a) = w(b)
+        (
+            vec![
+                format!("(= {w_out} {w_a})").parse().unwrap(),
+                format!("(= {w_a} {w_b})").parse().unwrap(),
+                ],
+            format!(
+                "({sel_string} {expr_a} {expr_b})"
+            )
+            .parse()
+            .unwrap(),
+        ),
+        // w_o = w(b) & w(a) < w(b)
+        (
+            vec![
+                format!("(= {w_out} {w_b})").parse().unwrap(),
+                format!("(< {w_a} {w_b})").parse().unwrap(),
+                ],
+            format!(
+                "({sel_string} (pzero_extend (- {w_b} {w_a}) {expr_a}) {expr_b})"
+            )
+            .parse()
+            .unwrap(),
+        ),
+        // width_out < max(w(a), w(b))
+        // w_o < w(b) & w(b) > w(a)
+        (
+            vec![
+                format!("(< {w_out} {w_b})").parse().unwrap(),
+                format!("(> {w_b} {w_a})").parse().unwrap(),
+            ],
+            format!(
+                "(pextract (- {w_out} 1) 0 ({sel_string} (pzero_extend (- {w_b} {w_a}) {expr_a}) {expr_b}))"
+            )
+            .parse()
+            .unwrap(),
+        )
+        // w_o < w(a) & w(a) = w(b)
+        ,(
+            vec![
+                format!("(< {w_out} {w_a})").parse().unwrap(),
+                format!("(= {w_a} {w_b})").parse().unwrap(),
+            ],
+            format!(
+                "(pextract (- {w_out} 1) 0 ({sel_string} {expr_a} {expr_b}))"
+            )
+            .parse()
+            .unwrap(),
+        )
+        // w_o < w(a) & w(a) > w(b)
+        ,(
+            vec![
+                format!("(< {w_out} {w_a})").parse().unwrap(),
+                format!("(> {w_a} {w_b})").parse().unwrap(),
+            ],
+            format!(
+                "(pextract (- {w_out} 1) 0 ({sel_string} {expr_a} (pzero_extend (- {w_a} {w_b}) {expr_b})))"
+            )
+            .parse()
+            .unwrap(),
+        )]
+    }
+}
+
 fn case_split_unary(
     op: &str,
     w_a: &RecExpr<ParamIR>,
@@ -362,6 +468,73 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
                                     .expect("Failed to evaluate condition")
                             })
                             .collect::<Vec<_>>()
+                        })
+                    })
+                    .collect::<Vec<_>>();
+
+                for (widths, expr) in &combined_exprs {
+                    for w in widths {
+                        print!("{} and", w.to_string());
+                    }
+                    println!(". then: {}", expr.to_string());
+                }
+                Ok(ParamInfo {
+                    width_out,
+                    expr_out: combined_exprs,
+                })
+            }
+            ModIR::Select([cond, a, b]) => {
+                let info_a = modir_to_paramir(expr_in, *a)?;
+                let info_b = modir_to_paramir(expr_in, *b)?;
+                let info_c = modir_to_paramir(expr_in, *cond)?;
+
+                let width_out = modir_w_to_paramir_w(expr_in, *w)?;
+
+                let combined_exprs = info_c
+                    .expr_out
+                    .iter()
+                    .flat_map(|(w_conds_cond, expr_cond)| {
+                        info_a.expr_out.iter().flat_map(|(w_conds_a, expr_a)| {
+                            info_b
+                                .expr_out
+                                .iter()
+                                .flat_map(|(w_conds_b, expr_b)| {
+                                    case_split_select(
+                                        &info_a.width_out,
+                                        expr_a,
+                                        &info_b.width_out,
+                                        expr_b,
+                                        &width_out,
+                                        expr_cond,
+                                    )
+                                    .iter_mut()
+                                    .map(|(cond, expr)| {
+                                        cond.append(&mut w_conds_b.clone());
+                                        cond.append(&mut w_conds_a.clone());
+                                        cond.append(&mut w_conds_cond.clone());
+                                        let cond: Vec<RecExpr<ParamIR>> = cond.to_vec();
+                                        let expr: RecExpr<ParamIR> = expr.clone();
+                                        (cond, expr)
+                                    })
+                                    .filter(|(cond, _expr)| {
+                                        // Filter the generated conditions to the ones that are meaningful
+                                        let width_gt_zero = cond
+                                            .into_iter()
+                                            .flat_map(|c| c.get_width_var())
+                                            .collect::<HashSet<ParamIR>>()
+                                            .into_iter()
+                                            .map(|w| {
+                                                format!("(> {} 0)", w.to_string())
+                                                    .parse::<RecExpr<ParamIR>>()
+                                                    .unwrap()
+                                            })
+                                            .collect::<Vec<RecExpr<ParamIR>>>();
+                                        compatible_conds(cond.into_iter().chain(&width_gt_zero))
+                                            .expect("Failed to evaluate condition")
+                                    })
+                                    .collect::<Vec<_>>()
+                                })
+                                .collect::<Vec<_>>()
                         })
                     })
                     .collect::<Vec<_>>();
