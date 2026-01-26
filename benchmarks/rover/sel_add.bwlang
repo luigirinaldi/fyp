@@ -1,0 +1,6 @@
+{
+    "name": "sel_add",
+    "preconditions": [],
+    "lhs": "(bw w (sel (bw 1 s) (bw w (+ (bw w a) (bw w b))) (bw w (+ (bw w c) (bw w d)))))",
+    "rhs": "(bw w (+ (bw w (sel (bw 1 s) (bw w a) (bw w c))) (bw w (sel (bw 1 s) (bw w b) (bw w d)))))"
+}

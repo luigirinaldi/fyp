@@ -3,6 +3,7 @@ use std::str::FromStr;
 
 use crate::language::ModAnalysis;
 use crate::language::ModIR;
+use crate::language::ToZ3;
 
 pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     let mut rules = vec![
@@ -24,13 +25,18 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("div_pow_join";    "(div (div ?a ?b) ?c)"      => "(div ?a (* ?b ?c))" if precondition(&["(> ?c 0)"])),
         rewrite!("div_mult_self";   "(div (+ ?a (* ?b ?c)) ?b)" => "(+ (div ?a ?b) ?c)" if precondition(&["(> ?b 0)"])),
         rewrite!("div_same";        "(div (* ?a ?b) ?a)"        => "?b"                 if precondition(&["(> ?a 0)"])),
+        // rewrite!("shift_mod"; "(bw ?q (>> (bw ?p ?a) ?b))" => "(bw ?q (>> ?a ?b))" if precondition(&["(>= (- ?p ?q) ?b)"])),
+        // rewrite!("div-by-more"; "(div (bw 1 ?a) 2)" => "0"),
         /////////////////////////
         //      MOD RELATED    //
         /////////////////////////
         rewrite!("bw_1"; "(bw ?p 1)" => "1"),
         rewrite!("bw_0"; "(bw ?p 0)" => "0"),
         // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
-        rewrite!("add_remove_prec";    "(bw ?p (+ (bw ?q ?a) ?b))"
+        rewrite!("add_remove_prec_left";    "(bw ?p (+ (bw ?q ?a) ?b))"
+                                    => "(bw ?p (+ ?a ?b))"
+                                        if precondition(&["(>= ?q ?p)"])),
+        rewrite!("add_remove_prec_right";    "(bw ?p (+ ?a (bw ?q ?b)))"
                                     => "(bw ?p (+ ?a ?b))"
                                         if precondition(&["(>= ?q ?p)"])),
         rewrite!("add_eq_prec";        "(bw ?p (+ (bw ?p ?a) ?b))"
@@ -40,12 +46,12 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
                                     => "(+ (bw ?q ?a) (bw ?r ?b))"
                                     if precondition(&["(< ?q ?p)","(< ?r ?p)"])),
         // mod diff rewrite where outer bitwidth (p) is lower precision that inner (q)
-        rewrite!("diff_left_rm_prec";  "(bw ?p (- (bw ?q ?a) ?b))"
+        rewrite!("diff_left_remove_prec";  "(bw ?p (- (bw ?q ?a) ?b))"
                                     => "(bw ?p (- ?a ?b))"
                                         if precondition(&["(>= ?q ?p)"])),
         rewrite!("diff_left_eq_prec";  "(bw ?p (- (bw ?p ?a) ?b))"
                                     => "(bw ?p (- ?a ?b))"),
-        rewrite!("diff_right_rm_prec"; "(bw ?p (- ?a (bw ?q ?b)))"
+        rewrite!("diff_right_remove_prec"; "(bw ?p (- ?a (bw ?q ?b)))"
                                     => "(bw ?p (- ?a ?b))"
                                         if precondition(&["(>= ?q ?p)"])),
         rewrite!("diff_right_eq_prec"; "(bw ?p (- ?a (bw ?p ?b)))"
@@ -54,6 +60,11 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mul_full_prec";   "(bw ?r (* (bw ?q ?a) (bw ?p ?b)))"
                                  => "(* (bw ?q ?a) (bw ?p ?b))"
                                     if precondition(&["(>= ?r (+ ?p ?q))"])),
+        rewrite!("mul_by_bit";      "(bw ?p (* (bw ?q ?a) (bw 1 ?b)))"
+                                    => "(* (bw ?q ?a) (bw 1 ?b))"
+                                    if precondition(&["(>= ?p ?q)"])),
+        rewrite!("mul_by_bit_eq";      "(bw ?p (* (bw ?p ?a) (bw 1 ?b)))"
+                                    => "(* (bw ?p ?a) (bw 1 ?b))"),
         // precision loss due to smaller outer mod
         rewrite!("mul_remove_prec"; "(bw ?q (* (bw ?p ?a) ?b))"
                                  => "(bw ?q (* ?a ?b))"
@@ -69,14 +80,46 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("reduce_mod_bis";  "(bw ?q (bw ?p ?a))"
                                  => "(bw ?q ?a)"
                                     if precondition(&["(> ?p ?q)"])),
+        // if not_already_bw("?p", "?b")),
         rewrite!("mod_eq";          "(bw ?p (bw ?p ?a))"
                                  => "(bw ?p ?a)"),
         rewrite!("mul_pow2";        "(bw ?s (* (bw ?p ?a) (^ 2 (bw ?q ?b))))"
                                  => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"
                                     if precondition(&["(>= ?s (+ ?p (- (^ 2 ?q) 1)))"])),
+        rewrite!("mod_prop_sum";    "(bw ?p (+ ?a ?b))"
+                            => "(bw ?p (+ (bw ?p ?a) ?b))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_mul";    "(bw ?p (* ?a ?b))"
+                            => "(bw ?p (* (bw ?p ?a) ?b))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_sub_left";    "(bw ?p (- ?a ?b))"
+                            => "(bw ?p (- (bw ?p ?a) ?b))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_sub_right";    "(bw ?p (- ?a ?b))"
+                            => "(bw ?p (- ?a (bw ?p ?b)))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_or";    "(bw ?p (or ?a ?b))"
+                            => "(bw ?p (or (bw ?p ?a) ?b))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_and";    "(bw ?p (and ?a ?b))"
+                            => "(bw ?p (and (bw ?p ?a) ?b))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_xor";    "(bw ?p (xor ?a ?b))"
+                            => "(bw ?p (xor (bw ?p ?a) ?b))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_not";    "(bw ?p (not ?a))"
+                            => "(bw ?p (not (bw ?p ?a)))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_neg";    "(bw ?p (- ?a))"
+                            => "(bw ?p (- (bw ?p ?a)))"
+                            if not_already_bw("?p", "?a")),
+        rewrite!("mod_prop_mod";    "(bw ?p ?a)"
+                            => "(bw ?p (bw ?p ?a))"
+                            if not_already_bw("?p", "?a")),
         // shift operations
         rewrite!("shl_def"; "(<< (bw ?p ?a) (bw ?q ?b))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
         rewrite!("shr_def"; "(>> (bw ?p ?a) (bw ?q ?b))" => "(div (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
+        // rewrite!("shr_by_pos"; "(>> ?a ?b)" => "(div ?a (^ 2 ?b))" if precondition(&["(> ?b 0)"])),
         // bitwise ring? properties
         rewrite!("isabelle-or.commute";     "(or ?a ?b)" => "(or ?b ?a)"),
         rewrite!("isabelle-or_assoc";       "(or (or ?a ?b) ?c)" => "(or ?a (or ?b ?c))"),
@@ -84,8 +127,10 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("isabelle-and_assoc";      "(and (and ?a ?b) ?c)" => "(and ?a (and ?b ?c))"),
         // bitwise identities
         rewrite!("and_allones";     "(and (bw ?p ?a) (bw ?p -1))" => "(bw ?p ?a)"),
+        rewrite!("and_one";         "(and (bw ?p ?a) 1)" => "(bw 1 ?a)"),
         rewrite!("or_allones";      "(or (bw ?p ?a) (bw ?p -1))" => "(bw ?p -1)"),
         rewrite!("xor_allones";     "(bw ?p (xor (bw ?p ?a) (bw ?p -1)))" => "(bw ?p (not (bw ?p ?a)))"),
+        // rewrite!("xor_one";         "(xor (bw ?p ?a) 1)" => "(+ (* (div (bw ?p ?a) 2) 2) (bw 1 (not (bw 1 ?a))))"),
         rewrite!("and_self";        "(and ?a ?a)" => "?a"),
         rewrite!("or_self";         "(or ?a ?a)" =>  "?a"),
         rewrite!("and_not_self";    "(and (bw ?p ?a) (bw ?p (not (bw ?p ?a))))" => "0"),
@@ -98,19 +143,20 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("xor_remove"; "(bw ?p (xor (bw ?p ?a) (bw ?p ?b)))" => "(xor (bw ?p ?a) (bw ?p ?b))"),
         rewrite!("demorg_and"; "(bw ?p (not (and (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("demorg_or";  "(bw ?p (not (or (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (and (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
+        rewrite!("sel_def"; "(bw ?p (sel ?cond ?a ?b))" => "(bw ?p (+ (* ?a (bw 1 ?cond)) (* ?b (bw 1 (not (bw 1 ?cond))))))"),
     ];
     rules.extend(rewrite!("xor_and_or";      "(and (or (bw ?p ?a) (bw ?p ?b)) (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))" <=> "(xor (bw ?p ?a) (bw ?p ?b))"));
     // bitwise to arith
     rules.extend(rewrite!("neg_not"; "(- (bw ?p ?a))" <=> "(+ (not (bw ?p ?a)) 1)"));
     rules.extend(rewrite!("add_as_xor_and";
-        "(+ (bw ?p ?a) (bw ?p ?b))"
+        "(+ (bw ?p ?a) (bw ?q ?b))"
             <=>
-        "(+ (xor (bw ?p ?a) (bw ?p ?b)) (* 2 (and (bw ?p ?a) (bw ?p ?b))))"
+        "(+ (xor (bw ?p ?a) (bw ?q ?b)) (* 2 (and (bw ?p ?a) (bw ?q ?b))))"
     ));
     rules.extend(rewrite!("xor_as_or_and";
-        "(xor (bw ?p ?a) (bw ?p ?b))"
+        "(xor (bw ?p ?a) (bw ?q ?b))"
         <=>
-        "(- (or (bw ?p ?a) (bw ?p ?b)) (and (bw ?p ?a) (bw ?p ?b)))"
+        "(- (or (bw ?p ?a) (bw ?q ?b)) (and (bw ?p ?a) (bw ?q ?b)))"
     ));
     rules.extend(rewrite!("and_distrib"; "(and ?a (or ?b ?c))" <=> "(or (and ?a ?b) (and ?a ?c))"));
     rules
@@ -130,72 +176,121 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     rules
 }
 
+fn apply_subst(
+    expr: &RecExpr<ModIR>,
+    subst: &Subst,
+    egraph: &EGraph<ModIR, ModAnalysis>,
+) -> RecExpr<ModIR> {
+    match &expr[expr.root()] {
+        ModIR::Var(s) => {
+            return egraph.id_to_expr(*subst.get(Var::from_str(s.as_str()).unwrap()).unwrap());
+        }
+        other => {
+            // traverse through each node and return another recexpr
+            return other.join_recexprs(|id| {
+                apply_subst(
+                    &expr[id].build_recexpr(|id1| expr[id1].clone()),
+                    subst,
+                    egraph,
+                )
+            });
+        }
+    }
+}
+
 // given a list of preconditions, returns a function that checks that they are all satisfied
-// TODO reimplement this using multipatterns https://github.com/luigirinaldi/fyp/issues/1
 fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
     let cond_exprs: Vec<RecExpr<ModIR>> = conds.iter().map(|expr| expr.parse().unwrap()).collect();
     // look up the expr in the egraph then check that they are in the same eclass as the truth node
     move |egraph, _root, subst| {
         let mut res = true;
         for expr in &cond_exprs {
-            fn copy_expr(
-                expr: &RecExpr<ModIR>,
-                subst: &Subst,
-                egraph: &EGraph<ModIR, ModAnalysis>,
-            ) -> RecExpr<ModIR> {
-                match &expr[expr.root()] {
-                    ModIR::Var(s) => {
-                        return egraph
-                            .id_to_expr(*subst.get(Var::from_str(s.as_str()).unwrap()).unwrap());
-                    }
-                    other => {
-                        // traverse through each node and return another recexpr
-                        return other.join_recexprs(|id| {
-                            copy_expr(
-                                &expr[id].build_recexpr(|id1| expr[id1].clone()),
-                                subst,
-                                egraph,
-                            )
-                        });
+            let cond_subst: RecExpr<ModIR> = apply_subst(expr, subst, egraph);
+
+            let known_value = egraph.lookup_expr_ids(&cond_subst).and_then(|ids| {
+                let truth_id = egraph.lookup(ModIR::Bool(true));
+
+                if let Some(truth) = truth_id {
+                    if ids.iter().any(|&id| id == truth) {
+                        return Some(true);
                     }
                 }
+
+                None
+            });
+
+            let is_true = match known_value {
+                Some(value) => value,
+                None => infer_conditions(&cond_subst, egraph),
+            };
+            if !is_true {
+                return false;
             }
-
-            let cond_subst: RecExpr<ModIR> = copy_expr(expr, subst, egraph);
-
-            infer_conditions(&cond_subst, egraph);
-
             // println!(
             //     "{:#?} => {:#?}",
             //     expr.to_string(),
             //     cond_subst.to_string(),
             // );
-            res &= egraph
-                .lookup_expr_ids(&cond_subst)
-                .and_then(|ids| {
-                    egraph
-                        .lookup(ModIR::Bool(true))
-                        .and_then(|truth| Some(ids.iter().any(|&id| id == truth)))
-                })
-                .unwrap_or(false);
+            res &= is_true
         }
         res
     }
 }
 
+fn not_already_bw(
+    var_p: &str,
+    var_x: &str,
+) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
+    let var_p = var_p.parse().unwrap();
+    let var_x = var_x.parse().unwrap();
+
+    move |egraph, _, subst| {
+        let p = subst[var_p];
+        let x = subst[var_x];
+
+        // Get the eclass for x
+        let x_eclass = &egraph[x];
+
+        // Check if any node in x's eclass is (bw p ...)
+        for node in &x_eclass.nodes {
+            // Check if this node is a "bw" operation
+            if let ModIR::Mod([bw_p, _]) = node {
+                // Check if the first argument is in the same eclass as p
+                if egraph.find(*bw_p) == egraph.find(p) {
+                    return false; // Already has form (bw p ...), don't apply rewrite
+                }
+            }
+        }
+
+        true // Not in the form (bw p ...), allow the rewrite
+    }
+}
 // Given some condition that needs to be true, set it to be true based on some known truths
-fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAnalysis>) {
-    // println!("trying to infer truth for {}", condition.to_string());
-    let truth_reason = match &condition[condition.root()] {
+fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAnalysis>) -> bool {
+    let mut truth_reason = match &condition[condition.root()] {
         ModIR::GT([a, b]) => match (&condition[*a], &condition[*b]) {
-            (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"), // any expression of the form  (> (^ _ _) 0) is true, by simp
+            // any expression of the form  (> (^ _ _) 0) is true, by simp
+            (ModIR::Pow([_a, _b]), ModIR::Num(0)) => Some("simp"),
             _ => None,
         },
         _ => None,
     };
 
+    if truth_reason.is_none() {
+        if let Ok(res) = condition.get_const_cond() {
+            if res {
+                // if the condition evaluates to true
+                println!("Condition evaluted to true: {}", condition.to_string());
+                truth_reason = Some("simp")
+            } else {
+                return false;
+            }
+        }
+    }
+
     // add to the egraph in case the inference is successful
     if let Some(just) = truth_reason {
+        // println!("Inferred true condition: {} because of {}", condition, just);
         // println!("found new truth {} because {just}", condition.to_string());
         let cond_id = egraph.add_expr(condition);
         // get the truth id, it should exist within the egraph at this point
@@ -205,4 +300,5 @@ fn infer_conditions(condition: &RecExpr<ModIR>, egraph: &mut EGraph<ModIR, ModAn
         let union_reason = String::from("inferred_") + &String::from(just);
         egraph.union_trusted(truth_id, cond_id, union_reason);
     }
+    return truth_reason.is_some();
 }

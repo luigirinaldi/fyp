@@ -37,19 +37,24 @@ moreover have "... < 2^p" by (simp add: power_eq_if)
 ultimately show ?thesis by (simp add: bw_def)
 qed
 
-lemma add_remove_prec:
+lemma add_remove_prec_left:
 "bw p (bw q a + b) = bw p (a + b)"
 if "q \<ge> p"
 by (metis bw_def le_imp_power_dvd mod_add_cong mod_mod_cancel that)
 
+lemma add_remove_prec_right:
+"bw p (a + (bw q b)) = bw p (a + b)"
+if "q \<ge> p"
+using add_remove_prec_left by (simp add: add.commute that)
+
 lemma add_eq_prec:
 "bw p (bw p a + b) = bw p (a + b)"
-by (simp add: add_remove_prec)
+by (simp add: add_remove_prec_left)
 
 lemma diff_left_remove_prec:
 "bw p (bw q a - b) = bw p (a - b)"
 if "q \<ge> p"
-by (metis add_remove_prec add_uminus_conv_diff that)
+by (metis add_remove_prec_left add_uminus_conv_diff that)
 
 lemma diff_left_eq_prec:
 "bw p (bw p a - b) = bw p (a - b)"
@@ -131,5 +136,31 @@ using that by force
 
 lemma div_mult_self: "(a + b * c) div b = a div b + c" if "b \<noteq> 0" for a::int 
 using that by simp 
+
+lemma mul_by_bit: "(bw p ((bw q a) * (bw 1 b))) = (bw q a) * (bw 1 b)" if "p \<ge> q"
+by (metis Suc_eq_plus1 antisym arith_lemmas.mult_1 bw_0 bw_def mod_eq mul_full_prec mult.commute not_less_eq_eq not_mod_2_eq_0_eq_1 power_one_right that times_int_code(1))
+
+lemma mul_by_bit_eq:  "(bw p ((bw p a) * (bw 1 b))) = (bw p a) * (bw 1 b)" using mul_by_bit by blast
+
+lemma mod_prop_sum: "(bw p (a + b)) = (bw p ((bw p a) + b))" using bw_def by presburger
+
+lemma mod_prop_mul: "(bw p (a * b)) = (bw p ((bw p a) * b))" using bw_def by (simp add: mod_mult_right_eq mult.commute)
+
+lemma mod_prop_sub_left: "(bw p (a - b)) = (bw p ((bw p a) - b))" using bw_def mod_prop_sum mod_diff_eq diff_left_eq_prec by presburger
+
+lemma mod_prop_sub_right: "(bw p (a - b)) = (bw p (a - (bw p b)))" using bw_def mod_prop_sum mod_diff_eq diff_right_eq_prec by presburger
+
+lemma mod_prop_or: "(bw p (or a b)) = (bw p (or (bw p a) b))" using bw_def by (metis mod_eq take_bit_int_def take_bit_or)
+
+lemma mod_prop_and: "(bw p (and a b)) = (bw p (and (bw p a) b))" using bw_def by (metis mod_eq take_bit_and take_bit_eq_mod)
+
+lemma mod_prop_xor: "(bw p (xor a b)) = (bw p (xor (bw p a) b))" using bw_def by (metis mod_eq take_bit_eq_mod take_bit_xor)
+
+lemma mod_prop_not: "(bw p (not a)) = (bw p (not (bw p a)))" using bw_def by (metis take_bit_int_def take_bit_not_take_bit)
+
+lemma mod_prop_neg: "(bw p (- a)) = (bw p (- (bw p a)))" using bw_def by (simp add: mod_minus_eq)
+
+lemma mod_prop_mod: "(bw p a) = (bw p (bw p a))" using bw_def by auto
+
 
 end

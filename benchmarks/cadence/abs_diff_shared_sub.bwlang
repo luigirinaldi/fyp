@@ -1,6 +1,6 @@
 {
     "name": "abs_diff_shared_sub",
     "preconditions": [],
-    "lhs": "(bw w (+ (bw w (* (bw w (- (bw w a) (bw w b))) (bw 1 s))) (bw w (* (bw w (- (bw w b) (bw w a))) (bw 1 (not (bw 1 s)))))))",
-    "rhs": "(bw w (- (bw w (+ (bw w (* (bw w a) (bw 1 s))) (bw w (* (bw w b) (bw 1 (not (bw 1 s))))))) (bw w (+ (bw w (* (bw w b) (bw 1 s))) (bw w (* (bw w a) (bw 1 (not (bw 1 s)))))))))"
+    "lhs": "(bw w (sel (bw 1 s) (bw w (- (bw w a) (bw w b))) (bw w (- (bw w b) (bw w a)))))",
+    "rhs": "(bw w (- (bw w (sel (bw 1 s) (bw w a) (bw w b))) (bw w (sel (bw 1 s) (bw w b) (bw w a)))))"
 }
