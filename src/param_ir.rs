@@ -31,6 +31,7 @@ define_language! {
         // Width manip
         "pextract" = Extract([Id; 3]), // perform bitvector extraction
         "pzero_extend" = Zext([Id; 2]), // Take an expression and the number of width to zero extend it by
+        "psign_extend" = Sext([Id; 2]), // Take an expression and the number of width to zero extend it by
         // Language to define the width expressions in the SMT-lib-esque parametric bitvector lang
         "+" = WAdd([Id; 2]),
         "-" = WSub([Id; 2]),
@@ -399,6 +400,51 @@ fn case_split_mod(
     [case_one, case_two, case_three]
 }
 
+fn case_split_signed(
+    w_a: &RecExpr<ParamIR>,
+    expr_a: &RecExpr<ParamIR>,
+    w_out: &RecExpr<ParamIR>,
+) -> [(Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>); 3] {
+    // cases
+    // w_a < w_signed, zext to w_signed
+    //   w_signed < w_out, sext to w_out
+    //   w_signed = w_out, do nothing
+    //   w_signed > w_out, trunc to w_out
+    // w_a = w_signed, do nothing
+    //   w_signed < w_out, sext to w_out
+    //   w_signed = w_out, do nothing
+    //   w_signed > w_out, trunc to w_out
+    // w_a > w_signed, trunc to w_signed
+    //   w_signed < w_out, sext to w_out
+    //   w_signed = w_out, do nothing
+    //   w_signed > w_out, trunc to w_out
+
+    // the cases below, get done here, the ones above get done by a case_split_mod
+    // w_signed < w_out, sext to w_out
+    // w_signed = w_out, do nothing
+    // w_signed > w_out, trunc to w_out
+
+    let case_one: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+        vec![format!("(> {w_out} {w_a})").parse().unwrap()],
+        format!("(psign_extend (- {w_out} {w_a}) {expr_a})")
+            .parse()
+            .unwrap(),
+    );
+    // w_out = w_a
+    let case_two: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+        vec![format!("(= {w_out} {w_a})").parse().unwrap()],
+        format!("{expr_a}").parse().unwrap(),
+    );
+    // w_out < w_a
+    let case_three: (Vec<RecExpr<ParamIR>>, RecExpr<ParamIR>) = (
+        vec![format!("(< {w_out} {w_a})").parse().unwrap()],
+        format!("(pextract (- {w_out} 1) 0 {expr_a})")
+            .parse()
+            .unwrap(),
+    );
+    [case_one, case_two, case_three]
+}
+
 /// This function takes a ModIR expression and enumerates all of the width conditions
 /// in order to generate all possible combinations of width extensions and truncations
 /// that would occur when performing verilog width processing.
@@ -617,6 +663,35 @@ pub fn modir_to_paramir(expr_in: &RecExpr<ModIR>, id: Id) -> Result<ParamInfo, S
                             .map(|(cond, expr)| {
                                 cond.append(&mut w_conds.clone());
                                 (cond.to_vec(), expr.clone())
+                            })
+                            .collect::<Vec<_>>()
+                    })
+                    .collect::<Vec<_>>();
+
+                Ok(ParamInfo {
+                    width_out,
+                    expr_out: combined_exprs,
+                })
+            }
+            ModIR::Signed([w_child, a]) => {
+                let info_a = modir_to_paramir(expr_in, *a)?;
+                let width_out = modir_w_to_paramir_w(expr_in, *w)?;
+                let width_start = modir_w_to_paramir_w(expr_in, *w_child)?;
+                let combined_exprs = info_a
+                    .expr_out
+                    .iter()
+                    .flat_map(|(w_conds, expr_a)| {
+                        case_split_mod(&info_a.width_out, expr_a, &width_start)
+                            .iter_mut()
+                            .flat_map(|(mod_cond, expr)| {
+                                case_split_signed(&width_start, expr, &width_out)
+                                    .iter_mut()
+                                    .map(|(cond, expr)| {
+                                        cond.append(&mut w_conds.clone());
+                                        cond.append(&mut mod_cond.clone());
+                                        (cond.to_vec(), expr.clone())
+                                    })
+                                    .collect::<Vec<_>>()
                             })
                             .collect::<Vec<_>>()
                     })
