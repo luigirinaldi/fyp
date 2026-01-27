@@ -26,8 +26,8 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("div_pow_join";    "(div (div ?a ?b) ?c)"      => "(div ?a (* ?b ?c))" if precondition(&["(> ?c 0)"])),
         rewrite!("div_mult_self";   "(div (+ ?a (* ?b ?c)) ?b)" => "(+ (div ?a ?b) ?c)" if precondition(&["(> ?b 0)"])),
         rewrite!("div_same";        "(div (* ?a ?b) ?a)"        => "?b"                 if precondition(&["(> ?a 0)"])),
-        // rewrite!("shift_mod"; "(bw ?q (>> (bw ?p ?a) ?b))" => "(bw ?q (>> ?a ?b))" if precondition(&["(>= (- ?p ?q) ?b)"])),
-        // rewrite!("div-by-more"; "(div (bw 1 ?a) 2)" => "0"),
+        rewrite!("shift_mod"; "(bw ?q (>> (bw ?p ?a) ?b))" => "(bw ?q (>> ?a ?b))" if precondition(&["(>= (- ?p ?q) ?b)"])),
+        rewrite!("div-by-more"; "(div (bw 1 ?a) 2)" => "0"),
         /////////////////////////
         //      MOD RELATED    //
         /////////////////////////
@@ -81,7 +81,6 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("reduce_mod_bis";  "(bw ?q (bw ?p ?a))"
                                  => "(bw ?q ?a)"
                                     if precondition(&["(> ?p ?q)"])),
-        // if not_already_bw("?p", "?b")),
         rewrite!("mod_eq";          "(bw ?p (bw ?p ?a))"
                                  => "(bw ?p ?a)"),
         rewrite!("mul_pow2";        "(bw ?s (* (bw ?p ?a) (^ 2 (bw ?q ?b))))"
@@ -117,7 +116,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // shift operations
         rewrite!("shl_def"; "(<< (bw ?p ?a) (bw ?q ?b))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
         rewrite!("shr_def"; "(>> (bw ?p ?a) (bw ?q ?b))" => "(div (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
-        // rewrite!("shr_by_pos"; "(>> ?a ?b)" => "(div ?a (^ 2 ?b))" if precondition(&["(> ?b 0)"])),
+        rewrite!("shr_by_pos"; "(>> ?a ?b)" => "(div ?a (^ 2 ?b))" if precondition(&["(> ?b 0)"])),
         // bitwise ring? properties
         rewrite!("isabelle-or.commute";     "(or ?a ?b)" => "(or ?b ?a)"),
         rewrite!("isabelle-or_assoc";       "(or (or ?a ?b) ?c)" => "(or ?a (or ?b ?c))"),
@@ -142,7 +141,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("xor_remove"; "(bw ?p (xor (bw ?p ?a) (bw ?p ?b)))" => "(xor (bw ?p ?a) (bw ?p ?b))"),
         rewrite!("demorg_and"; "(bw ?p (not (and (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("demorg_or";  "(bw ?p (not (or (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (and (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
-        rewrite!("sel_def"; "(bw ?p (sel ?cond ?a ?b))" => "(bw ?p (+ (* ?a (bw 1 ?cond)) (* ?b (bw 1 (not (bw 1 ?cond))))))"),
+        rewrite!("sel_def"; "(sel ?cond ?a ?b)" => "(+ (* ?a (bw 1 ?cond)) (* ?b (bw 1 (not (bw 1 ?cond)))))"),
         // Signed interpretations
         rewrite!("redundant-signed"; "(bw ?p (signed (bw ?p ?a)))" => "(bw ?p ?a)"),
         rewrite!("signed-zext"; "(signed (bw ?q (bw ?p ?a)))" => "(bw ?p ?a)" if precondition(&["(> ?q ?p)"])),
@@ -174,7 +173,10 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     rules.extend(rewrite!("sub_to_neg"; "(- ?a ?b)" <=> "(+ ?a (* -1 ?b))"));
     // multliplication across the mod (this works because mod b implies mod 2^b)
     // c * (a mod b) = (c * a mod b * c)
-    // rules.extend(rewrite!("mod-mul"; "(* (^ 2 ?e) (bw ?b ?c))" <=> "(bw (+ ?e ?b) (* (^ 2 ?e) ?c))"));
+    // rules.extend(
+    //     rewrite!("mod-mul"; "(* (^ 2 ?e) (bw ?b ?c))" <=> "(bw (+ ?e ?b) (* (^ 2 ?e) ?c))"),
+    // );
+    // rules.extend(rewrite!("mod-mul-2"; "(* 2 (bw ?b ?c))" <=> "(bw (+ 1 ?b) (* 2 ?c))"));
     rules.extend(rewrite!("gt-lt";      "(> ?a ?b)" <=> "(< ?b ?a)"));
     rules.extend(rewrite!("gte-lte";    "(>= ?a ?b)" <=> "(<= ?b ?a)"));
     // rules.extend();
@@ -212,11 +214,11 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
         for expr in &cond_exprs {
             let cond_subst: RecExpr<ModIR> = apply_subst(expr, subst, egraph);
 
-            let known_value = egraph.lookup_expr_ids(&cond_subst).and_then(|ids| {
+            let known_value = egraph.lookup_expr(&cond_subst).and_then(|id| {
                 let truth_id = egraph.lookup(ModIR::Bool(true));
 
                 if let Some(truth) = truth_id {
-                    if ids.iter().any(|&id| id == truth) {
+                    if egraph.find(truth) == egraph.find(id) {
                         return Some(true);
                     }
                 }
@@ -246,28 +248,38 @@ fn not_already_bw(
     var_p: &str,
     var_x: &str,
 ) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
-    let var_p = var_p.parse().unwrap();
-    let var_x = var_x.parse().unwrap();
+    let var_p: RecExpr<ModIR> = var_p.parse().unwrap();
+    let var_x: RecExpr<ModIR> = var_x.parse().unwrap();
 
     move |egraph, _, subst| {
-        let p = subst[var_p];
-        let x = subst[var_x];
+        let p = apply_subst(&var_p, subst, egraph);
+        let x = apply_subst(&var_x, subst, egraph);
 
-        // Get the eclass for x
-        let x_eclass = &egraph[x];
-
-        // Check if any node in x's eclass is (bw p ...)
-        for node in &x_eclass.nodes {
-            // Check if this node is a "bw" operation
-            if let ModIR::Mod([bw_p, _]) = node {
-                // Check if the first argument is in the same eclass as p
-                if egraph.find(*bw_p) == egraph.find(p) {
-                    return false; // Already has form (bw p ...), don't apply rewrite
+        let res = if let Some(x_id) = &egraph.lookup_expr(&x) {
+            if let Some(p_id) = &egraph.lookup_expr(&p) {
+                let mut val_out = true;
+                for node in &egraph[*x_id].nodes {
+                    // Check if this node is a "bw" operation
+                    if let ModIR::Mod([bw_p, _]) = node {
+                        // Check if the first argument is in the same eclass as p
+                        if egraph.find(*bw_p) == egraph.find(*p_id) {
+                            val_out &= false; // Already has form (bw p ...), don't apply rewrite
+                        }
+                    }
                 }
+                val_out
+            } else {
+                true
             }
-        }
+        } else {
+            true
+        };
+        // println!(
+        //     "Checking if ?x = {} is already in a class with (bw {} ?x) = {res}",
+        //     x, p
+        // );
 
-        true // Not in the form (bw p ...), allow the rewrite
+        res
     }
 }
 // Given some condition that needs to be true, set it to be true based on some known truths
