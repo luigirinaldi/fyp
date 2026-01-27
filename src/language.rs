@@ -25,7 +25,7 @@ define_language! {
         "and" = And([Id;2]),
         "or" = Or([Id;2]),
         "xor" = Xor([Id;2]),
-        "not" = Not([Id; 1]),
+        "not" = Not(Id),
         "SEL" = Select([Id;3]),
         // Operators to handle preconditions
         ">"  = GT([Id; 2]),
@@ -177,6 +177,7 @@ pub fn validate_bwlang(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
             validate_width(expr, *width)?;
             validate_bwlang(expr, *term)
         }
+        ModIR::Select(childs) => childs.iter().map(|&id| validate_term(expr, id)).collect(),
         ModIR::Add(childs)
         | ModIR::Sub(childs)
         | ModIR::Mul(childs)

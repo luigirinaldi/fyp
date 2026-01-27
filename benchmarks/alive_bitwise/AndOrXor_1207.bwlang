@@ -1,0 +1,9 @@
+{
+    "name": "AndOrXor_1207_values_0",
+    "preconditions": [
+        "(> m k)"
+    ],
+    "lhs": "(bw (+ (- (- k 1) 0) 1) (and (bw (+ (- (- k 1) 0) 1) (>> (bw m (and (bw m %x) (bw m C1))) (bw 1 0))) (bw k C2)))",
+    "rhs": "(bw (+ (- (- k 1) 0) 1) (and (bw (+ (- (- k 1) 0) 1) (>> (bw m %x) (bw 1 0))) (bw (+ (- (- k 1) 0) 1) (and (bw (+ (- (- k 1) 0) 1) (>> (bw m C1) (bw 1 0))) (bw (+ (- (- k 1) 0) 1) C2)))))"
+}
+

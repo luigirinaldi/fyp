@@ -9,6 +9,8 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // normal arithmetic
         rewrite!("add.commute";     "(+ ?a ?b)" => "(+ ?b ?a)"),
         rewrite!("add.assoc";       "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
+        // rewrite!("diff.assoc";       "(- (- ?a ?b) ?c)" => "(- ?a (+ ?b ?c))"),
+        rewrite!("add.diff.assoc";       "(+ (- ?a ?b) ?b)" => "?a"),
         rewrite!("mult.commute";    "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mult.assoc";      "(* (* ?a ?b) ?c)" => "(* ?a (* ?b ?c))"),
         // identities
@@ -17,6 +19,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("add_0";           "(+ 0 ?a)" => "?a"),
         rewrite!("mult_0";          "(* 0 ?a)" => "0"),
         rewrite!("mult_1";          "(* 1 ?a)" => "?a"),
+        rewrite!("div_1";          "(div ?a 1)" => "?a"),
         // ring identities?
         rewrite!("bw_pow_sum";      "(* (^ ?a (bw ?p ?b))
                                         (^ ?a (bw ?q ?c)))"     => "(^ ?a (+ (bw ?p ?b) (bw ?q ?c)))"),
@@ -26,10 +29,12 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("div_same";        "(div (* ?a ?b) ?a)"        => "?b"                 if precondition(&["(> ?a 0)"])),
         rewrite!("shift_mod"; "(bw ?q (>> (bw ?p ?a) ?b))" => "(bw ?q (>> ?a ?b))" if precondition(&["(>= (- ?p ?q) ?b)"])),
         rewrite!("div-by-more"; "(div (bw 1 ?a) 2)" => "0"),
+        // rewrite!("shift-by-zero"; "(>> (bw ?p ?a) 0)" => "(bw ?p ?a)"),
         /////////////////////////
         //      MOD RELATED    //
         /////////////////////////
         rewrite!("bw_1"; "(bw ?p 1)" => "1"),
+        // rewrite!("bw_m1"; "(bw 1 -1)" => "1"),
         rewrite!("bw_0"; "(bw ?p 0)" => "0"),
         // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
         rewrite!("add_remove_prec";    "(bw ?p (+ (bw ?q ?a) ?b))"
@@ -58,6 +63,8 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
                                     if precondition(&["(>= ?r (+ ?p ?q))"])),
         rewrite!("mul_by_bit";      "(bw ?p (* (bw ?p ?a) (bw 1 ?b)))"
                                     => "(* (bw ?p ?a) (bw 1 ?b))"),
+        // rewrite!("not_bit";      "(bw 1 (not (bw 1 ?a)))"
+        //                             => "(bw 1 (- (bw 1 1) (bw 1 ?a)))"),
         // precision loss due to smaller outer mod
         rewrite!("mul_remove_prec"; "(bw ?q (* (bw ?p ?a) ?b))"
                                  => "(bw ?q (* ?a ?b))"
@@ -101,15 +108,20 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("or_zero";         "(or ?a 0)" => "?a"),
         // bitwise remove prec
         rewrite!("and_remove"; "(bw ?p (and (bw ?p ?a) (bw ?p ?b)))" => "(and (bw ?p ?a) (bw ?p ?b))"),
+        rewrite!("and_remove_inner"; "(bw ?p (and (bw ?q ?a) (bw ?r ?b)))" => "(bw ?p (and (bw ?p ?a) (bw ?r ?b)))" if precondition(&["(> ?q ?p)"])),
         rewrite!("or_remove";  "(bw ?p (or (bw ?p ?a) (bw ?p ?b)))" => "(or (bw ?p ?a) (bw ?p ?b))"),
         rewrite!("xor_remove"; "(bw ?p (xor (bw ?p ?a) (bw ?p ?b)))" => "(xor (bw ?p ?a) (bw ?p ?b))"),
         rewrite!("demorg_and"; "(bw ?p (not (and (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("demorg_or";  "(bw ?p (not (or (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (and (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("select-to-mult"; "(SEL (bw 1 ?cond) (bw ?p ?a) (bw ?p ?b))" => "(+ (bw ?p (* (bw ?p ?a) (bw 1 ?cond))) (bw ?p (* (bw ?p ?b) (bw 1 (not (bw 1 ?cond))))))"),
+        // rewrite!("add-not-self"; "(+ (bw ?p ?a) (bw ?p (not (bw ?p ?a))))" => "(bw ?p -1)"),
     ];
     rules.extend(rewrite!("xor_and_or";      "(and (or (bw ?p ?a) (bw ?p ?b)) (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))" <=> "(xor (bw ?p ?a) (bw ?p ?b))"));
     // bitwise to arith
     rules.extend(rewrite!("neg_not"; "(- (bw ?p ?a))" <=> "(+ (not (bw ?p ?a)) 1)"));
+    // rules.extend(
+    //     rewrite!("neg_not_2"; "(bw ?p (- (bw ?p (- (bw ?p ?a))) (bw 1 1)))" <=> "(bw ?p (not (bw ?p ?a)))"),
+    // );
     rules.extend(rewrite!("add_as_xor_and";
         "(+ (bw ?p ?a) (bw ?q ?b))"
             <=>
@@ -128,7 +140,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
 
     rules.extend(rewrite!("int_distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     rules.extend(rewrite!("Num.ring_1_class.mult_minus1"; "(- ?b)" <=> "(* -1 ?b)"));
-    rules.extend(rewrite!("sub_to_neg"; "(- ?a ?b)" <=> "(+ ?a (* -1 ?b))"));
+    rules.extend(rewrite!("sub_to_neg"; "(- ?a ?b)" <=> "(+ ?a (- ?b))"));
     // multliplication across the mod (this works because mod b implies mod 2^b)
     // c * (a mod b) = (c * a mod b * c)
     // rules.extend(rewrite!("mod-mul"; "(* (^ 2 ?e) (bw ?b ?c))" <=> "(bw (+ ?e ?b) (* (^ 2 ?e) ?c))"));

@@ -1,0 +1,6 @@
+{
+    "name": "redundant_sel_add",
+    "preconditions": [],
+    "lhs": "(bw w (SEL (bw 1 s) (bw w a) (bw w a)))",
+    "rhs": "(bw w a)"
+}
