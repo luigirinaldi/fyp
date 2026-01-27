@@ -1,6 +1,6 @@
 {
     "name": "equation_abc",
     "preconditions": ["(> w8 w1)", "(> w8 w4)", "(> w9 w4)"],
-    "lhs": "(bw w7 (+ (bw w7 (* (bw w7 (signed (bw w8 (- (bw w4 ct) (bw w1 a))))) (bw w7 (signed (bw w3 c))))) (bw w7 (* (bw w1 a) (bw w7 d)))))",
-    "rhs": "(bw w7 (+ (bw w7 (* (bw w7 (signed (bw w3 c))) (bw w7 (signed (bw w9 (bw w4 ct)))))) (bw w7 (* (bw w1 a) (bw w7 (- (bw w7 (signed (bw w7 d))) (bw w7 (signed (bw w3 c)))))))))"
+    "lhs": "(bw w7 (+ (bw w7 (* (bw w7 (signed w8 (bw w8 (- (bw w4 ct) (bw w1 a))))) (bw w7 (signed w3 (bw w3 c))))) (bw w7 (* (bw w1 a) (bw w7 d)))))",
+    "rhs": "(bw w7 (+ (bw w7 (* (bw w7 (signed w3 (bw w3 c))) (bw w7 (signed w9 (bw w9 (bw w4 ct)))))) (bw w7 (* (bw w1 a) (bw w7 (- (bw w7 (signed w7 (bw w7 d))) (bw w7 (signed w3 (bw w3 c)))))))))"
 }

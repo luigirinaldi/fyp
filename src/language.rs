@@ -11,7 +11,7 @@ type Num = i32;
 define_language! {
     pub enum ModIR {
         "bw" = Mod([Id; 2]), // mod operator to capture the bitwidth of a given sub-expression
-        "signed" = Signed([Id; 1]),
+        "signed" = Signed([Id; 2]),
         // Arithmetic operators
         "+" = Add([Id; 2]),
         "-" = Sub([Id; 2]),
@@ -207,7 +207,10 @@ fn validate_bwlang(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
             validate_width(expr, *width)?;
             validate_bwlang(expr, *term)
         }
-        ModIR::Signed([term]) => validate_bwlang(expr, *term),
+        ModIR::Signed([width, term]) => {
+            validate_width(expr, *width)?;
+            validate_bwlang(expr, *term)
+        }
         ModIR::Add(childs)
         | ModIR::Sub(childs)
         | ModIR::Mul(childs)
