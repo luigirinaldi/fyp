@@ -155,7 +155,7 @@ fn {fn_name}_validate() {{
 }}
 
 #[test]
-{should_panic_attr}#[timeout(5000)]
+{should_panic_attr}#[timeout(4000)]
 #[allow(non_snake_case)]
 fn {fn_name}_find_equiv() {{
     let mut eq = Equivalence::new(
