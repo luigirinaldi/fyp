@@ -113,9 +113,6 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("mod_prop_neg";    "(bw ?p (- ?a))"
                             => "(bw ?p (- (bw ?p ?a)))"
                             if not_already_bw("?p", "?a")),
-        rewrite!("mod_prop_mod";    "(bw ?p ?a)"
-                            => "(bw ?p (bw ?p ?a))"
-                            if not_already_bw("?p", "?a")),
         // shift operations
         rewrite!("shl_def"; "(<< (bw ?p ?a) (bw ?q ?b))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
         rewrite!("shr_def"; "(>> (bw ?p ?a) (bw ?q ?b))" => "(div (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
