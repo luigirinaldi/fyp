@@ -26,8 +26,6 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("div_pow_join";    "(div (div ?a ?b) ?c)"      => "(div ?a (* ?b ?c))" if precondition(&["(> ?c 0)"])),
         rewrite!("div_mult_self";   "(div (+ ?a (* ?b ?c)) ?b)" => "(+ (div ?a ?b) ?c)" if precondition(&["(> ?b 0)"])),
         rewrite!("div_same";        "(div (* ?a ?b) ?a)"        => "?b"                 if precondition(&["(> ?a 0)"])),
-        // rewrite!("shift_mod"; "(bw ?q (>> (bw ?p ?a) ?b))" => "(bw ?q (>> ?a ?b))" if precondition(&["(>= (- ?p ?q) ?b)"])),
-        // rewrite!("div-by-more"; "(div (bw 1 ?a) 2)" => "0"),
         /////////////////////////
         //      MOD RELATED    //
         /////////////////////////
@@ -117,7 +115,6 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         // shift operations
         rewrite!("shl_def"; "(<< (bw ?p ?a) (bw ?q ?b))" => "(* (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
         rewrite!("shr_def"; "(>> (bw ?p ?a) (bw ?q ?b))" => "(div (bw ?p ?a) (^ 2 (bw ?q ?b)))"),
-        // rewrite!("shr_by_pos"; "(>> ?a ?b)" => "(div ?a (^ 2 ?b))" if precondition(&["(> ?b 0)"])),
         // bitwise ring? properties
         rewrite!("isabelle-or.commute";     "(or ?a ?b)" => "(or ?b ?a)"),
         rewrite!("isabelle-or_assoc";       "(or (or ?a ?b) ?c)" => "(or ?a (or ?b ?c))"),
@@ -128,7 +125,6 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("and_one";         "(and (bw ?p ?a) 1)" => "(bw 1 ?a)"),
         rewrite!("or_allones";      "(or (bw ?p ?a) (bw ?p -1))" => "(bw ?p -1)"),
         rewrite!("xor_allones";     "(bw ?p (xor (bw ?p ?a) (bw ?p -1)))" => "(bw ?p (not (bw ?p ?a)))"),
-        // rewrite!("xor_one";         "(xor (bw ?p ?a) 1)" => "(+ (* (div (bw ?p ?a) 2) 2) (bw 1 (not (bw 1 ?a))))"),
         rewrite!("and_self";        "(and ?a ?a)" => "?a"),
         rewrite!("or_self";         "(or ?a ?a)" =>  "?a"),
         rewrite!("and_not_self";    "(and (bw ?p ?a) (bw ?p (not (bw ?p ?a))))" => "0"),
