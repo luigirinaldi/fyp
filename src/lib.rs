@@ -470,7 +470,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
         Ok(proof_string)
     }
 
-    pub fn validate(&self) -> Result<(), String> {
+    pub fn validate(&self, check_width_sat: bool) -> Result<(), String> {
         self.preconditions
             .iter()
             .map(|precond| validate_precond(precond, precond.root()))
@@ -478,31 +478,33 @@ for {nat_string} :: nat and {int_string} :: int\n",
         validate_term(&self.rhs, self.rhs.root())?;
         validate_term(&self.lhs, self.lhs.root())?;
 
-        let solver = Solver::new();
-        for expr in &self.width_exprs {
-            solver.assert(expr.width_to_z3(expr.root())?.gt(0));
-        }
-        solver.push();
-        // want to validate that all the bitwidths can be > 0
-        if solver.check() != SatResult::Sat {
-            let mut out_str = format!("The constraint on the width expressions all being greater than 0 produces an unsatisfiable set of widths:");
+        if check_width_sat {
+            let solver = Solver::new();
             for expr in &self.width_exprs {
-                out_str += " (";
-                out_str += &expr.to_string();
-                out_str += " > 0) and";
+                solver.assert(expr.width_to_z3(expr.root())?.gt(0));
             }
-            return Err(out_str);
-        }
-        solver.pop(1);
+            solver.push();
+            // want to validate that all the bitwidths can be > 0
+            if solver.check() != SatResult::Sat {
+                let mut out_str = format!("The constraint on the width expressions all being greater than 0 produces an unsatisfiable set of widths:");
+                for expr in &self.width_exprs {
+                    out_str += " (";
+                    out_str += &expr.to_string();
+                    out_str += " > 0) and";
+                }
+                return Err(out_str);
+            }
+            solver.pop(1);
 
-        for expr in &self.preconditions {
-            solver.assert(expr.to_z3_cond()?);
-        }
-        // want to validate that given the provided preconditions the set of widths is satisfiable
-        if solver.check() != SatResult::Sat {
-            return Err(format!(
-                "The provided preconditions constrain the widths in an unsatisfiable way"
-            ));
+            for expr in &self.preconditions {
+                solver.assert(expr.to_z3_cond()?);
+            }
+            // want to validate that given the provided preconditions the set of widths is satisfiable
+            if solver.check() != SatResult::Sat {
+                return Err(format!(
+                    "The provided preconditions constrain the widths in an unsatisfiable way"
+                ));
+            }
         }
         return Ok(());
     }

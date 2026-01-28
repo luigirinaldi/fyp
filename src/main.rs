@@ -75,7 +75,11 @@ enum Command {
         max_time: u64,
     },
 
-    ValidateInput,
+    ValidateInput {
+        /// Check that the set of widths defined by the constraints is non-empty
+        #[arg(short, long, default_value = "false")]
+        check_widths: bool,
+    },
 
     // /// Convert the bwlang file to Integer Arithmetic
     // ToSmtIa,
@@ -111,7 +115,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut equiv: Equivalence = Equivalence::from(equiv_str);
     info!("Running parabit on file: {}", equiv.name);
-    equiv.validate()?;
+    equiv.validate(false)?;
 
     debug!(
         "\nlhs:\t{}\nrhs:\t{}\nprecond: {}",
@@ -254,7 +258,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
         // input validation happends after the equiv is constructed, hence no need to do anything
-        Command::ValidateInput => return Ok(()),
+        Command::ValidateInput { check_widths } => {
+            equiv.validate(*check_widths)?;
+            return Ok(());
+        }
         Command::ToSmtPbv { dest_path } => {
             if !dest_path.exists() {
                 debug!("Creating directory {}", dest_path.to_string_lossy());
