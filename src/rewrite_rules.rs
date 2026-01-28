@@ -132,9 +132,11 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("or_zero";         "(or ?a 0)" => "?a"),
         // bitwise remove prec
         rewrite!("and_remove"; "(bw ?p (and (bw ?p ?a) (bw ?p ?b)))" => "(and (bw ?p ?a) (bw ?p ?b))"),
-        rewrite!("and_remove_inner"; "(bw ?p (and (bw ?q ?a) ?b))" => "(bw ?p (and (bw ?p ?a) ?b))" if precondition(&["(> ?q ?p)"])),
         rewrite!("or_remove";  "(bw ?p (or (bw ?p ?a) (bw ?p ?b)))" => "(or (bw ?p ?a) (bw ?p ?b))"),
         rewrite!("xor_remove"; "(bw ?p (xor (bw ?p ?a) (bw ?p ?b)))" => "(xor (bw ?p ?a) (bw ?p ?b))"),
+        rewrite!("and_remove_inner"; "(bw ?p (and (bw ?q ?a) ?b))" => "(bw ?p (and ?a ?b))" if precondition(&["(> ?q ?p)"])),
+        rewrite!("or_remove_inner"; "(bw ?p (or (bw ?q ?a) ?b))" => "(bw ?p (or ?a ?b))" if precondition(&["(> ?q ?p)"])),
+        rewrite!("xor_remove_inner"; "(bw ?p (xor (bw ?q ?a) ?b))" => "(bw ?p (xor ?a ?b))" if precondition(&["(> ?q ?p)"])),
         rewrite!("demorg_and"; "(bw ?p (not (and (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("demorg_or";  "(bw ?p (not (or (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (and (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("sel_def"; "(bw ?p (sel ?cond ?a ?b))" => "(bw ?p (+ (* ?a (bw 1 ?cond)) (* ?b (bw 1 (not (bw 1 ?cond))))))"),

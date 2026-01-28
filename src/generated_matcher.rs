@@ -15,6 +15,7 @@ pub fn rule_to_file(input: &str) -> Option<&'static str> {
         "and_not_self" => Some("bitwise_lemmas"),
         "and_one" => Some("bitwise_lemmas"),
         "and_remove" => Some("bitwise_lemmas"),
+        "and_remove_inner" => Some("bitwise_lemmas"),
         "and_self" => Some("bitwise_lemmas"),
         "and_zero" => Some("bitwise_lemmas"),
         "bw_0" => Some("arith_lemmas"),
@@ -62,6 +63,7 @@ pub fn rule_to_file(input: &str) -> Option<&'static str> {
         "or_assoc" => Some("bitwise_lemmas"),
         "or_not_self" => Some("bitwise_lemmas"),
         "or_remove" => Some("bitwise_lemmas"),
+        "or_remove_inner" => Some("bitwise_lemmas"),
         "or_self" => Some("bitwise_lemmas"),
         "or_zero" => Some("bitwise_lemmas"),
         "reduce_mod" => Some("arith_lemmas"),
@@ -73,6 +75,7 @@ pub fn rule_to_file(input: &str) -> Option<&'static str> {
         "xor_and_or_help" => Some("bitwise_lemmas"),
         "xor_as_or_and" => Some("mixed_lemmas"),
         "xor_remove" => Some("bitwise_lemmas"),
+        "xor_remove_inner" => Some("bitwise_lemmas"),
         _ => None,
     }
 }
