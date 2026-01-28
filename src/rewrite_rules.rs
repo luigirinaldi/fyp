@@ -248,38 +248,28 @@ fn not_already_bw(
     var_p: &str,
     var_x: &str,
 ) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, &Subst) -> bool {
-    let var_p: RecExpr<ModIR> = var_p.parse().unwrap();
-    let var_x: RecExpr<ModIR> = var_x.parse().unwrap();
+    let var_p = var_p.parse().unwrap();
+    let var_x = var_x.parse().unwrap();
 
     move |egraph, _, subst| {
-        let p = apply_subst(&var_p, subst, egraph);
-        let x = apply_subst(&var_x, subst, egraph);
+        let p = subst[var_p];
+        let x = subst[var_x];
 
-        let res = if let Some(x_id) = &egraph.lookup_expr(&x) {
-            if let Some(p_id) = &egraph.lookup_expr(&p) {
-                let mut val_out = true;
-                for node in &egraph[*x_id].nodes {
-                    // Check if this node is a "bw" operation
-                    if let ModIR::Mod([bw_p, _]) = node {
-                        // Check if the first argument is in the same eclass as p
-                        if egraph.find(*bw_p) == egraph.find(*p_id) {
-                            val_out &= false; // Already has form (bw p ...), don't apply rewrite
-                        }
-                    }
+        // Get the eclass for x
+        let x_eclass = &egraph[x];
+
+        // Check if any node in x's eclass is (bw p ...)
+        for node in &x_eclass.nodes {
+            // Check if this node is a "bw" operation
+            if let ModIR::Mod([bw_p, _]) = node {
+                // Check if the first argument is in the same eclass as p
+                if egraph.find(*bw_p) == egraph.find(p) {
+                    return false; // Already has form (bw p ...), don't apply rewrite
                 }
-                val_out
-            } else {
-                true
             }
-        } else {
-            true
-        };
-        // println!(
-        //     "Checking if ?x = {} is already in a class with (bw {} ?x) = {res}",
-        //     x, p
-        // );
+        }
 
-        res
+        true // Not in the form (bw p ...), allow the rewrite
     }
 }
 // Given some condition that needs to be true, set it to be true based on some known truths
