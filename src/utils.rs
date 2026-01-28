@@ -159,6 +159,14 @@ pub fn print_infix(
         }
         ModIR::Num(num) if add_type_hint => format!("({num}::int)"),
         ModIR::Num(num) if *num < 0 => format!("({num})"),
+        op @ ModIR::Signed([w, e]) => {
+            format!(
+                "({} {} {})",
+                op.to_string(),
+                get_child_str(expr, w),
+                get_child_str(expr, e)
+            )
+        }
         other => {
             if other.children().len() == 3 {
                 format!(
