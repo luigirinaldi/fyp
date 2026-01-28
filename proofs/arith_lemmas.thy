@@ -161,13 +161,9 @@ lemma mod_prop_not: "(bw p (not a)) = (bw p (not (bw p a)))" using bw_def by (me
 lemma mod_prop_neg: "(bw p (- a)) = (bw p (- (bw p a)))" using bw_def by (simp add: mod_minus_eq)
 
 lemma mod_prop_mod: "(bw p a) = (bw p (bw p a))" using bw_def by auto
-(*
-lemma redundant_signed: "(bw p (signed p (bw p a))) = bw p a" using signed_def bw_def proof -
 
-have "signed p (bw p a) = ((2 * (bw p a)) mod (2 * 2^(p-1))) - bw p a" 
-apply (simp only: signed_def)
-apply (simp only: bw_def)
-apply (simp only: mod_mult_mult1)
-*)
+lemma div_1: 
+fixes a :: int
+shows "a div 1 = a" by simp
 
 end
