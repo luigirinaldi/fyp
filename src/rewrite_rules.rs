@@ -143,8 +143,6 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     rules.extend(rewrite!("xor_and_or";      "(and (or (bw ?p ?a) (bw ?p ?b)) (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))" <=> "(xor (bw ?p ?a) (bw ?p ?b))"));
     // bitwise to arith
     rules.extend(rewrite!("neg_not"; "(- (bw ?p ?a))" <=> "(+ (not (bw ?p ?a)) 1)"));
-    rules
-        .extend(rewrite!("not_neg"; "(bw ?p (- (- (bw ?p ?a) 1)))" <=> "(bw ?p (not (bw ?p ?a)))"));
     rules.extend(rewrite!("add_as_xor_and";
         "(+ (bw ?p ?a) (bw ?q ?b))"
             <=>
