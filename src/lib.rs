@@ -376,7 +376,7 @@ impl Equivalence {
                     val @ ("shl_def" | "shr_def" | "sel_def") => format!("by (simp add: {val})"),
                     // need to use blast for diff_eq
                     rule @ "mod_prop_sum" => {
-                        format!("using that bw_def {rule} by presburger")
+                        format!("using that bw_def {rule} by (presburger ; fail | blast)")
                     }
                     val @ ("diff_left_eq_prec" | "diff_right_eq_prec") | val if val.to_string().find("mod_prop").is_some() => {
                         format!("using that {val} by (blast; fail | metis)")
