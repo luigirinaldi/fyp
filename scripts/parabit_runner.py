@@ -21,6 +21,7 @@ import sys
 from pathlib import Path
 import subprocess
 
+import threading
 
 # HARDCODED BINARY PATH - Change this to your binary location
 PARABIT_PATH = "../"
@@ -31,6 +32,12 @@ PROOF_PATH = PARABIT_PATH + "proofs/"
 
 ISABELLE_DOCKER_IMAGE = "isabelle-docker:latest"
 
+
+
+def run_with_timeout(process, timeout):
+    """Kill process if it runs longer than timeout"""
+    if process.poll() is None:
+        process.kill()
 
 def set_memory_limit(bytes_limit: int):
     """Set memory limit for the current process."""
@@ -53,57 +60,44 @@ def run_binary_on_file(
     out_file = output_dir / f"{base_name}.out"
     err_file = output_dir / f"{base_name}.err"
 
-    start_time = time.time()
+    start_time = time.perf_counter()
     max_memory_mb = 0.0
 
     try:
         with open(out_file, "w") as stdout_f, open(err_file, "w") as stderr_f:
-            # Start the process
             process = subprocess.Popen(
-                [binary_path, str(input_file)] + args.split() if args else [binary_path, str(input_file)],
+                [binary_path, str(input_file), str(args)] if args else [binary_path, str(input_file)],
                 stdout=stdout_f,
                 stderr=stderr_f,
-                preexec_fn=lambda: set_memory_limit(
-                    int(memory_limit_gb * 1024 * 1024 * 1024)
-                ),
+                preexec_fn=lambda: set_memory_limit(int(memory_limit_gb * 1024 * 1024 * 1024)),
             )
-
-            # Monitor memory while process runs
+            
+            # Set up timeout killer
+            timer = threading.Timer(timeout, run_with_timeout, args=[process, timeout])
+            timer.start()
+            
             try:
                 psutil_process = psutil.Process(process.pid)
-                elapsed = 0.0
-                sample_interval = 0.001
-
-                while elapsed < timeout:
-                    # Check if process is still running
-                    if process.poll() is not None:
-                        break
-
-                    # Sample memory
+                sample_interval = 0.01
+                
+                while process.poll() is None:
                     try:
                         mem_info = psutil_process.memory_info()
                         current_memory_mb = mem_info.rss / (1024 * 1024)
                         max_memory_mb = max(max_memory_mb, current_memory_mb)
                     except (psutil.NoSuchProcess, psutil.AccessDenied):
                         break
-
                     time.sleep(sample_interval)
-                    elapsed += sample_interval
-
-                # Check for timeout
-                if process.poll() is None:
-                    process.kill()
-                    process.wait()
-                    time_taken = time.time() - start_time
-                    last_err_line = f"TIMEOUT after {timeout}s"
-                    return (base_name, False, last_err_line, time_taken, max_memory_mb)
-
-            except psutil.NoSuchProcess:
-                # Process ended very quickly
-                process.wait()
-
-        time_taken = time.time() - start_time
-        success = process.returncode == 0
+            finally:
+                timer.cancel()  # Cancel timer if process finished naturally
+            
+            process.wait()
+            time_taken = time.perf_counter() - start_time
+            success = process.returncode == 0
+            
+            if time_taken >= timeout:
+                last_err_line = f"TIMEOUT after {timeout}s"
+                return (base_name, False, last_err_line, time_taken, max_memory_mb)
 
         # Read last error line if exists
         last_err_line = ""
