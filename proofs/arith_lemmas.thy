@@ -162,5 +162,8 @@ lemma mod_prop_neg: "(bw p (- a)) = (bw p (- (bw p a)))" using bw_def by (simp a
 
 lemma mod_prop_mod: "(bw p a) = (bw p (bw p a))" using bw_def by auto
 
+lemma div_1: 
+fixes a :: int
+shows "a div 1 = a" by simp
 
 end
