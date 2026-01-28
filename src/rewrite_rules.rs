@@ -144,7 +144,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         ///////////////////////////////////////////////
         ///                                         ///
         ///         UNVERIFIED!                     ///
-        ///                                         ///
+        
         ///////////////////////////////////////////////
         rewrite!("xor_one";         "(xor (bw ?p ?a) 1)" => "(+ (* (div (bw ?p ?a) 2) 2) (bw 1 (not (bw 1 ?a))))"),
         rewrite!("shift_mod"; "(bw ?q (>> (bw ?p ?a) ?b))" => "(bw ?q (>> ?a ?b))" if precondition(&["(>= (- ?p ?q) ?b)"])),
