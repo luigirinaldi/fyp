@@ -166,4 +166,9 @@ lemma div_1:
 fixes a :: int
 shows "a div 1 = a" by simp
 
+lemma div_floor_help: "(bw p a) div 2^p = 0" using bw_def by simp
+lemma div_floor: "(bw p a) div b = 0" if "b \<ge> 2^p" using bw_def div_floor_help by (metis bw_max_val div_pos_pos_trivial leI not_exp_less_eq_0_int order.strict_trans2 pos_mod_sign that zle_diff1_eq)
+
+lemma div_by_more: "(bw 1 a) div 2 = 0" using bw_def by simp
+
 end
