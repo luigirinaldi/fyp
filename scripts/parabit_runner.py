@@ -21,6 +21,7 @@ import sys
 from pathlib import Path
 import subprocess
 
+import time
 import threading
 
 # HARDCODED BINARY PATH - Change this to your binary location
@@ -58,6 +59,8 @@ def run_safe_subprocess(
     stats_file = output_dir / f"{base_name}.stats.json"
 
     timeout = False
+    killed_externally = False
+    success = False
 
     open(stats_file, "w")
     with open(stats_file, "r") as stats_f:
@@ -75,17 +78,37 @@ def run_safe_subprocess(
 
             joined_comm = " ".join(command)
             # print(joined_comm)
+            start_time = time.perf_counter()
+            max_memory = 0.0
+
             try:
-                result = subprocess.run(
-                    joined_comm,
+                with subprocess.Popen(joined_comm,
                     shell=True,
                     stdout=stdout_f,
-                    stderr=stderr_f,
-                    timeout=timeout_s + 5,
-                )
-                success = result.returncode == 0
-                timeout = result.returncode == 124
+                    stderr=stderr_f) as process:
+                    
+                    psutil_process = psutil.Process(process.pid)
+                    sample_interval = 0.1
+                    
+                    while process.poll() is None:
+                        try:
+                            mem_info = psutil_process.memory_info()
+                            current_memory_mb = mem_info.rss / (1024 * 1024)
+                            max_memory = max(max_memory, current_memory_mb)
+                        except (psutil.NoSuchProcess, psutil.AccessDenied):
+                            break
+
+                        time.sleep(sample_interval)
+
+                    process.wait()
+                    
+                    success = process.returncode == 0
+                    timeout = process.returncode == 124
             except:
+                end_time = time.perf_counter()
+                elapsed_time = end_time - start_time
+                timeout = elapsed_time >= timeout_s
+                killed_externally = True
                 raise ValueError("Something went catastrophically wrong!")
             # Read last error line if exists
             last_err_line = ""
@@ -99,25 +122,31 @@ def run_safe_subprocess(
 
             if success:
                 stats = json.loads(stats_f.read())[1]
-                time = stats["crude_time"]
+                time_out = stats["crude_time"]
+            else:
+                if timeout:
+                    time_out = timeout_s
+                else:
+                    if killed_externally:
+                        time_out = elapsed_time
+                    else:
+                        data = json.loads(last_err_line)
+                        time_out = data["elapsed"]
+
+            if success:
                 memory_mb = json.loads(last_err_line)["maxrss"] / 1024
             else:
-                data = json.loads(last_err_line)
-                memory_mb = data["maxrss"] / 1024
-                if timeout:
-                    time = timeout_s
+                if killed_externally:
+                    memory_mb = max_memory
                 else:
-                    time = data["elapsed"]
-
-            # Check if memory limit was hit (common error)
-            if "memory" in second_last.lower() or "allocation" in second_last.lower():
-                second_last = f"MEMORY_LIMIT ({second_last})"
+                    data = json.loads(last_err_line)
+                    memory_mb = data["maxrss"] / 1024
 
             return (
                 base_name,
                 success,
                 second_last,
-                time,
+                time_out,
                 memory_mb,
             )
 
