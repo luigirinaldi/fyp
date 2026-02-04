@@ -33,115 +33,129 @@ PROOF_PATH = PARABIT_PATH + "proofs/"
 ISABELLE_DOCKER_IMAGE = "isabelle-docker:latest"
 
 
-
-def run_with_timeout(process, timeout):
-    """Kill process if it runs longer than timeout"""
-    if process.poll() is None:
-        process.kill()
-
-def set_memory_limit(bytes_limit: int):
-    """Set memory limit for the current process."""
-    resource.setrlimit(resource.RLIMIT_AS, (bytes_limit, bytes_limit))
-
-
-def run_binary_on_file(
+def run_safe_subprocess(
     input_file: Path,
     output_dir: Path,
     binary_path: str,
-    timeout: int,
-    memory_limit_gb: float,
+    memlimit_gb: int,
+    timeout_s: int,
     args: str | None,
 ) -> Tuple[str, bool, str, float, float]:
     """
-    Run the binary on a single file with timeout and memory limits.
-    Returns: (filename, success, last_error_line, time_taken, max_memory_mb)
+    Run a subprocess with CPU, time, and priority limits.
+
+    Args:
+        target_cmd (str): The command to run (e.g., "python3 script.py").
+
+    Returns:
+        subprocess.CompletedProcess: Result of the subprocess.
     """
+    # Combine ulimit, nice, and timeout into a single shell command
+
     base_name = input_file.name
     out_file = output_dir / f"{base_name}.out"
     err_file = output_dir / f"{base_name}.err"
+    stats_file = output_dir / f"{base_name}.stats.json"
 
-    start_time = time.perf_counter()
-    max_memory_mb = 0.0
+    timeout = False
 
-    try:
+    open(stats_file, "w")
+    with open(stats_file, "r") as stats_f:
         with open(out_file, "w") as stdout_f, open(err_file, "w") as stderr_f:
-            process = subprocess.Popen(
-                [binary_path, str(input_file), str(args)] if args else [binary_path, str(input_file)],
-                stdout=stdout_f,
-                stderr=stderr_f,
-                preexec_fn=lambda: set_memory_limit(int(memory_limit_gb * 1024 * 1024 * 1024)),
-            )
-            
-            # Set up timeout killer
-            timer = threading.Timer(timeout, run_with_timeout, args=[process, timeout])
-            timer.start()
-            
+            command = [
+                f"ulimit -v {memlimit_gb * 1024 * 1024} &&",
+                "/usr/bin/time",
+                '--format=\'{"elapsed":%e, "maxrss":%M}\'',
+                f"timeout {timeout_s} ",
+                binary_path,
+                str(input_file),
+                "get-stats",
+                f"--stats-path {stats_file}",
+            ]
+
+            joined_comm = " ".join(command)
+            # print(joined_comm)
             try:
-                psutil_process = psutil.Process(process.pid)
-                sample_interval = 0.01
-                
-                while process.poll() is None:
-                    try:
-                        mem_info = psutil_process.memory_info()
-                        current_memory_mb = mem_info.rss / (1024 * 1024)
-                        max_memory_mb = max(max_memory_mb, current_memory_mb)
-                    except (psutil.NoSuchProcess, psutil.AccessDenied):
-                        break
-                    time.sleep(sample_interval)
-            finally:
-                timer.cancel()  # Cancel timer if process finished naturally
-            
-            process.wait()
-            time_taken = time.perf_counter() - start_time
-            success = process.returncode == 0
-            
-            if time_taken >= timeout:
-                last_err_line = f"TIMEOUT after {timeout}s"
-                return (base_name, False, last_err_line, time_taken, max_memory_mb)
+                result = subprocess.run(
+                    joined_comm,
+                    shell=True,
+                    stdout=stdout_f,
+                    stderr=stderr_f,
+                    timeout=timeout_s + 5,
+                )
+                success = result.returncode == 0
+                timeout = result.returncode == 124
+            except:
+                raise ValueError("Something went catastrophically wrong!")
+            # Read last error line if exists
+            last_err_line = ""
+            second_last = ""
+            if err_file.exists():
+                with open(err_file) as ef:
+                    lines = ef.readlines()
+                    if lines:
+                        last_err_line = lines[-1].strip()
+                        second_last = lines[-2].strip()
 
-        # Read last error line if exists
-        last_err_line = ""
-        if err_file.exists():
-            with open(err_file) as ef:
-                lines = ef.readlines()
-                if lines:
-                    last_err_line = lines[-1].strip()
+            if success:
+                stats = json.loads(stats_f.read())[1]
+                time = stats["crude_time"]
+                memory_mb = json.loads(last_err_line)["maxrss"] / 1024
+            else:
+                data = json.loads(last_err_line)
+                memory_mb = data["maxrss"] / 1024
+                if timeout:
+                    time = timeout_s
+                else:
+                    time = data["elapsed"]
 
-        # Check if memory limit was hit (common error)
-        if not success and (
-            "memory" in last_err_line.lower() or "allocation" in last_err_line.lower()
-        ):
-            last_err_line = f"MEMORY_LIMIT ({last_err_line})"
+            # Check if memory limit was hit (common error)
+            if "memory" in second_last.lower() or "allocation" in second_last.lower():
+                second_last = f"MEMORY_LIMIT ({second_last})"
 
-        return (base_name, success, last_err_line, time_taken, max_memory_mb)
+            return (
+                base_name,
+                success,
+                second_last,
+                time,
+                memory_mb,
+            )
 
-    except Exception as e:
-        time_taken = time.time() - start_time
-        return (base_name, False, str(e), time_taken, max_memory_mb)
+    # except subprocess.CalledProcessError as e:
+    #     if e.returncode == 124:
+    #         raise RuntimeError(f"Subprocess exceeded {timeout_s}s wall time.")
+    #     elif e.returncode == 137:  # 137 = 128 + 9 (SIGKILL) from ulimit
+    #         raise RuntimeError(f"Subprocess exceeded {memlimit_gb} GB memory.")
+    #     else:
+    #         raise RuntimeError(
+    #             f"Subprocess failed with code {e.returncode}: {e.stderr}"
+    #         )
+
 
 def extract_names_from_files(file_paths: list) -> Dict[str, str]:
     """
     Reads JSON files and extracts the 'name' key from each.
-    
+
     Args:
         file_paths: List of file paths to JSON files
-        
+
     Returns:
         Dictionary mapping filename to the 'name' value from the JSON
     """
     result = {}
-    
+
     for file_path in file_paths:
         path = Path(file_path)
         try:
-            with open(path, 'r') as f:
+            with open(path, "r") as f:
                 data = json.load(f)
-                if 'name' in data:
-                    result[path.name] = data['name']
+                if "name" in data:
+                    result[path.name] = data["name"]
         except Exception as e:
             print(f"Error reading {file_path}: {e}")
-    
+
     return result
+
 
 def run_binary_parallel(
     input_dir: Path,
@@ -149,7 +163,7 @@ def run_binary_parallel(
     max_workers: int,
     binary_path: str,
     timeout: int,
-    memory_limit_gb: float,
+    memory_limit_gb: int,
     file_pattern: str,
     args: str,
 ) -> List[dict]:
@@ -181,12 +195,12 @@ def run_binary_parallel(
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         future_to_file = {
             executor.submit(
-                run_binary_on_file,
+                run_safe_subprocess,
                 f,
                 log_dir,
                 binary_path,
-                timeout,
                 memory_limit_gb,
+                timeout,
                 args,
             ): f
             for f in input_files
@@ -257,7 +271,7 @@ def save_results_to_csv(results: List[dict], output_file: Path):
         "last_err_line",
         "problem_name",
         "verified",
-        "theorem_size"
+        "theorem_size",
     ]
 
     with open(output_file, "w", newline="") as csvfile:
@@ -305,36 +319,37 @@ def print_summary(results: List[dict]):
 def count_lines(file_path):
     """
     Count the number of lines in a file.
-    
+
     Args:
         file_path: Path to the file
-        
+
     Returns:
         Number of lines in the file
     """
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         return sum(1 for _ in f)
 
-def run_isabelle(results : List[dict], isabelle_dir : Path, csv_path):
+
+def run_isabelle(results: List[dict], isabelle_dir: Path, csv_path):
     try:
         proof_path = Path(PROOF_PATH)
-        
+
         for thy_file in proof_path.glob("*.thy"):
             shutil.copy(thy_file, isabelle_dir / thy_file.name)
-            
+
     except Exception as e:
         print(f"Failed to copy .thy files: {e}", file=sys.stderr)
         sys.exit(1)
 
     theorems_to_check = []
-    
+
     results_out = []
-    
+
     for r in results:
-        if r['status'] == "SUCCESS":
+        if r["status"] == "SUCCESS":
             file_path = isabelle_dir / f"{r['problem_name']}.thy"
             num_lines = count_lines(file_path)
-            r['theorem_size'] = num_lines
+            r["theorem_size"] = num_lines
             if num_lines >= 3500:
                 print("""
     ██     ██  █████  ██████  ███    ██ ██ ███    ██  ██████  
@@ -343,12 +358,14 @@ def run_isabelle(results : List[dict], isabelle_dir : Path, csv_path):
     ██ ███ ██ ██   ██ ██   ██ ██  ██ ██ ██ ██  ██ ██ ██    ██ 
      ███ ███  ██   ██ ██   ██ ██   ████ ██ ██   ████  ██████  
     """)
-                print(f"Skipping {r['problem_name']} because {num_lines} are too many liens for isabelle")
-                r['verified'] = False
+                print(
+                    f"Skipping {r['problem_name']} because {num_lines} are too many liens for isabelle"
+                )
+                r["verified"] = False
                 results_out.append(r)
             else:
-                theorems_to_check.append(r['problem_name'])
-                r['verified'] = None
+                theorems_to_check.append(r["problem_name"])
+                r["verified"] = None
                 results_out.append(r)
 
     save_results_to_csv(results, csv_path)
@@ -356,8 +373,10 @@ def run_isabelle(results : List[dict], isabelle_dir : Path, csv_path):
     # 2. Create ROOT file in the destination directory
     root_path = isabelle_dir / "ROOT"
     try:
-        with open(root_path, 'w') as file:
-            file.write(f"session CheckProofs = HOL + theories\n  {"\n".join(theorems_to_check)}")
+        with open(root_path, "w") as file:
+            file.write(
+                f"session CheckProofs = HOL + theories\n  {'\n'.join(theorems_to_check)}"
+            )
     except Exception as e:
         print(f"Failed to create or write to ROOT file: {e}", file=sys.stderr)
         sys.exit(1)
@@ -366,12 +385,23 @@ def run_isabelle(results : List[dict], isabelle_dir : Path, csv_path):
     print("Checking proof with Isabelle")
     try:
         result = subprocess.run(
-             ["docker", "run", "-v", f"{isabelle_dir.absolute()}:/build_dir/", 
-            ISABELLE_DOCKER_IMAGE, "build", "-v", "-d", "/build_dir/", "-c", "CheckProofs"],
+            [
+                "docker",
+                "run",
+                "-v",
+                f"{isabelle_dir.absolute()}:/build_dir/",
+                ISABELLE_DOCKER_IMAGE,
+                "build",
+                "-v",
+                "-d",
+                "/build_dir/",
+                "-c",
+                "CheckProofs",
+            ],
             cwd=isabelle_dir,
-            text=True
+            text=True,
         )
-        
+
         if not result.returncode == 0:
             raise ValueError(f"Isabelle proof check failed:\n{result.stdout}")
             # try:
@@ -383,13 +413,14 @@ def run_isabelle(results : List[dict], isabelle_dir : Path, csv_path):
         else:
             print("Proof verified by Isabelle!")
             for r in results:
-                if r['verified'] is None:
-                    r['verified'] = True
+                if r["verified"] is None:
+                    r["verified"] = True
             return True
-            
+
     except Exception as e:
         print(f"Failed to run bash command: {e}", file=sys.stderr)
         raise e
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -416,8 +447,8 @@ def main():
     parser.add_argument(
         "-m",
         "--memory",
-        type=float,
-        default=8.0,
+        type=int,
+        default=8,
         help="Memory limit per process in GB (default: 8.0)",
     )
     parser.add_argument(
@@ -437,7 +468,7 @@ def main():
     parser.add_argument(
         "--check-isabelle",
         default=False,
-        action='store_true',
+        action="store_true",
         help="Verify the generated equivalence by running it through Isabelle. This will override any arguments in 'extra-commands' (assumes a docker image is installed with isabelle)",
     )
     parser.add_argument(
@@ -466,10 +497,10 @@ def main():
     if args.check_isabelle:
         isabelle_dir = args.output_dir / "isabelle-check"
         isabelle_dir.mkdir()
-        
+
         if extra_parabit_args != "":
             print("Warning: override extra parabit args")
-        
+
         extra_parabit_args = f"get-proof --theorem-path {isabelle_dir}"
 
     # Run the binary on all files
@@ -496,8 +527,6 @@ def main():
         run_isabelle(results, isabelle_dir, csv_path)
         # Save results again
         save_results_to_csv(results, csv_path)
-
-
 
     return 0
 
