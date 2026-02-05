@@ -237,7 +237,6 @@ impl Equivalence {
         // Set up the runner with optional dot file generation
         self.runner = self
             .runner
-            .without_explanation_length_optimization()
             .with_hook(move |runner| {
                 info!(
                     "Iteration {}: {} nodes, {} classes",

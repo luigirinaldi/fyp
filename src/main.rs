@@ -177,7 +177,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     equiv = equiv.reset_runner();
                     let now = Instant::now();
                     {
-                        equiv = equiv.find_equivalence(&None);
+                        equiv = equiv.find_equivalence(&None).make_proof();
                     }
                     let elapsed = now.elapsed();
                     if let Some(is_equiv) = &equiv.equiv {
