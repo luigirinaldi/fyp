@@ -24,8 +24,8 @@ mod language;
 mod param_ir;
 #[cfg(feature = "smt-translate")]
 use crate::param_ir::{
-    compatible_compatible_condsconds, modir_cond_to_paramir_cond, modir_to_paramir,
-    pbvvar_to_smt_string, rewrite_var_to_wvar, wvar_to_smt_string, ParamIR, ParamUtils,
+    compatible_conds, modir_cond_to_paramir_cond, modir_to_paramir, pbvvar_to_smt_string,
+    rewrite_var_to_wvar, wvar_to_smt_string, ParamIR, ParamUtils,
 };
 
 mod rewrite_rules;
@@ -48,7 +48,6 @@ pub struct Equivalence {
     pub rhs: RecExpr<ModIR>,
     pub equiv: Option<bool>,
     pub runner: Runner<ModIR, ModAnalysis>,
-    width_exprs: HashSet<RecExpr<ModIR>>,
     bw_vars: HashSet<Symbol>,
     non_bw_vars: HashSet<Symbol>,
     proof: Option<Vec<egg::FlatTerm<ModIR>>>,
@@ -139,7 +138,6 @@ impl Equivalence {
             width_gt_zero: extra_preconditions.collect(),
             lhs: lhs_expr,
             rhs: rhs_expr,
-            width_exprs: unique_bitwidth_expr,
             bw_vars: all_bw_vars,
             non_bw_vars: non_bw_vars,
             proof: None,
@@ -478,19 +476,25 @@ for {nat_string} :: nat and {int_string} :: int\n",
         validate_term(&self.rhs, self.rhs.root())?;
         validate_term(&self.lhs, self.lhs.root())?;
 
-        /// If smt-translate is enabled (which includes z3) then also
-        /// check that the input problem is not trivially true.
+        // If smt-translate is enabled (which includes z3) then also
+        // check that the input problem is not trivially true.
         #[cfg(feature = "smt-translate")]
         {
+            let unique_bitwidth_expr: HashSet<_> = get_bitwidth_exprs(&self.lhs)
+                .iter()
+                .chain(&get_bitwidth_exprs(&self.rhs))
+                .cloned()
+                .collect();
+
             let solver = Solver::new();
-            for expr in &self.width_exprs {
+            for expr in &unique_bitwidth_expr {
                 solver.assert(expr.width_to_z3(expr.root())?.gt(0));
             }
             solver.push();
             // want to validate that all the bitwidths can be > 0
             if solver.check() != SatResult::Sat {
                 let mut out_str = format!("The constraint on the width expressions all being greater than 0 produces an unsatisfiable set of widths:");
-                for expr in &self.width_exprs {
+                for expr in &unique_bitwidth_expr {
                     out_str += " (";
                     out_str += &expr.to_string();
                     out_str += " > 0) and";
