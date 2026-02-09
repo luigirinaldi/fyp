@@ -13,4 +13,8 @@ by (smt (verit, ccfv_SIG) add_as_xor_and plus_and_or)
 
 lemma neg_not: "-(bw p a) = (not (bw p a)) + 1" by (simp only: minus_eq_not_plus_1)
 
+lemma xor_one: "xor (bw p a) 1 = (((bw p a) div 2) * 2) + (bw 1 (not (bw 1 a)))" if "p > 0"
+  using bw_def xor_rec by (smt (verit, del_insts) add_as_xor_and and_one and_one_eq even_not_iff even_two_times_div_two mod2_eq_if
+    odd_two_times_div_two_succ power_one_right that)
+
 end
