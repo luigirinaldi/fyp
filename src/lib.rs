@@ -143,15 +143,9 @@ impl Equivalence {
             proof: None,
             inferred_truths: None,
             equiv: None,
-            runner: Runner::<ModIR, ModAnalysis>::default()
-                .with_explanations_enabled()
-                .with_time_limit(Duration::from_secs(300))
-                .with_iter_limit(2000)
-                .with_node_limit(1000000)
-                .with_scheduler(SimpleScheduler),
+            runner: Runner::<ModIR, ModAnalysis>::default(),
         };
-
-        ret_self
+        ret_self.reset_runner()
     }
 
     pub fn precond_str(&self) -> String {
@@ -166,9 +160,9 @@ impl Equivalence {
     pub fn reset_runner(mut self) -> Self {
         self.runner = Runner::<ModIR, ModAnalysis>::default()
             .with_explanations_enabled()
-            .with_time_limit(Duration::from_secs(10))
-            .with_iter_limit(1000)
-            .with_node_limit(200000)
+            .with_time_limit(Duration::from_secs(300))
+            .with_iter_limit(2000)
+            .with_node_limit(10000000)
             .with_scheduler(SimpleScheduler);
         self
     }
