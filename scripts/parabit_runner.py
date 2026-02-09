@@ -357,7 +357,7 @@ def run_isabelle(results : List[dict], isabelle_dir : Path, csv_path):
     root_path = isabelle_dir / "ROOT"
     try:
         with open(root_path, 'w') as file:
-            file.write(f"session CheckProofs = HOL + theories\n  {"\n".join(theorems_to_check)}")
+            file.write(f"session CheckProofs = HOL + theories\n  {'\n'.join(theorems_to_check)}")
     except Exception as e:
         print(f"Failed to create or write to ROOT file: {e}", file=sys.stderr)
         sys.exit(1)
