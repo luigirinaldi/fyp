@@ -140,17 +140,17 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("demorg_and"; "(bw ?p (not (and (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("demorg_or";  "(bw ?p (not (or (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (and (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("sel_def"; "(bw ?p (sel ?cond ?a ?b))" => "(bw ?p (+ (* ?a (bw 1 ?cond)) (* ?b (bw 1 (not (bw 1 ?cond))))))"),
-        rewrite!("signed_def"; "(signed ?p ?a)" => "(- (bw ?p (* 2 (bw (- ?p 1) ?a))) (bw ?p ?a))"),
         rewrite!("div-by-more"; "(div (bw 1 ?a) 2)" => "0"),
         rewrite!("xor_one";         "(xor (bw ?p ?a) 1)" => "(+ (* (div (bw ?p ?a) 2) 2) (bw 1 (not (bw 1 ?a))))"),
         rewrite!("shr_by_pos"; "(>> ?a ?b)" => "(div ?a (^ 2 ?b))" if precondition(&["(> ?b 0)"])),
+        // Signed interpretations
+        rewrite!("signed_def"; "(signed ?p ?a)" => "(- (bw ?p (* 2 (bw (- ?p 1) ?a))) (bw ?p ?a))"),
         rewrite!("redundant_signed"; "(bw ?p (signed ?p (bw ?p ?a)))" => "(bw ?p ?a)"),
+        rewrite!("signed_zext"; "(signed ?q (bw ?q (bw ?p ?a)))" => "(bw ?p ?a)" if precondition(&["(> ?q ?p)"])),
         /////////////////////////////////////
         //         UNVERIFIED!            ///
         /////////////////////////////////////
         rewrite!("shift_mod"; "(bw ?q (>> (bw ?p ?a) ?b))" => "(bw ?q (>> ?a ?b))" if precondition(&["(>= (- ?p ?q) ?b)"])),
-        // Signed interpretations
-        rewrite!("signed-zext"; "(signed ?q (bw ?q (bw ?p ?a)))" => "(bw ?p ?a)" if precondition(&["(> ?q ?p)"])),
         rewrite!("signed-of-neg"; "(signed ?q (bw ?q (- (bw ?p ?a))))" => "(- (bw ?p ?a))" if precondition(&["(> ?q ?p)"])),
         rewrite!("signed-of-diff"; "(signed ?r (bw ?r (- (bw ?p ?a) (bw ?q ?b))))" => "(- (bw ?p ?a) (bw ?q ?b))" if precondition(&["(> ?r ?p)", "(> ?r ?q)"])),
     ];

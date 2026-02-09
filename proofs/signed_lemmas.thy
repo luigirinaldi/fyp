@@ -14,4 +14,10 @@ proof -
   ultimately show ?thesis by (metis bw_def eq_diff_eq mult_2)
 qed
 
+lemma signed_zext: 
+  fixes a :: int
+  fixes p :: nat
+  assumes "q > p"
+  shows "signed q (bw q (bw p a)) = bw p a" 
+
 end
