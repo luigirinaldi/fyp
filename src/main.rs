@@ -15,18 +15,12 @@ use std::time::Instant;
 use std::option::Option;
 
 use clap::{Parser, Subcommand};
-#[cfg(feature = "get-heap-info")]
-use dhat;
 use egg::{Iteration, Report};
 use parabit::{Equivalence, EquivalenceString};
-#[cfg(feature = "get-heap-info")]
-#[global_allocator]
-static ALLOC: dhat::Alloc = dhat::Alloc;
 
 #[derive(serde::Serialize)]
 struct EquivRunnerInfo {
     summary: Report,
-    memory_footprint: Option<u64>,
     crude_time: f64,
     iteration_info: Vec<Iteration<()>>,
 }
@@ -75,15 +69,10 @@ enum Command {
         max_time: u64,
     },
 
-    ValidateInput {
-        /// Check that the set of widths defined by the constraints is non-empty
-        #[arg(short, long, default_value = "false")]
-        check_widths: bool,
-    },
+    ValidateInput,
 
-    // /// Convert the bwlang file to Integer Arithmetic
-    // ToSmtIa,
     /// Convert the bwlang file to SMT PBV
+    #[cfg(feature = "smt-translate")]
     ToSmtPbv {
         /// Store the generated theorem in this directory
         #[arg(value_name = "DIR")]
@@ -115,7 +104,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut equiv: Equivalence = Equivalence::from(equiv_str);
     info!("Running parabit on file: {}", equiv.name);
-    equiv.validate(false)?;
+    equiv.validate()?;
 
     debug!(
         "\nlhs:\t{}\nrhs:\t{}\nprecond: {}",
@@ -164,16 +153,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             max_times_run,
             max_time,
         } => {
-            let (num_bytes, seconds): (Option<u64>, Duration) = {
+            let seconds: Duration = {
                 let mut total: Duration = Duration::from_millis(0);
                 let mut count = 0;
-                #[cfg(feature = "get-heap-info")]
-                let mut bytes = 0;
                 while total < Duration::from_secs(*max_time) && count < *max_times_run {
-                    #[cfg(feature = "get-heap-info")]
-                    let _profiler = dhat::Profiler::new_heap();
-                    #[cfg(feature = "get-heap-info")]
-                    let before_stats = dhat::HeapStats::get();
                     equiv = equiv.reset_runner();
                     let now = Instant::now();
                     {
@@ -185,22 +168,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                             return Err("Equivalence wasn't found".into());
                         }
                     }
-                    #[cfg(feature = "get-heap-info")]
-                    {
-                        let after_stats = dhat::HeapStats::get();
-                        bytes += after_stats.total_bytes - before_stats.total_bytes;
-                    }
                     count += 1;
                     total += elapsed;
                 }
                 let average_dur = total.div_f64(count as f64);
-                #[cfg(feature = "get-heap-info")]
-                {
-                    let avg_bytes = bytes / u64::from(count);
-                    (Some(avg_bytes), average_dur)
-                }
-                #[cfg(not(feature = "get-heap-info"))]
-                (None, average_dur)
+                average_dur
             };
 
             match stats_path {
@@ -212,7 +184,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                         equiv.name.clone(),
                         EquivRunnerInfo {
                             summary: equiv.runner.report(),
-                            memory_footprint: num_bytes,
                             crude_time: seconds.as_secs_f64(),
                             iteration_info: equiv.runner.iterations.clone(),
                         },
@@ -221,9 +192,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                     write!(file_out, "{}", serde_json::to_string(&stats).unwrap())?;
                 }
                 None => println!(
-                    "Average Runtime: {}\nNumber of bytes: {:?}\nRunner report:\n{:#?}",
+                    "Average Runtime: {}\nRunner report:\n{:#?}",
                     seconds.as_secs_f64(),
-                    num_bytes,
                     equiv.runner.report()
                 ),
             };
@@ -258,10 +228,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
         // input validation happends after the equiv is constructed, hence no need to do anything
-        Command::ValidateInput { check_widths } => {
-            equiv.validate(*check_widths)?;
+        Command::ValidateInput => {
+            equiv.validate()?;
             return Ok(());
         }
+        #[cfg(feature = "smt-translate")]
         Command::ToSmtPbv { dest_path } => {
             if !dest_path.exists() {
                 debug!("Creating directory {}", dest_path.to_string_lossy());

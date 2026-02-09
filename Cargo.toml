@@ -15,12 +15,11 @@ ntest = "0.9.3"
 dhat = "0.3.3"
 log = "0.4.28"
 env_logger = "0.11.8"
-z3 = "0.19.7"
+z3 = { version = "0.19.7", optional = true}
 
 [build-dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 [features]
-isabelle-check = []
-get-heap-info = []
+smt-translate = ["dep:z3"]

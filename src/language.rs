@@ -2,6 +2,7 @@ use clap::error::Result;
 use egg::*;
 use num::ToPrimitive;
 use std::fmt::Debug;
+#[cfg(feature = "smt-translate")]
 use z3::{
     ast::{Bool, Int},
     RecFuncDecl, Sort,
@@ -235,15 +236,53 @@ fn validate_bwlang(expr: &RecExpr<ModIR>, id: Id) -> Result<(), String> {
     }
 }
 
-pub trait ToZ3 {
-    fn width_to_z3(&self, id: Id) -> Result<Int, String>;
-    fn to_z3_cond(&self) -> Result<Bool, String>;
+pub trait CondConstEval {
     fn get_const_cond(&self) -> Result<bool, String>;
     fn get_const_width(&self, id: Id) -> Result<Num, String>;
 }
 
+impl CondConstEval for RecExpr<ModIR> {
+    fn get_const_cond(&self) -> Result<bool, String> {
+        match &self[self.root()] {
+            ModIR::GT([a, b]) => Ok(self.get_const_width(*a)? > (self.get_const_width(*b)?)),
+            ModIR::GTE([a, b]) => Ok(self.get_const_width(*a)? >= (self.get_const_width(*b)?)),
+            ModIR::LT([a, b]) => Ok(self.get_const_width(*a)? < (self.get_const_width(*b)?)),
+            ModIR::LTE([a, b]) => Ok(self.get_const_width(*a)? <= (self.get_const_width(*b)?)),
+            _ => unreachable!("Z3 comp is not valid comparison operation: {}", self),
+        }
+    }
+
+    fn get_const_width(&self, id: Id) -> Result<Num, String> {
+        match &self[id] {
+            ModIR::Var(_) => Err("Not a constant num".to_string()),
+            ModIR::Num(num) => Ok(*num),
+            ModIR::Add([a, b]) => Ok(self.get_const_width(*a)? + self.get_const_width(*b)?),
+            ModIR::Mul([a, b]) => Ok(self.get_const_width(*a)? * self.get_const_width(*b)?),
+            ModIR::Sub([a, b]) => Ok(self.get_const_width(*a)? - self.get_const_width(*b)?),
+            ModIR::Pow([a, b]) => {
+                if self[*a] == ModIR::Num(2) {
+                    Ok(2_i32.pow(self.get_const_width(*b)?.try_into().unwrap()))
+                } else {
+                    Err(format!(
+                        "Only powers of two are allowed, base is: {}",
+                        &self[*a]
+                    ))
+                }
+            }
+            _ => Err("Reached an invalid node type".to_string()),
+        }
+    }
+}
+
+#[cfg(feature = "smt-translate")]
+pub trait ToZ3 {
+    fn width_to_z3(&self, id: Id) -> Result<Int, String>;
+    fn to_z3_cond(&self) -> Result<Bool, String>;
+}
+
 /// Apply the pow2 function to a Z3 Int
 /// pow2(n) = if n == 0 then 1 else 2 * pow2(n - 1)
+#[cfg(feature = "smt-translate")]
 pub fn apply_pow2(a: &Int) -> Int {
     // Create recursive function declaration: pow2: Int -> Int
     let pow2 = RecFuncDecl::new("pow2", &[&Sort::int()], &Sort::int());
@@ -270,6 +309,7 @@ pub fn apply_pow2(a: &Int) -> Int {
     pow2.apply(&[a]).as_int().unwrap()
 }
 
+#[cfg(feature = "smt-translate")]
 impl ToZ3 for RecExpr<ModIR> {
     fn to_z3_cond(&self) -> Result<Bool, String> {
         match &self[self.root()] {
@@ -291,36 +331,6 @@ impl ToZ3 for RecExpr<ModIR> {
             ModIR::Pow([a, b]) => {
                 if self[*a] == ModIR::Num(2) {
                     Ok(apply_pow2(&self.width_to_z3(*b)?))
-                } else {
-                    Err(format!(
-                        "Only powers of two are allowed, base is: {}",
-                        &self[*a]
-                    ))
-                }
-            }
-            _ => Err("Reached an invalid node type".to_string()),
-        }
-    }
-    fn get_const_cond(&self) -> Result<bool, String> {
-        match &self[self.root()] {
-            ModIR::GT([a, b]) => Ok(self.get_const_width(*a)? > (self.get_const_width(*b)?)),
-            ModIR::GTE([a, b]) => Ok(self.get_const_width(*a)? >= (self.get_const_width(*b)?)),
-            ModIR::LT([a, b]) => Ok(self.get_const_width(*a)? < (self.get_const_width(*b)?)),
-            ModIR::LTE([a, b]) => Ok(self.get_const_width(*a)? <= (self.get_const_width(*b)?)),
-            _ => unreachable!("Z3 comp is not valid comparison operation: {}", self),
-        }
-    }
-
-    fn get_const_width(&self, id: Id) -> Result<Num, String> {
-        match &self[id] {
-            ModIR::Var(_) => Err("Not a constant num".to_string()),
-            ModIR::Num(num) => Ok(*num),
-            ModIR::Add([a, b]) => Ok(self.get_const_width(*a)? + self.get_const_width(*b)?),
-            ModIR::Mul([a, b]) => Ok(self.get_const_width(*a)? * self.get_const_width(*b)?),
-            ModIR::Sub([a, b]) => Ok(self.get_const_width(*a)? - self.get_const_width(*b)?),
-            ModIR::Pow([a, b]) => {
-                if self[*a] == ModIR::Num(2) {
-                    Ok(2_i32.pow(self.get_const_width(*b)?.try_into().unwrap()))
                 } else {
                     Err(format!(
                         "Only powers of two are allowed, base is: {}",

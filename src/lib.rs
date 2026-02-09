@@ -1,14 +1,8 @@
 use crate::generated_matcher::rule_to_file;
 use crate::language::validate_precond;
 use crate::language::validate_term;
+#[cfg(feature = "smt-translate")]
 use crate::language::ToZ3;
-use crate::param_ir::compatible_conds;
-use crate::param_ir::modir_cond_to_paramir_cond;
-use crate::param_ir::modir_to_paramir;
-use crate::param_ir::pbvvar_to_smt_string;
-use crate::param_ir::rewrite_var_to_wvar;
-use crate::param_ir::wvar_to_smt_string;
-use crate::param_ir::ParamIR;
 use crate::utils::sanitise_vars;
 use crate::Symbol;
 use clap::error::Result;
@@ -19,15 +13,21 @@ use log::info;
 use log::warn;
 use std::collections::HashSet;
 use std::time::Duration;
-use z3::SatResult;
-use z3::Solver;
+#[cfg(feature = "smt-translate")]
+use z3::{SatResult, Solver};
 
-use crate::param_ir::ParamUtils;
 mod dot_equiv;
 mod extractor;
 mod generated_matcher;
 mod language;
+#[cfg(feature = "smt-translate")]
 mod param_ir;
+#[cfg(feature = "smt-translate")]
+use crate::param_ir::{
+    compatible_compatible_condsconds, modir_cond_to_paramir_cond, modir_to_paramir,
+    pbvvar_to_smt_string, rewrite_var_to_wvar, wvar_to_smt_string, ParamIR, ParamUtils,
+};
+
 mod rewrite_rules;
 mod types;
 mod utils;
@@ -470,7 +470,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
         Ok(proof_string)
     }
 
-    pub fn validate(&self, check_width_sat: bool) -> Result<(), String> {
+    pub fn validate(&self) -> Result<(), String> {
         self.preconditions
             .iter()
             .map(|precond| validate_precond(precond, precond.root()))
@@ -478,7 +478,10 @@ for {nat_string} :: nat and {int_string} :: int\n",
         validate_term(&self.rhs, self.rhs.root())?;
         validate_term(&self.lhs, self.lhs.root())?;
 
-        if check_width_sat {
+        /// If smt-translate is enabled (which includes z3) then also
+        /// check that the input problem is not trivially true.
+        #[cfg(feature = "smt-translate")]
+        {
             let solver = Solver::new();
             for expr in &self.width_exprs {
                 solver.assert(expr.width_to_z3(expr.root())?.gt(0));
@@ -510,6 +513,7 @@ for {nat_string} :: nat and {int_string} :: int\n",
     }
 
     /// Produces a vector of smtlib-pbv compatible strings
+    #[cfg(feature = "smt-translate")]
     pub fn to_single_width_op(&self) -> Result<Vec<String>, String> {
         let lhs_single_w = modir_to_paramir(&self.lhs, self.lhs.root())?;
         let rhs_single_w = modir_to_paramir(&self.rhs, self.rhs.root())?;
