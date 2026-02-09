@@ -71,6 +71,7 @@ pub fn rule_to_file(input: &str) -> Option<&'static str> {
         "or_zero" => Some("bitwise_lemmas"),
         "reduce_mod" => Some("arith_lemmas"),
         "reduce_mod_bis" => Some("arith_lemmas"),
+        "shr_by_pos" => Some("arith_lemmas"),
         "sub_to_neg" => Some("arith_lemmas"),
         "unused_generic_or_simpl" => Some("bitwise_lemmas"),
         "xor_allones" => Some("bitwise_lemmas"),

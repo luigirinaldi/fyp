@@ -143,11 +143,11 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("signed_def"; "(signed ?p ?a)" => "(- (bw ?p (* 2 (bw (- ?p 1) ?a))) (bw ?p ?a))"),
         rewrite!("div-by-more"; "(div (bw 1 ?a) 2)" => "0"),
         rewrite!("xor_one";         "(xor (bw ?p ?a) 1)" => "(+ (* (div (bw ?p ?a) 2) 2) (bw 1 (not (bw 1 ?a))))"),
+        rewrite!("shr_by_pos"; "(>> ?a ?b)" => "(div ?a (^ 2 ?b))" if precondition(&["(> ?b 0)"])),
         /////////////////////////////////////
         //         UNVERIFIED!            ///
         /////////////////////////////////////
         rewrite!("shift_mod"; "(bw ?q (>> (bw ?p ?a) ?b))" => "(bw ?q (>> ?a ?b))" if precondition(&["(>= (- ?p ?q) ?b)"])),
-        rewrite!("shr_by_pos"; "(>> ?a ?b)" => "(div ?a (^ 2 ?b))" if precondition(&["(> ?b 0)"])),
         // Signed interpretations
         rewrite!("redundant-signed"; "(bw ?p (signed ?p (bw ?p ?a)))" => "(bw ?p ?a)"),
         rewrite!("signed-zext"; "(signed ?q (bw ?q (bw ?p ?a)))" => "(bw ?p ?a)" if precondition(&["(> ?q ?p)"])),

@@ -171,4 +171,10 @@ lemma div_floor: "(bw p a) div b = 0" if "b \<ge> 2^p" using bw_def div_floor_he
 
 lemma div_by_more: "(bw 1 a) div 2 = 0" using bw_def by simp
 
+(*lemma shift_mod: "bw q ((bw p a) >> b) = bw q (a >> b)" if "(p - q) \<ge> nat(b)" and "b > 0" using bw_def shr_def
+  sorry
+*)
+
+lemma shr_by_pos: "(a >> b) = a div (2^(nat(b)))" if "b > 0" using shr_def by presburger
+
 end
