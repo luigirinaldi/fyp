@@ -73,6 +73,7 @@ pub fn rule_to_file(input: &str) -> Option<&'static str> {
         "reduce_mod_bis" => Some("arith_lemmas"),
         "redundant_signed" => Some("signed_lemmas"),
         "shr_by_pos" => Some("arith_lemmas"),
+        "signed_of_neg" => Some("signed_lemmas"),
         "signed_zext" => Some("signed_lemmas"),
         "sub_to_neg" => Some("arith_lemmas"),
         "unused_generic_or_simpl" => Some("bitwise_lemmas"),
