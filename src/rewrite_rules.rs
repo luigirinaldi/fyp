@@ -149,10 +149,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("signed_zext"; "(signed ?q (bw ?q (bw ?p ?a)))" => "(bw ?p ?a)" if precondition(&["(> ?q ?p)"])),
         rewrite!("signed_of_neg"; "(signed ?q (bw ?q (- (bw ?p ?a))))" => "(- (bw ?p ?a))" if precondition(&["(> ?q ?p)"])),
         rewrite!("signed_of_diff"; "(signed ?r (bw ?r (- (bw ?p ?a) (bw ?q ?b))))" => "(- (bw ?p ?a) (bw ?q ?b))" if precondition(&["(> ?r ?p)", "(> ?r ?q)"])),
-        /////////////////////////////////////
-        //         UNVERIFIED!            ///
-        /////////////////////////////////////
-        rewrite!("shift_mod"; "(bw ?q (>> (bw ?p ?a) ?b))" => "(bw ?q (>> ?a ?b))" if precondition(&["(>= (- ?p ?q) ?b)"])),
+        rewrite!("shift_mod"; "(bw ?q (>> (bw ?p ?a) ?b))" => "(bw ?q (>> ?a ?b))" if precondition(&["(>= (- ?p ?q) ?b)", "(> ?b 0)"])),
     ];
     rules.extend(rewrite!("xor_and_or";      "(and (or (bw ?p ?a) (bw ?p ?b)) (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))" <=> "(xor (bw ?p ?a) (bw ?p ?b))"));
     // bitwise to arith

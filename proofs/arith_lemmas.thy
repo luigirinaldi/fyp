@@ -171,10 +171,43 @@ lemma div_floor: "(bw p a) div b = 0" if "b \<ge> 2^p" using bw_def div_floor_he
 
 lemma div_by_more: "(bw 1 a) div 2 = 0" using bw_def by simp
 
-(*lemma shift_mod: "bw q ((bw p a) >> b) = bw q (a >> b)" if "(p - q) \<ge> nat(b)" and "b > 0" using bw_def shr_def
-  sorry
-*)
+lemma shr_by_pos: "(a >> b) = a div (2^(nat(b)))" if "b > 0" using shr_def by simp
 
-lemma shr_by_pos: "(a >> b) = a div (2^(nat(b)))" if "b > 0" using shr_def by presburger
+lemma shift_mod: 
+fixes a b :: int
+fixes p q :: nat
+assumes "(p - q) \<ge> nat(b)" and "b > 0"
+shows "bw q ((bw p a) >> b) = bw q (a >> b)" (is "?lhs = ?rhs")
+proof - 
+  have *: "?lhs = a mod 2 ^ p div 2 ^ nat b mod 2 ^ q" using bw_def shr_def by simp
+  fix c :: int
+  have div_mult: "c = (c * (2^nat b div 2^nat b))" by simp
+  have "?lhs = (a * (2^nat b div 2^nat b)) mod (2 ^ p  * (2^nat b div 2^nat b)) div 2 ^ nat b mod 2 ^ q" using div_mult * by auto
+  moreover have "... = ((a div 2^nat b) mod 2 ^ (p - nat b)) * (2^nat b) div 2 ^ nat b mod 2 ^ q" using assms mult_mod_left mult_exp_mod_exp_eq  by (simp add: div_exp_mod_exp_eq) 
+  moreover have "... = ((a div 2^nat b) mod 2 ^ (p - nat b)) mod 2 ^ q" using div_mult by auto
+  ultimately show ?thesis
+  proof -
+    have "\<not> b \<le> 0"
+      using assms(2) by fastforce
+    then have "nat b \<noteq> 0"
+      using nat_0_iff by presburger
+    then have "\<not> nat b \<le> 0"
+      by blast
+    then have "0 < nat b"
+      by force
+    then have "p - q \<noteq> 0"
+      by (metis (no_types) assms(1) not_less)
+    then have "\<not> p - q \<le> 0"
+      by blast
+    then have "0 < p - q"
+      by fastforce
+    then have "q \<le> p"
+      by force
+    then have "q \<le> p - nat b"
+      by (metis (no_types) assms(1) diff_diff_cancel diff_le_mono2)
+    then show ?thesis
+      by (metis (full_types) \<open>a * (2 ^ nat b div 2 ^ nat b) mod (2 ^ p * (2 ^ nat b div 2 ^ nat b)) div 2 ^ nat b mod 2 ^ q = a div 2 ^ nat b mod 2 ^ (p - nat b) * 2 ^ nat b div 2 ^ nat b mod 2 ^ q\<close> \<open>a div 2 ^ nat b mod 2 ^ (p - nat b) * 2 ^ nat b div 2 ^ nat b mod 2 ^ q = a div 2 ^ nat b mod 2 ^ (p - nat b) mod 2 ^ q\<close> \<open>bw q (shr (bw p a) b) = a * (2 ^ nat b div 2 ^ nat b) mod (2 ^ p * (2 ^ nat b div 2 ^ nat b)) div 2 ^ nat b mod 2 ^ q\<close> assms(2) bw_def le_imp_power_dvd mod_mod_cancel shr_by_pos)
+  qed 
+qed
 
 end
