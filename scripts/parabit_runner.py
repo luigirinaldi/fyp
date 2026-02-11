@@ -56,109 +56,105 @@ def run_safe_subprocess(
     base_name = input_file.name
     out_file = output_dir / f"{base_name}.out"
     err_file = output_dir / f"{base_name}.err"
-    stats_file = output_dir / f"{base_name}.stats.json"
 
     timeout = False
     killed_externally = False
     success = False
 
-    open(stats_file, "w")
-    with open(stats_file, "r") as stats_f:
-        with open(out_file, "w") as stdout_f, open(err_file, "w") as stderr_f:
-            command = [
-                f"ulimit -v {memlimit_gb * 1024 * 1024} &&",
-                "/usr/bin/time",
-                '--format=\'{"elapsed":%e, "maxrss":%M}\'',
-                f"timeout {timeout_s} ",
-                binary_path,
-                str(input_file),
-                "get-stats",
-                f"--stats-path {stats_file}",
-            ]
+    if not args:
+        stats_file = output_dir / f"{base_name}.stats.json"
+        open(stats_file, "w")
+        stats_f = open(stats_file, "r")
+    
+    with open(out_file, "w") as stdout_f, open(err_file, "w") as stderr_f:
+        command = [
+            f"ulimit -v {memlimit_gb * 1024 * 1024} &&",
+            "/usr/bin/time",
+            '--format=\'{"elapsed":%e, "maxrss":%M}\'',
+            f"timeout {timeout_s} ",
+            binary_path,
+            str(input_file)]
+        if args:
+            command = [*command, args]
+        else:
+            command = [*command,
+            "get-stats",
+            f"--stats-path {stats_file}",
+        ]
 
-            joined_comm = " ".join(command)
-            # print(joined_comm)
-            start_time = time.perf_counter()
-            max_memory = 0.0
+        joined_comm = " ".join(command)
+        # print(joined_comm)
+        start_time = time.perf_counter()
+        max_memory = 0.0
 
-            try:
-                with subprocess.Popen(joined_comm,
-                    shell=True,
-                    stdout=stdout_f,
-                    stderr=stderr_f) as process:
-                    
-                    psutil_process = psutil.Process(process.pid)
-                    sample_interval = 0.1
-                    
-                    while process.poll() is None:
-                        try:
-                            mem_info = psutil_process.memory_info()
-                            current_memory_mb = mem_info.rss / (1024 * 1024)
-                            max_memory = max(max_memory, current_memory_mb)
-                        except (psutil.NoSuchProcess, psutil.AccessDenied):
-                            break
+        try:
+            with subprocess.Popen(joined_comm,
+                shell=True,
+                stdout=stdout_f,
+                stderr=stderr_f) as process:
+                
+                psutil_process = psutil.Process(process.pid)
+                sample_interval = 0.1
+                
+                while process.poll() is None:
+                    try:
+                        mem_info = psutil_process.memory_info()
+                        current_memory_mb = mem_info.rss / (1024 * 1024)
+                        max_memory = max(max_memory, current_memory_mb)
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        break
 
-                        time.sleep(sample_interval)
+                    time.sleep(sample_interval)
 
-                    process.wait()
-                    
-                    success = process.returncode == 0
-                    timeout = process.returncode == 124
-            except:
-                end_time = time.perf_counter()
-                elapsed_time = end_time - start_time
-                timeout = elapsed_time >= timeout_s
-                killed_externally = True
-                raise ValueError("Something went catastrophically wrong!")
-            # Read last error line if exists
-            last_err_line = ""
-            second_last = ""
-            if err_file.exists():
-                with open(err_file) as ef:
-                    lines = ef.readlines()
-                    if lines:
-                        last_err_line = lines[-1].strip()
-                        second_last = lines[-2].strip()
+                process.wait()
+                
+                success = process.returncode == 0
+                timeout = process.returncode == 124
+        except:
+            end_time = time.perf_counter()
+            elapsed_time = end_time - start_time
+            timeout = elapsed_time >= timeout_s
+            killed_externally = True
+            raise ValueError("Something went catastrophically wrong!")
+        # Read last error line if exists
+        last_err_line = ""
+        second_last = ""
+        if err_file.exists():
+            with open(err_file) as ef:
+                lines = ef.readlines()
+                if lines:
+                    last_err_line = lines[-1].strip()
+                    second_last = lines[-2].strip()
 
-            if success:
-                stats = json.loads(stats_f.read())[1]
-                time_out = stats["crude_time"]
-            else:
-                if timeout:
-                    time_out = timeout_s
-                else:
-                    if killed_externally:
-                        time_out = elapsed_time
-                    else:
-                        data = json.loads(last_err_line)
-                        time_out = data["elapsed"]
-
-            if success:
-                memory_mb = json.loads(last_err_line)["maxrss"] / 1024
+        if success and not args:
+            stats = json.loads(stats_f.read())[1]
+            time_out = stats["crude_time"]
+        else:
+            if timeout:
+                time_out = timeout_s
             else:
                 if killed_externally:
-                    memory_mb = max_memory
+                    time_out = elapsed_time
                 else:
                     data = json.loads(last_err_line)
-                    memory_mb = data["maxrss"] / 1024
+                    time_out = data["elapsed"]
 
-            return (
-                base_name,
-                success,
-                second_last,
-                time_out,
-                memory_mb,
-            )
+        if success:
+            memory_mb = json.loads(last_err_line)["maxrss"] / 1024
+        else:
+            if killed_externally:
+                memory_mb = max_memory
+            else:
+                data = json.loads(last_err_line)
+                memory_mb = data["maxrss"] / 1024
 
-    # except subprocess.CalledProcessError as e:
-    #     if e.returncode == 124:
-    #         raise RuntimeError(f"Subprocess exceeded {timeout_s}s wall time.")
-    #     elif e.returncode == 137:  # 137 = 128 + 9 (SIGKILL) from ulimit
-    #         raise RuntimeError(f"Subprocess exceeded {memlimit_gb} GB memory.")
-    #     else:
-    #         raise RuntimeError(
-    #             f"Subprocess failed with code {e.returncode}: {e.stderr}"
-    #         )
+        return (
+            base_name,
+            success,
+            second_last,
+            time_out,
+            memory_mb,
+        )
 
 
 def extract_names_from_files(file_paths: list) -> Dict[str, str]:
