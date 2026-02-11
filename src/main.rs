@@ -51,6 +51,11 @@ enum Command {
         /// Store generated dot-files in this path (slows down proof generation)
         #[arg(long, value_name = "FILE")]
         dot_path: Option<PathBuf>,
+
+        /// Skip generating a proof if an equivalence is found
+        /// (Sometimes proof generation takes considerably longer and more memory than the equivalence finding)
+        #[arg(short, long, default_value = "false")]
+        skip_proof: bool,
     },
 
     /// Run the equality checking while gathering runtime and memory footprint stats
@@ -120,22 +125,27 @@ fn main() -> Result<(), Box<dyn Error>> {
     match &cli.command.unwrap_or(Command::CheckEquals {
         expl_path: None,
         dot_path: None,
+        skip_proof: false,
     }) {
         Command::CheckEquals {
             expl_path,
             dot_path,
+            skip_proof,
         } => {
             let name = equiv.name.clone();
-            equiv = equiv
-                .find_equivalence(&add_base(dot_path, &name))
-                .make_proof();
-            let explanation_string = equiv.explanation_string();
+            equiv = equiv.find_equivalence(&add_base(dot_path, &name));
 
-            if let Some(path) = expl_path {
-                let mut file = File::create(path.join(format!("{name} explanation.txt"))).unwrap();
-                file.write(explanation_string.as_bytes()).unwrap();
-            } else {
-                println!("{}", explanation_string)
+            if !skip_proof {
+                equiv = equiv.make_proof();
+                let explanation_string = equiv.explanation_string();
+
+                if let Some(path) = expl_path {
+                    let mut file =
+                        File::create(path.join(format!("{name} explanation.txt"))).unwrap();
+                    file.write(explanation_string.as_bytes()).unwrap();
+                } else {
+                    println!("{}", explanation_string)
+                }
             }
 
             if let Some(is_equiv) = equiv.equiv.clone() {
