@@ -1,14 +1,8 @@
 use crate::generated_matcher::rule_to_file;
 use crate::language::validate_precond;
 use crate::language::validate_term;
+#[cfg(feature = "smt-translate")]
 use crate::language::ToZ3;
-use crate::param_ir::compatible_conds;
-use crate::param_ir::modir_cond_to_paramir_cond;
-use crate::param_ir::modir_to_paramir;
-use crate::param_ir::pbvvar_to_smt_string;
-use crate::param_ir::rewrite_var_to_wvar;
-use crate::param_ir::wvar_to_smt_string;
-use crate::param_ir::ParamIR;
 use crate::utils::sanitise_vars;
 use crate::Symbol;
 use clap::error::Result;
@@ -19,15 +13,21 @@ use log::info;
 use log::warn;
 use std::collections::HashSet;
 use std::time::Duration;
-use z3::SatResult;
-use z3::Solver;
+#[cfg(feature = "smt-translate")]
+use z3::{SatResult, Solver};
 
-use crate::param_ir::ParamUtils;
 mod dot_equiv;
 mod extractor;
 mod generated_matcher;
 mod language;
+#[cfg(feature = "smt-translate")]
 mod param_ir;
+#[cfg(feature = "smt-translate")]
+use crate::param_ir::{
+    compatible_conds, modir_cond_to_paramir_cond, modir_to_paramir, pbvvar_to_smt_string,
+    rewrite_var_to_wvar, wvar_to_smt_string, ParamIR, ParamUtils,
+};
+
 mod rewrite_rules;
 mod types;
 mod utils;
@@ -48,7 +48,6 @@ pub struct Equivalence {
     pub rhs: RecExpr<ModIR>,
     pub equiv: Option<bool>,
     pub runner: Runner<ModIR, ModAnalysis>,
-    width_exprs: HashSet<RecExpr<ModIR>>,
     bw_vars: HashSet<Symbol>,
     non_bw_vars: HashSet<Symbol>,
     proof: Option<Vec<egg::FlatTerm<ModIR>>>,
@@ -139,21 +138,14 @@ impl Equivalence {
             width_gt_zero: extra_preconditions.collect(),
             lhs: lhs_expr,
             rhs: rhs_expr,
-            width_exprs: unique_bitwidth_expr,
             bw_vars: all_bw_vars,
             non_bw_vars: non_bw_vars,
             proof: None,
             inferred_truths: None,
             equiv: None,
-            runner: Runner::<ModIR, ModAnalysis>::default()
-                .with_explanations_enabled()
-                .with_time_limit(Duration::from_secs(300))
-                .with_iter_limit(2000)
-                .with_node_limit(1000000)
-                .with_scheduler(SimpleScheduler),
+            runner: Runner::<ModIR, ModAnalysis>::default(),
         };
-
-        ret_self
+        ret_self.reset_runner()
     }
 
     pub fn precond_str(&self) -> String {
@@ -168,9 +160,9 @@ impl Equivalence {
     pub fn reset_runner(mut self) -> Self {
         self.runner = Runner::<ModIR, ModAnalysis>::default()
             .with_explanations_enabled()
-            .with_time_limit(Duration::from_secs(10))
-            .with_iter_limit(1000)
-            .with_node_limit(200000)
+            .with_time_limit(Duration::from_secs(300))
+            .with_iter_limit(2000)
+            .with_node_limit(10000000)
             .with_scheduler(SimpleScheduler);
         self
     }
@@ -340,6 +332,7 @@ impl Equivalence {
                 || rw == "shl_def"
                 || rw == "shr_def"
                 || rw == "sel_def"
+                || rw == "signed_def"
                 || rw == "constant_prop"
             {
                 // If the rewrite is either an isabelle native or a constant prop then we can ignore it
@@ -373,18 +366,22 @@ impl Equivalence {
                     // Using add to allow for simplication of constants
                     "constant_prop" => String::from("by (simp add: bw_def)"),
                     // use add instead of only to convert between nat type and int
-                    val @ ("shl_def" | "shr_def" | "sel_def") => format!("by (simp add: {val})"),
+                    val @ ("shl_def" | "shr_def" | "sel_def" | "signed_def") => {
+                        format!("by (simp add: {val})")
+                    }
                     // need to use blast for diff_eq
                     rule @ "mod_prop_sum" => {
                         format!("using that bw_def {rule} by (presburger ; fail | blast)")
                     }
-                    val @ ("diff_left_eq_prec" | "diff_right_eq_prec") | val if val.to_string().find("mod_prop").is_some() => {
+                    val @ ("diff_left_eq_prec" | "diff_right_eq_prec") | val
+                        if val.to_string().find("mod_prop").is_some() =>
+                    {
                         format!("using that {val} by (blast; fail | metis)")
                     }
                     val @ ("div_pow_join" | "div_mult_self" | "div_same") => {
                         format!("using that inferred_facts by (simp only: {val})")
                     }
-                    other => format!("using {rule} that by (simp only: {rule}; fail | simp add: {rule}; fail | blast; fail | metis)", rule = other),
+                    other => format!("using {rule} that by (simp only: {rule}; fail | simp add: {rule}; fail | blast; fail | metis)", rule = {other}),
                 };
                 proof_str += &format!(
                     "    {prefix}have \"{lhs} = {term}\" {proof}\n",
@@ -477,36 +474,48 @@ for {nat_string} :: nat and {int_string} :: int\n",
         validate_term(&self.rhs, self.rhs.root())?;
         validate_term(&self.lhs, self.lhs.root())?;
 
-        let solver = Solver::new();
-        for expr in &self.width_exprs {
-            solver.assert(expr.width_to_z3(expr.root())?.gt(0));
-        }
-        solver.push();
-        // want to validate that all the bitwidths can be > 0
-        if solver.check() != SatResult::Sat {
-            let mut out_str = format!("The constraint on the width expressions all being greater than 0 produces an unsatisfiable set of widths:");
-            for expr in &self.width_exprs {
-                out_str += " (";
-                out_str += &expr.to_string();
-                out_str += " > 0) and";
-            }
-            return Err(out_str);
-        }
-        solver.pop(1);
+        // If smt-translate is enabled (which includes z3) then also
+        // check that the input problem is not trivially true.
+        #[cfg(feature = "smt-translate")]
+        {
+            let unique_bitwidth_expr: HashSet<_> = get_bitwidth_exprs(&self.lhs)
+                .iter()
+                .chain(&get_bitwidth_exprs(&self.rhs))
+                .cloned()
+                .collect();
 
-        for expr in &self.preconditions {
-            solver.assert(expr.to_z3_cond()?);
-        }
-        // want to validate that given the provided preconditions the set of widths is satisfiable
-        if solver.check() != SatResult::Sat {
-            return Err(format!(
-                "The provided preconditions constrain the widths in an unsatisfiable way"
-            ));
+            let solver = Solver::new();
+            for expr in &unique_bitwidth_expr {
+                solver.assert(expr.width_to_z3(expr.root())?.gt(0));
+            }
+            solver.push();
+            // want to validate that all the bitwidths can be > 0
+            if solver.check() != SatResult::Sat {
+                let mut out_str = format!("The constraint on the width expressions all being greater than 0 produces an unsatisfiable set of widths:");
+                for expr in &unique_bitwidth_expr {
+                    out_str += " (";
+                    out_str += &expr.to_string();
+                    out_str += " > 0) and";
+                }
+                return Err(out_str);
+            }
+            solver.pop(1);
+
+            for expr in &self.preconditions {
+                solver.assert(expr.to_z3_cond()?);
+            }
+            // want to validate that given the provided preconditions the set of widths is satisfiable
+            if solver.check() != SatResult::Sat {
+                return Err(format!(
+                    "The provided preconditions constrain the widths in an unsatisfiable way"
+                ));
+            }
         }
         return Ok(());
     }
 
     /// Produces a vector of smtlib-pbv compatible strings
+    #[cfg(feature = "smt-translate")]
     pub fn to_single_width_op(&self) -> Result<Vec<String>, String> {
         let lhs_single_w = modir_to_paramir(&self.lhs, self.lhs.root())?;
         let rhs_single_w = modir_to_paramir(&self.rhs, self.rhs.root())?;

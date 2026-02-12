@@ -1,9 +1,9 @@
 use egg::*;
 use std::str::FromStr;
 
+use crate::language::CondConstEval;
 use crate::language::ModAnalysis;
 use crate::language::ModIR;
-use crate::language::ToZ3;
 
 pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     let mut rules = vec![
@@ -79,7 +79,6 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("reduce_mod_bis";  "(bw ?q (bw ?p ?a))"
                                  => "(bw ?q ?a)"
                                     if precondition(&["(> ?p ?q)"])),
-        // if not_already_bw("?p", "?b")),
         rewrite!("mod_eq";          "(bw ?p (bw ?p ?a))"
                                  => "(bw ?p ?a)"),
         rewrite!("mul_pow2";        "(bw ?s (* (bw ?p ?a) (^ 2 (bw ?q ?b))))"
@@ -133,12 +132,24 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("or_zero";         "(or ?a 0)" => "?a"),
         // bitwise remove prec
         rewrite!("and_remove"; "(bw ?p (and (bw ?p ?a) (bw ?p ?b)))" => "(and (bw ?p ?a) (bw ?p ?b))"),
-        rewrite!("and_remove_inner"; "(bw ?p (and (bw ?q ?a) ?b))" => "(bw ?p (and (bw ?p ?a) ?b))" if precondition(&["(> ?q ?p)"])),
         rewrite!("or_remove";  "(bw ?p (or (bw ?p ?a) (bw ?p ?b)))" => "(or (bw ?p ?a) (bw ?p ?b))"),
         rewrite!("xor_remove"; "(bw ?p (xor (bw ?p ?a) (bw ?p ?b)))" => "(xor (bw ?p ?a) (bw ?p ?b))"),
+        rewrite!("and_remove_inner"; "(bw ?p (and (bw ?q ?a) ?b))" => "(bw ?p (and ?a ?b))" if precondition(&["(> ?q ?p)"])),
+        rewrite!("or_remove_inner"; "(bw ?p (or (bw ?q ?a) ?b))" => "(bw ?p (or ?a ?b))" if precondition(&["(> ?q ?p)"])),
+        rewrite!("xor_remove_inner"; "(bw ?p (xor (bw ?q ?a) ?b))" => "(bw ?p (xor ?a ?b))" if precondition(&["(> ?q ?p)"])),
         rewrite!("demorg_and"; "(bw ?p (not (and (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("demorg_or";  "(bw ?p (not (or (bw ?p ?a) (bw ?p ?b))))" => "(bw ?p (and (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))"),
         rewrite!("sel_def"; "(bw ?p (sel ?cond ?a ?b))" => "(bw ?p (+ (* ?a (bw 1 ?cond)) (* ?b (bw 1 (not (bw 1 ?cond))))))"),
+        rewrite!("div_by_more"; "(div (bw 1 ?a) 2)" => "0"),
+        rewrite!("xor_one";         "(xor (bw ?p ?a) 1)" => "(+ (* (div (bw ?p ?a) 2) 2) (bw 1 (not (bw 1 ?a))))"),
+        rewrite!("shr_by_pos"; "(>> ?a ?b)" => "(div ?a (^ 2 ?b))" if precondition(&["(> ?b 0)"])),
+        // Signed interpretations
+        rewrite!("signed_def"; "(signed ?p ?a)" => "(- (bw ?p (* 2 (bw (- ?p 1) ?a))) (bw ?p ?a))"),
+        rewrite!("redundant_signed"; "(bw ?p (signed ?p (bw ?p ?a)))" => "(bw ?p ?a)"),
+        rewrite!("signed_zext"; "(signed ?q (bw ?q (bw ?p ?a)))" => "(bw ?p ?a)" if precondition(&["(> ?q ?p)"])),
+        rewrite!("signed_of_neg"; "(signed ?q (bw ?q (- (bw ?p ?a))))" => "(- (bw ?p ?a))" if precondition(&["(> ?q ?p)"])),
+        rewrite!("signed_of_diff"; "(signed ?r (bw ?r (- (bw ?p ?a) (bw ?q ?b))))" => "(- (bw ?p ?a) (bw ?q ?b))" if precondition(&["(> ?r ?p)", "(> ?r ?q)"])),
+        rewrite!("shift_mod"; "(bw ?q (>> (bw ?p ?a) ?b))" => "(bw ?q (>> ?a ?b))" if precondition(&["(>= (- ?p ?q) ?b)", "(> ?b 0)"])),
     ];
     rules.extend(rewrite!("xor_and_or";      "(and (or (bw ?p ?a) (bw ?p ?b)) (or (bw ?p (not (bw ?p ?a))) (bw ?p (not (bw ?p ?b)))))" <=> "(xor (bw ?p ?a) (bw ?p ?b))"));
     // bitwise to arith
@@ -162,12 +173,9 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
     rules.extend(rewrite!("int_distrib"; "(* ?a (+ ?b ?c))" <=> "(+ (* ?a ?b) (* ?a ?c))"));
     rules.extend(rewrite!("isabelle-Num.ring_1_class.mult_minus1"; "(- ?b)" <=> "(* -1 ?b)"));
     rules.extend(rewrite!("sub_to_neg"; "(- ?a ?b)" <=> "(+ ?a (* -1 ?b))"));
-    // multliplication across the mod (this works because mod b implies mod 2^b)
-    // c * (a mod b) = (c * a mod b * c)
-    // rules.extend(rewrite!("mod-mul"; "(* (^ 2 ?e) (bw ?b ?c))" <=> "(bw (+ ?e ?b) (* (^ 2 ?e) ?c))"));
+
     rules.extend(rewrite!("gt-lt";      "(> ?a ?b)" <=> "(< ?b ?a)"));
     rules.extend(rewrite!("gte-lte";    "(>= ?a ?b)" <=> "(<= ?b ?a)"));
-    // rules.extend();
     rules
 }
 
@@ -202,11 +210,11 @@ fn precondition(conds: &[&str]) -> impl Fn(&mut EGraph<ModIR, ModAnalysis>, Id, 
         for expr in &cond_exprs {
             let cond_subst: RecExpr<ModIR> = apply_subst(expr, subst, egraph);
 
-            let known_value = egraph.lookup_expr_ids(&cond_subst).and_then(|ids| {
+            let known_value = egraph.lookup_expr(&cond_subst).and_then(|id| {
                 let truth_id = egraph.lookup(ModIR::Bool(true));
 
                 if let Some(truth) = truth_id {
-                    if ids.iter().any(|&id| id == truth) {
+                    if egraph.find(truth) == egraph.find(id) {
                         return Some(true);
                     }
                 }

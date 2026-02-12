@@ -42,4 +42,8 @@ lemma not_0_allones: "bw p (not (bw p 0)) = (bw p (-1))" by (simp add: bw_0)
 
 lemma and_one: "and (bw p a) 1 = bw 1 a" if "p > 0" by (metis One_nat_def and_one_eq bw_0 bw_1 bw_def mod_by_1 not_less_eq_eq power_0 power_one_right reduce_mod_bis that zero_neq_one)
 
+lemma and_remove_inner: "(bw p (and (bw q a) b)) = (bw p (and a b))" if "q > p" by (metis dual_order.strict_iff_not mod_prop_and reduce_mod_bis that)
+lemma or_remove_inner: "(bw p (or (bw q a) b)) = (bw p (or a b))" if "q > p" by (metis dual_order.strict_iff_not mod_prop_or reduce_mod_bis that)
+lemma xor_remove_inner: "(bw p (xor (bw q a) b)) = (bw p (xor a b))" if "q > p" by (metis dual_order.strict_iff_not mod_prop_xor reduce_mod_bis that)
+
 end

@@ -15,18 +15,12 @@ use std::time::Instant;
 use std::option::Option;
 
 use clap::{Parser, Subcommand};
-#[cfg(feature = "get-heap-info")]
-use dhat;
 use egg::{Iteration, Report};
 use parabit::{Equivalence, EquivalenceString};
-#[cfg(feature = "get-heap-info")]
-#[global_allocator]
-static ALLOC: dhat::Alloc = dhat::Alloc;
 
 #[derive(serde::Serialize)]
 struct EquivRunnerInfo {
     summary: Report,
-    memory_footprint: Option<u64>,
     crude_time: f64,
     iteration_info: Vec<Iteration<()>>,
 }
@@ -57,6 +51,11 @@ enum Command {
         /// Store generated dot-files in this path (slows down proof generation)
         #[arg(long, value_name = "FILE")]
         dot_path: Option<PathBuf>,
+
+        /// Skip generating a proof if an equivalence is found
+        /// (Sometimes proof generation takes considerably longer and more memory than the equivalence finding)
+        #[arg(short, long, default_value = "false")]
+        skip_proof: bool,
     },
 
     /// Run the equality checking while gathering runtime and memory footprint stats
@@ -77,9 +76,8 @@ enum Command {
 
     ValidateInput,
 
-    // /// Convert the bwlang file to Integer Arithmetic
-    // ToSmtIa,
     /// Convert the bwlang file to SMT PBV
+    #[cfg(feature = "smt-translate")]
     ToSmtPbv {
         /// Store the generated theorem in this directory
         #[arg(value_name = "DIR")]
@@ -127,22 +125,27 @@ fn main() -> Result<(), Box<dyn Error>> {
     match &cli.command.unwrap_or(Command::CheckEquals {
         expl_path: None,
         dot_path: None,
+        skip_proof: false,
     }) {
         Command::CheckEquals {
             expl_path,
             dot_path,
+            skip_proof,
         } => {
             let name = equiv.name.clone();
-            equiv = equiv
-                .find_equivalence(&add_base(dot_path, &name))
-                .make_proof();
-            let explanation_string = equiv.explanation_string();
+            equiv = equiv.find_equivalence(&add_base(dot_path, &name));
 
-            if let Some(path) = expl_path {
-                let mut file = File::create(path.join(format!("{name} explanation.txt"))).unwrap();
-                file.write(explanation_string.as_bytes()).unwrap();
-            } else {
-                println!("{}", explanation_string)
+            if !skip_proof {
+                equiv = equiv.make_proof();
+                let explanation_string = equiv.explanation_string();
+
+                if let Some(path) = expl_path {
+                    let mut file =
+                        File::create(path.join(format!("{name} explanation.txt"))).unwrap();
+                    file.write(explanation_string.as_bytes()).unwrap();
+                } else {
+                    println!("{}", explanation_string)
+                }
             }
 
             if let Some(is_equiv) = equiv.equiv.clone() {
@@ -160,20 +163,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             max_times_run,
             max_time,
         } => {
-            let (num_bytes, seconds): (Option<u64>, Duration) = {
+            let seconds: Duration = {
                 let mut total: Duration = Duration::from_millis(0);
                 let mut count = 0;
-                #[cfg(feature = "get-heap-info")]
-                let mut bytes = 0;
                 while total < Duration::from_secs(*max_time) && count < *max_times_run {
-                    #[cfg(feature = "get-heap-info")]
-                    let _profiler = dhat::Profiler::new_heap();
-                    #[cfg(feature = "get-heap-info")]
-                    let before_stats = dhat::HeapStats::get();
                     equiv = equiv.reset_runner();
                     let now = Instant::now();
                     {
-                        equiv = equiv.find_equivalence(&None);
+                        equiv = equiv.find_equivalence(&None).make_proof();
                     }
                     let elapsed = now.elapsed();
                     if let Some(is_equiv) = &equiv.equiv {
@@ -181,22 +178,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                             return Err("Equivalence wasn't found".into());
                         }
                     }
-                    #[cfg(feature = "get-heap-info")]
-                    {
-                        let after_stats = dhat::HeapStats::get();
-                        bytes += after_stats.total_bytes - before_stats.total_bytes;
-                    }
                     count += 1;
                     total += elapsed;
                 }
                 let average_dur = total.div_f64(count as f64);
-                #[cfg(feature = "get-heap-info")]
-                {
-                    let avg_bytes = bytes / u64::from(count);
-                    (Some(avg_bytes), average_dur)
-                }
-                #[cfg(not(feature = "get-heap-info"))]
-                (None, average_dur)
+                average_dur
             };
 
             match stats_path {
@@ -208,7 +194,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                         equiv.name.clone(),
                         EquivRunnerInfo {
                             summary: equiv.runner.report(),
-                            memory_footprint: num_bytes,
                             crude_time: seconds.as_secs_f64(),
                             iteration_info: equiv.runner.iterations.clone(),
                         },
@@ -217,9 +202,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                     write!(file_out, "{}", serde_json::to_string(&stats).unwrap())?;
                 }
                 None => println!(
-                    "Average Runtime: {}\nNumber of bytes: {:?}\nRunner report:\n{:#?}",
+                    "Average Runtime: {}\nRunner report:\n{:#?}",
                     seconds.as_secs_f64(),
-                    num_bytes,
                     equiv.runner.report()
                 ),
             };
@@ -254,7 +238,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
         // input validation happends after the equiv is constructed, hence no need to do anything
-        Command::ValidateInput => return Ok(()),
+        Command::ValidateInput => {
+            equiv.validate()?;
+            return Ok(());
+        }
+        #[cfg(feature = "smt-translate")]
         Command::ToSmtPbv { dest_path } => {
             if !dest_path.exists() {
                 debug!("Creating directory {}", dest_path.to_string_lossy());
