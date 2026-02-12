@@ -366,18 +366,22 @@ impl Equivalence {
                     // Using add to allow for simplication of constants
                     "constant_prop" => String::from("by (simp add: bw_def)"),
                     // use add instead of only to convert between nat type and int
-                    val @ ("shl_def" | "shr_def" | "sel_def" | "signed_def") => format!("by (simp add: {val})"),
+                    val @ ("shl_def" | "shr_def" | "sel_def" | "signed_def") => {
+                        format!("by (simp add: {val})")
+                    }
                     // need to use blast for diff_eq
                     rule @ "mod_prop_sum" => {
                         format!("using that bw_def {rule} by (presburger ; fail | blast)")
                     }
-                    val @ ("diff_left_eq_prec" | "diff_right_eq_prec") | val if val.to_string().find("mod_prop").is_some() => {
+                    val @ ("diff_left_eq_prec" | "diff_right_eq_prec") | val
+                        if val.to_string().find("mod_prop").is_some() =>
+                    {
                         format!("using that {val} by (blast; fail | metis)")
                     }
                     val @ ("div_pow_join" | "div_mult_self" | "div_same") => {
                         format!("using that inferred_facts by (simp only: {val})")
                     }
-                    other => format!("using {rule} that by (simp only: {rule}; fail | simp add: {rule}; fail | blast; fail | metis)", rule = other),
+                    other => format!("using {rule} that by (simp only: {rule}; fail | simp add: {rule}; fail | blast; fail | metis)", rule = {other}),
                 };
                 proof_str += &format!(
                     "    {prefix}have \"{lhs} = {term}\" {proof}\n",
