@@ -55,7 +55,62 @@ fn read_expected_fails(subdir_path: &Path) -> HashSet<String> {
     set
 }
 
+fn generate_lemma_map() {
+    let proofs_dir = Path::new("proofs");
+    let output_file = Path::new("src/generated_matcher.rs");
+
+    let mut lemma_map: BTreeMap<String, String> = BTreeMap::new();
+
+    if let Ok(entries) = fs::read_dir(proofs_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let filename = match path.file_name().and_then(|s| s.to_str()) {
+                Some(f) => f.to_string(),
+                None => continue,
+            };
+            if !filename.ends_with("_lemmas.thy") {
+                continue;
+            }
+            println!("cargo:rerun-if-changed={}", path.to_string_lossy());
+            let file_stem = filename.trim_end_matches(".thy").to_string();
+            if let Ok(contents) = fs::read_to_string(&path) {
+                for line in contents.lines() {
+                    let trimmed = line.trim();
+                    if !trimmed.starts_with("lemma ") {
+                        continue;
+                    }
+                    let after_lemma = &trimmed["lemma ".len()..];
+                    if let Some(colon_pos) = after_lemma.find(':') {
+                        let lemma_name = after_lemma[..colon_pos].trim().to_string();
+                        if !lemma_name.is_empty() {
+                            lemma_map.insert(lemma_name, file_stem.clone());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    let mut out = File::create(output_file)
+        .unwrap_or_else(|_| panic!("Failed to create {:?}", output_file));
+    writeln!(out, "/*\nAUTO-GENERATED FILE — DO NOT EDIT\n*/").unwrap();
+    writeln!(
+        out,
+        "pub fn rule_to_file(input: &str) -> Option<&'static str> {{"
+    )
+    .unwrap();
+    writeln!(out, "    match input {{").unwrap();
+    for (key, value) in &lemma_map {
+        writeln!(out, "        \"{key}\" => Some(\"{value}\"),").unwrap();
+    }
+    writeln!(out, "        _ => None,").unwrap();
+    writeln!(out, "    }}").unwrap();
+    writeln!(out, "}}").unwrap();
+}
+
 fn main() {
+    generate_lemma_map();
+
     let benchmarks_dir = Path::new("benchmarks");
 
     // Map: subdir_name -> Vec<(file_stem, path)>
