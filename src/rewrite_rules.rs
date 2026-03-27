@@ -119,6 +119,8 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         rewrite!("isabelle-or_assoc";       "(or (or ?a ?b) ?c)" => "(or ?a (or ?b ?c))"),
         rewrite!("isabelle-and.commute";    "(and ?a ?b)" => "(and ?b ?a)"),
         rewrite!("isabelle-and_assoc";      "(and (and ?a ?b) ?c)" => "(and ?a (and ?b ?c))"),
+        rewrite!("isabelle-xor.commute";    "(xor ?a ?b)" => "(xor ?b ?a)"),
+        rewrite!("isabelle-xor.assoc";      "(xor (xor ?a ?b) ?c)" => "(xor ?a (xor ?b ?c))"),
         // bitwise identities
         rewrite!("and_allones";     "(and (bw ?p ?a) (bw ?p -1))" => "(bw ?p ?a)"),
         rewrite!("and_one";         "(and (bw ?p ?a) 1)" => "(bw 1 ?a)"),
