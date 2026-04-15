@@ -413,7 +413,7 @@ impl Equivalence {
                     val @ ("div_pow_join" | "div_mult_self" | "div_same") => {
                         format!("using that inferred_facts by (simp only: {val})")
                     }
-                    other => format!("using {rule} that by (simp only: {rule}; fail | simp add: {rule}; fail | blast; fail | metis)", rule = {other}),
+                    other => format!("using {rule} that by (simp ; fail | simp only: {rule}; fail | simp add: {rule}; fail | blast; fail | metis)", rule = {other}),
                 };
                 proof_str += &format!(
                     "    {prefix}have \"{lhs} = {term}\" {proof}\n",
