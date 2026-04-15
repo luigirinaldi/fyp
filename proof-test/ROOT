@@ -1,0 +1,5 @@
+session ProofCheck = HOL + 
+theories
+  arith_lemmas
+  bitwise_lemmas
+  mixed_lemmas
