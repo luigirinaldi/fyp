@@ -140,8 +140,14 @@ pub fn print_infix(
     }
 
     match &expr[expr.root()] {
-        val
-        @ (ModIR::Mod([a, b]) | ModIR::And([a, b]) | ModIR::Or([a, b]) | ModIR::Xor([a, b])) => {
+        ModIR::Mod([a, b]) => {
+            format!(
+                "(bw (nat({})) {})",
+                get_child_str(expr, a),
+                get_child_str(expr, b)
+            )
+        }
+        val @ (ModIR::And([a, b]) | ModIR::Or([a, b]) | ModIR::Xor([a, b])) => {
             format!(
                 "({} {} {})",
                 val.to_string(),
