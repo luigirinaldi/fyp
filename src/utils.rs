@@ -205,3 +205,24 @@ pub fn sanitise_vars(expr: &RecExpr<ModIR>) -> RecExpr<ModIR> {
         _ => expr[id].clone(),
     })
 }
+
+struct FakeExplanation<L: Language> {
+    /// The tree representation of the explanation.
+    pub explanation_trees: TreeExplanation<L>,
+    pub flat_explanation: Option<FlatExplanation<L>>,
+}
+
+pub fn check_flat_proof<'a, L, R, N>(flat_expl: FlatExplanation<L>) -> impl FnMut(R)
+where
+    R: IntoIterator<Item = &'a Rewrite<L, N>>,
+    L: Language + 'a,
+    N: Analysis<L> + 'a,
+{
+    let hacky_expl = FakeExplanation {
+        explanation_trees: vec![],
+        flat_explanation: Some(flat_expl),
+    };
+
+    let mut explanation: Explanation<L> = unsafe { std::mem::transmute(hacky_expl) };
+    move |r| explanation.check_proof(r)
+}

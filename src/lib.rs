@@ -69,50 +69,30 @@ impl From<EquivalenceString> for Equivalence {
     }
 }
 
-fn remove_redundant_proof(flat_explanation: &FlatExplanation<ModIR>) -> FlatExplanation<ModIR> {
-    log::warn!("Reducing size");
-    let mut expl_out: FlatExplanation<ModIR> = flat_explanation.clone();
-    let mut expl_tmp: FlatExplanation<ModIR> = expl_out.clone();
-    let mut repeat = true;
-    while repeat {
-        repeat = false;
+fn remove_redundant_proof(flat_explanation: FlatExplanation<ModIR>) -> FlatExplanation<ModIR> {
+    log::info!("Reducing size");
+    let mut expl: FlatExplanation<ModIR> = flat_explanation;
+    loop {
+        let prev_len = expl.len();
         let mut i: usize = 0;
-        let mut indices_remove: Vec<(usize, usize)> = vec![];
-        while i < expl_out.len() {
+        while i < expl.len() {
             let mut j: usize = i + 1;
-            while j < expl_out.len() && expl_out[i] != expl_out[j] {
+            while j < expl.len() && expl[i] != expl[j] {
                 j += 1;
             }
-            if j < expl_out.len() && expl_out[i] == expl_out[j] {
-                // log::warn!(
-                //     "Found identical terms: {i},{j};\n{}\n{}",
-                //     expl_out[i].remove_rewrites().get_recexpr(),
-                //     expl_out[j].remove_rewrites().get_recexpr()
-                // );
-                repeat = true;
-                indices_remove.push((i, j));
+            if j < expl.len() {
+                expl.drain((i + 1)..=j);
                 i = j
             } else {
                 i += 1
             }
         }
-        // remove the identical values
-        let mut offset: usize = 0;
-        for (i, j) in &indices_remove {
-            log::warn!(
-                "Removing from {i} to {j}, offset {offset}, ({}, {}); {}, removing {}",
-                i - offset,
-                j - offset,
-                expl_tmp.len(),
-                j - i
-            );
-            expl_tmp.drain((i - offset)..(j - offset));
-            offset += j - i;
+
+        if prev_len == expl.len() {
+            break;
         }
-        indices_remove.clear();
-        expl_out = expl_tmp.clone();
     }
-    return expl_out;
+    return expl;
 }
 
 fn sanitise_and_warn(inputs: &Vec<String>) -> Vec<RecExpr<ModIR>> {
@@ -219,15 +199,13 @@ impl Equivalence {
                 let mut expl = self.runner.egraph.explain_equivalence(&self.lhs, &self.rhs);
                 expl.check_proof(&rules());
 
-                let flat_expl = expl.make_flat_explanation();
-                let reduced = remove_redundant_proof(flat_expl);
+                let reduced = remove_redundant_proof(expl.make_flat_explanation().to_vec());
 
-                log::warn!(
-                    "original size: {}, reduced: {}",
-                    flat_expl.len(),
-                    reduced.len()
-                );
-                Some(flat_expl.clone())
+                let rules = rules();
+                let mut checker = check_flat_proof(reduced.clone());
+                checker(&rules);
+
+                Some(reduced)
             } else {
                 None
             };
