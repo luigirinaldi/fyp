@@ -123,95 +123,11 @@ pub fn print_infix(
     expr: &RecExpr<ModIR>,
     nat_vars: &HashSet<Symbol>,
     add_type_hint: bool,
-) -> String {
-    let get_child_str = |e: &RecExpr<ModIR>, id: &Id| -> String {
-        print_infix(
-            &e[*id].build_recexpr(|i| e[i].clone()),
-            nat_vars,
-            add_type_hint,
-        )
-    };
-
-    fn is_nat_var(expr: &RecExpr<ModIR>, id: &Id, nat_vars: &HashSet<Symbol>) -> bool {
-        match &expr[*id] {
-            ModIR::Var(symbol) => nat_vars.contains(&symbol),
-            _ => false,
-        }
-    }
-
-    match &expr[expr.root()] {
-        ModIR::Mod([a, b]) => {
-            format!(
-                "(bw (nat({})) {})",
-                get_child_str(expr, a),
-                get_child_str(expr, b)
-            )
-        }
-        val @ (ModIR::And([a, b]) | ModIR::Or([a, b]) | ModIR::Xor([a, b])) => {
-            format!(
-                "({} {} {})",
-                val.to_string(),
-                get_child_str(expr, a),
-                get_child_str(expr, b)
-            )
-        }
-        val @ ModIR::Pow([a, b]) if !is_nat_var(expr, b, nat_vars) => {
-            format!(
-                "({} {} nat ({}))",
-                get_child_str(expr, a),
-                val.to_string(),
-                get_child_str(expr, b)
-            )
-        }
-        ModIR::Num(num) if add_type_hint => format!("({num}::int)"),
-        ModIR::Num(num) if *num < 0 => format!("({num})"),
-        op @ ModIR::Signed([w, e]) => {
-            format!(
-                "({} {} {})",
-                op.to_string(),
-                get_child_str(expr, w),
-                get_child_str(expr, e)
-            )
-        }
-        other => {
-            if other.children().len() == 3 {
-                format!(
-                    "({} {} {} {})",
-                    other.to_string(),
-                    get_child_str(expr, &other.children()[0]),
-                    get_child_str(expr, &other.children()[1]),
-                    get_child_str(expr, &other.children()[2])
-                )
-            } else if other.children().len() == 2 {
-                format!(
-                    "({} {} {})",
-                    get_child_str(expr, &other.children()[0]),
-                    other.to_string(),
-                    get_child_str(expr, &other.children()[1])
-                )
-            } else if other.children().len() == 1 {
-                format!(
-                    "({} {})",
-                    other.to_string(),
-                    get_child_str(expr, &other.children()[0])
-                )
-            } else if other.children().len() == 0 {
-                other.to_string()
-            } else {
-                panic!("Unknown operator : {}", other);
-            }
-        }
-    }
-}
-
-pub fn print_infix_clean(
-    expr: &RecExpr<ModIR>,
-    nat_vars: &HashSet<Symbol>,
-    add_type_hint: bool,
 ) -> Result<String, String> {
     fn has_neg_num(expr: &RecExpr<ModIR>, id: Id) -> bool {
         match &expr[id] {
             ModIR::Num(n) if *n < 0 => true,
+            ModIR::Not(_c) => true,
             other => other.children().iter().any(|&c| has_neg_num(expr, c)),
         }
     }
@@ -304,7 +220,7 @@ mod tests {
 
     fn p(s: &str, nat_vars: &HashSet<Symbol>, type_hint: bool) -> Result<String, String> {
         let expr: RecExpr<ModIR> = s.parse().unwrap();
-        print_infix_clean(&expr, nat_vars, type_hint)
+        print_infix(&expr, nat_vars, type_hint)
     }
 
     // --- leaf nodes ---
