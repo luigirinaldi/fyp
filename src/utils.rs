@@ -208,29 +208,38 @@ pub fn print_infix_clean(
     expr: &RecExpr<ModIR>,
     nat_vars: &HashSet<Symbol>,
     add_type_hint: bool,
-) -> String {
-    fn rec(expr: &RecExpr<ModIR>, id: Id, nat_vars: &HashSet<Symbol>, add_type_hint: bool) -> String {
+) -> Result<String, String> {
+    fn rec(
+        expr: &RecExpr<ModIR>,
+        id: Id,
+        nat_vars: &HashSet<Symbol>,
+        add_type_hint: bool,
+    ) -> Result<String, String> {
         let child = |id: &Id| rec(expr, *id, nat_vars, add_type_hint);
 
         match &expr[id] {
-            ModIR::Mod([a, b]) => format!("(bw (nat({})) {})", child(a), child(b)),
+            ModIR::Mod([a, b]) => Ok(format!("(bw (nat({})) {})", child(a)?, child(b)?)),
             val @ (ModIR::And([a, b]) | ModIR::Or([a, b]) | ModIR::Xor([a, b])) => {
-                format!("({} {} {})", val, child(a), child(b))
+                Ok(format!("({} {} {})", val, child(a)?, child(b)?))
             }
-            val @ ModIR::Pow([a, b])
-                if !matches!(&expr[*b], ModIR::Var(s) if nat_vars.contains(s)) =>
-            {
-                format!("({} {} nat ({}))", child(a), val, child(b))
+            val @ ModIR::Pow([a, b]) if !matches!(&expr[*b], ModIR::Var(s) if nat_vars.contains(s)) => {
+                Ok(format!("({} {} nat ({}))", child(a)?, val, child(b)?))
             }
-            ModIR::Num(num) if add_type_hint => format!("({num}::int)"),
-            ModIR::Num(num) if *num < 0 => format!("({num})"),
-            op @ ModIR::Signed([w, e]) => format!("({} {} {})", op, child(w), child(e)),
+            ModIR::Num(num) if add_type_hint => Ok(format!("({num}::int)")),
+            ModIR::Num(num) if *num < 0 => Ok(format!("({num})")),
+            op @ ModIR::Signed([w, e]) => Ok(format!("({} {} {})", op, child(w)?, child(e)?)),
             other => match other.children() {
-                [a, b, c] => format!("({} {} {} {})", other, child(a), child(b), child(c)),
-                [a, b] => format!("({} {} {})", child(a), other, child(b)),
-                [a] => format!("({} {})", other, child(a)),
-                [] => other.to_string(),
-                _ => panic!("Unknown operator : {}", other),
+                [a, b, c] => Ok(format!(
+                    "({} {} {} {})",
+                    other,
+                    child(a)?,
+                    child(b)?,
+                    child(c)?
+                )),
+                [a, b] => Ok(format!("({} {} {})", child(a)?, other, child(b)?)),
+                [a] => Ok(format!("({} {})", other, child(a)?)),
+                [] => Ok(other.to_string()),
+                _ => Err(format!("Unknown operator : {}", other)),
             },
         }
     }
