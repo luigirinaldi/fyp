@@ -204,6 +204,40 @@ pub fn print_infix(
     }
 }
 
+pub fn print_infix_clean(
+    expr: &RecExpr<ModIR>,
+    nat_vars: &HashSet<Symbol>,
+    add_type_hint: bool,
+) -> String {
+    fn rec(expr: &RecExpr<ModIR>, id: Id, nat_vars: &HashSet<Symbol>, add_type_hint: bool) -> String {
+        let child = |id: &Id| rec(expr, *id, nat_vars, add_type_hint);
+
+        match &expr[id] {
+            ModIR::Mod([a, b]) => format!("(bw (nat({})) {})", child(a), child(b)),
+            val @ (ModIR::And([a, b]) | ModIR::Or([a, b]) | ModIR::Xor([a, b])) => {
+                format!("({} {} {})", val, child(a), child(b))
+            }
+            val @ ModIR::Pow([a, b])
+                if !matches!(&expr[*b], ModIR::Var(s) if nat_vars.contains(s)) =>
+            {
+                format!("({} {} nat ({}))", child(a), val, child(b))
+            }
+            ModIR::Num(num) if add_type_hint => format!("({num}::int)"),
+            ModIR::Num(num) if *num < 0 => format!("({num})"),
+            op @ ModIR::Signed([w, e]) => format!("({} {} {})", op, child(w), child(e)),
+            other => match other.children() {
+                [a, b, c] => format!("({} {} {} {})", other, child(a), child(b), child(c)),
+                [a, b] => format!("({} {} {})", child(a), other, child(b)),
+                [a] => format!("({} {})", other, child(a)),
+                [] => other.to_string(),
+                _ => panic!("Unknown operator : {}", other),
+            },
+        }
+    }
+
+    rec(expr, expr.root(), nat_vars, add_type_hint)
+}
+
 pub fn sanitise_vars(expr: &RecExpr<ModIR>) -> RecExpr<ModIR> {
     let root_node: &ModIR = &expr[expr.root()];
     root_node.build_recexpr(|id| match expr[id] {
