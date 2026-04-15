@@ -69,6 +69,52 @@ impl From<EquivalenceString> for Equivalence {
     }
 }
 
+fn remove_redundant_proof(flat_explanation: &FlatExplanation<ModIR>) -> FlatExplanation<ModIR> {
+    log::warn!("Reducing size");
+    let mut expl_out: FlatExplanation<ModIR> = flat_explanation.clone();
+    let mut expl_tmp: FlatExplanation<ModIR> = expl_out.clone();
+    let mut repeat = true;
+    while repeat {
+        repeat = false;
+        let mut i: usize = 0;
+        let mut indices_remove: Vec<(usize, usize)> = vec![];
+        while i < expl_out.len() {
+            let mut j: usize = i + 1;
+            while j < expl_out.len() && expl_out[i] != expl_out[j] {
+                j += 1;
+            }
+            if j < expl_out.len() && expl_out[i] == expl_out[j] {
+                // log::warn!(
+                //     "Found identical terms: {i},{j};\n{}\n{}",
+                //     expl_out[i].remove_rewrites().get_recexpr(),
+                //     expl_out[j].remove_rewrites().get_recexpr()
+                // );
+                repeat = true;
+                indices_remove.push((i, j));
+                i = j
+            } else {
+                i += 1
+            }
+        }
+        // remove the identical values
+        let mut offset: usize = 0;
+        for (i, j) in &indices_remove {
+            log::warn!(
+                "Removing from {i} to {j}, offset {offset}, ({}, {}); {}, removing {}",
+                i - offset,
+                j - offset,
+                expl_tmp.len(),
+                j - i
+            );
+            expl_tmp.drain((i - offset)..(j - offset));
+            offset += j - i;
+        }
+        indices_remove.clear();
+        expl_out = expl_tmp.clone();
+    }
+    return expl_out;
+}
+
 fn sanitise_and_warn(inputs: &Vec<String>) -> Vec<RecExpr<ModIR>> {
     let exprs_in: Vec<RecExpr<ModIR>> = inputs.iter().map(|s| s.parse().unwrap()).collect();
     let exprs: Vec<RecExpr<ModIR>> = exprs_in.iter().map(|e| sanitise_vars(e)).collect();
@@ -173,7 +219,15 @@ impl Equivalence {
                 let mut expl = self.runner.egraph.explain_equivalence(&self.lhs, &self.rhs);
                 expl.check_proof(&rules());
 
-                Some(expl.make_flat_explanation().clone())
+                let flat_expl = expl.make_flat_explanation();
+                let reduced = remove_redundant_proof(flat_expl);
+
+                log::warn!(
+                    "original size: {}, reduced: {}",
+                    flat_expl.len(),
+                    reduced.len()
+                );
+                Some(flat_expl.clone())
             } else {
                 None
             };
