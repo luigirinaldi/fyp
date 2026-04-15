@@ -178,7 +178,12 @@ impl Equivalence {
         self.preconditions
             .iter()
             .chain(&self.width_gt_zero)
-            .map(|e| format!("\"{}\"", print_infix(e, &self.bw_vars, false)))
+            .map(|e| {
+                format!(
+                    "\"{}\"",
+                    print_infix_clean(e, &self.bw_vars, false).unwrap()
+                )
+            })
             .collect::<Vec<_>>()
             .join(" and ")
     }
@@ -338,7 +343,7 @@ impl Equivalence {
                         (
                             acc + &format!(
                                 "have fact_{i}: \"{}\" by {reason}\n",
-                                print_infix(expr, &self.bw_vars, true)
+                                print_infix_clean(expr, &self.bw_vars, true).unwrap()
                             ),
                             end + &format!("fact_{i} "),
                         )
@@ -388,7 +393,7 @@ impl Equivalence {
                     fw.unwrap()
                 };
                 let next_term_str =
-                    print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false);
+                    print_infix_clean(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false)?;
 
                 let rewrite_str = process_rewrite(rw.to_string(), &mut include_files)?;
 
@@ -488,8 +493,8 @@ if {preconditions}
 for {nat_string} :: nat and {int_string} :: int\n",
             imports = include_file_str,
             th_name = proof_name,
-            lhs = print_infix(&self.lhs, &self.bw_vars, false),
-            rhs = print_infix(&self.rhs, &self.bw_vars, false),
+            lhs = print_infix_clean(&self.lhs, &self.bw_vars, false)?,
+            rhs = print_infix_clean(&self.rhs, &self.bw_vars, false)?,
             preconditions = self.precond_str()
         ));
 

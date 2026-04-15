@@ -230,15 +230,17 @@ pub fn print_infix_clean(
                 let int_width_vars = has_neg_num(expr, *a);
                 let width_str = rec(expr, *a, nat_vars, add_type_hint, int_width_vars)?;
                 let body_str = rec(expr, *b, nat_vars, add_type_hint, false)?;
-                Ok(format!("(bw (nat({})) {})", width_str, body_str))
+                if int_width_vars {
+                    Ok(format!("(bw (nat({})) {})", width_str, body_str))
+                } else {
+                    Ok(format!("(bw {} {})", width_str, body_str))
+                }
             }
             ModIR::Var(s) if int_nat_vars && nat_vars.contains(s) => Ok(format!("int({})", s)),
             val @ (ModIR::And([a, b]) | ModIR::Or([a, b]) | ModIR::Xor([a, b])) => {
                 Ok(format!("({} {} {})", val, child(a)?, child(b)?))
             }
-            val @ ModIR::Pow([a, b])
-                if !matches!(&expr[*b], ModIR::Var(s) if nat_vars.contains(s)) =>
-            {
+            val @ ModIR::Pow([a, b]) if !matches!(&expr[*b], ModIR::Var(s) if nat_vars.contains(s)) => {
                 Ok(format!("({} {} nat ({}))", child(a)?, val, child(b)?))
             }
             ModIR::Num(num) if add_type_hint => Ok(format!("({num}::int)")),
@@ -332,10 +334,7 @@ mod tests {
     #[test]
     fn bw_no_neg_literal_nat_var_unmodified() {
         // width = k (no negative numeral) -> k stays as k even though it's a nat_var
-        assert_eq!(
-            p("(bw k x)", &nats(&["k"]), false),
-            Ok("(bw (nat(k)) x)".into())
-        );
+        assert_eq!(p("(bw k x)", &nats(&["k"]), false), Ok("(bw k x)".into()));
     }
 
     #[test]
@@ -343,7 +342,7 @@ mod tests {
         // width = (k - 1): Num(1) is positive -> has_neg_num = false -> k unchanged
         assert_eq!(
             p("(bw (- k 1) x)", &nats(&["k"]), false),
-            Ok("(bw (nat((k - 1))) x)".into())
+            Ok("(bw (k - 1) x)".into())
         );
     }
 
@@ -379,19 +378,13 @@ mod tests {
     #[test]
     fn pow_nat_var_exponent_falls_to_infix_fallback() {
         // (^ 2 k) where k is a nat_var: guard fails, falls to 2-child infix
-        assert_eq!(
-            p("(^ 2 k)", &nats(&["k"]), false),
-            Ok("(2 ^ k)".into())
-        );
+        assert_eq!(p("(^ 2 k)", &nats(&["k"]), false), Ok("(2 ^ k)".into()));
     }
 
     #[test]
     fn pow_non_nat_var_exponent_wrapped_with_nat() {
         // (^ 2 3): 3 is not a nat_var -> Pow arm fires with nat() wrap
-        assert_eq!(
-            p("(^ 2 3)", &nats(&[]), false),
-            Ok("(2 ^ nat (3))".into())
-        );
+        assert_eq!(p("(^ 2 3)", &nats(&[]), false), Ok("(2 ^ nat (3))".into()));
     }
 
     // --- explicit prefix operators (And / Or / Xor) ---
