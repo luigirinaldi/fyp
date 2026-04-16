@@ -406,7 +406,8 @@ impl Equivalence {
                 // to show that the single step in the equational reasoning is thanks to that rewrite
                 let proof_tactic = match rewrite_str.as_str() {
                     // Using add to allow for simplication of constants
-                    "constant_prop" => String::from("by (simp add: bw_def)"),
+                    // Include `that` to give context about the conditions of the variables (needed to nat/int castings)
+                    "constant_prop" => String::from("using that by (simp add: bw_def)"),
                     // use add instead of only to convert between nat type and int
                     val @ ("shl_def" | "shr_def" | "sel_def" | "signed_def") => {
                         format!("by (simp add: {val})")
