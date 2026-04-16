@@ -11,6 +11,7 @@ use language::ModAnalysis;
 use log::debug;
 use log::info;
 use log::warn;
+use num::traits::ConstOne;
 use std::collections::HashSet;
 use std::time::Duration;
 #[cfg(feature = "smt-translate")]
@@ -76,12 +77,20 @@ fn remove_redundant_proof(flat_explanation: FlatExplanation<ModIR>) -> FlatExpla
         let prev_len = expl.len();
         let mut i: usize = 0;
         while i < expl.len() {
-            let mut j: usize = i + 1;
-            while j < expl.len() && expl[i] != expl[j] {
-                j += 1;
+            let mut equal_index: Option<usize> = None;
+            for (j, term) in expl.iter().skip(i + 1).enumerate() {
+                if expl[i] == *term {
+                    // log::warn!(
+                    //     "{} Found equal terms {i} {j}\n{}\n{}",
+                    //     expl.len(),
+                    //     expl[i].remove_rewrites(),
+                    //     term.remove_rewrites()
+                    // );
+                    equal_index = Some(j + i + 1);
+                }
             }
-            if j < expl.len() {
-                log::debug!(
+            if let Some(j) = equal_index {
+                log::trace!(
                     "Found identical terms {i} {j}\n{}\n{}",
                     expl[i].remove_rewrites().get_string(),
                     expl[j].remove_rewrites().get_string()
