@@ -11,8 +11,6 @@ use language::ModAnalysis;
 use log::debug;
 use log::info;
 use log::warn;
-use num::iter;
-use num::traits::ConstOne;
 use std::collections::HashSet;
 use std::time::Duration;
 #[cfg(feature = "smt-translate")]
