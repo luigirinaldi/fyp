@@ -81,6 +81,11 @@ fn remove_redundant_proof(flat_explanation: FlatExplanation<ModIR>) -> FlatExpla
                 j += 1;
             }
             if j < expl.len() {
+                log::debug!(
+                    "Found identical terms {i} {j}\n{}\n{}",
+                    expl[i].remove_rewrites().get_string(),
+                    expl[j].remove_rewrites().get_string()
+                );
                 expl.drain((i + 1)..=j);
                 i = j
             } else {
@@ -198,11 +203,16 @@ impl Equivalence {
             self.proof = if equiv {
                 let mut expl = self.runner.egraph.explain_equivalence(&self.lhs, &self.rhs);
                 expl.check_proof(&rules());
-
-                let reduced = remove_redundant_proof(expl.make_flat_explanation().to_vec());
-
+                let flat_proof = expl.make_flat_explanation();
+                let reduced = remove_redundant_proof(flat_proof.to_vec());
+                log::debug!(
+                    "Proof size reduced from {} to {}",
+                    flat_proof.len(),
+                    reduced.len()
+                );
                 let rules = rules();
                 let mut checker = check_flat_proof(reduced.clone());
+                // check proof after reduction
                 checker(&rules);
 
                 Some(reduced)
