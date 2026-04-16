@@ -29,7 +29,7 @@ pub fn rules() -> Vec<Rewrite<ModIR, ModAnalysis>> {
         /////////////////////////
         //      MOD RELATED    //
         /////////////////////////
-        rewrite!("bw_1"; "(bw ?p 1)" => "1"),
+        rewrite!("bw_1"; "(bw ?p 1)" => "1" if precondition(&["(> ?p 0)"])),
         rewrite!("bw_0"; "(bw ?p 0)" => "0"),
         // mod sum rewrite where outer bitwidth (p) is lower precision that inner (q)
         rewrite!("add_remove_prec_left";    "(bw ?p (+ (bw ?q ?a) ?b))"
