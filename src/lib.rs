@@ -71,51 +71,37 @@ impl From<EquivalenceString> for Equivalence {
 
 fn remove_redundant_proof(flat_explanation: FlatExplanation<ModIR>) -> FlatExplanation<ModIR> {
     log::info!("Reducing size");
-    let mut expl: FlatExplanation<ModIR> = flat_explanation;
-    let mut round: usize = 0;
-    loop {
-        let prev_len = expl.len();
-        let mut iterator = expl.iter().enumerate().peekable();
-        let mut pairs: Vec<(usize, usize)> = vec![];
-        while let Some((i, term_outer)) = iterator.next() {
-            let mut equal_index: Option<usize> = None;
-            for (j, term) in expl.iter().skip(i + 1).enumerate() {
-                if *term_outer == *term {
-                    equal_index = Some(j + i + 1);
-                }
+    let initial_len = flat_explanation.len();
+
+    let mut stack: Vec<FlatTerm<ModIR>> = Vec::with_capacity(initial_len);
+    let mut stack_keys: Vec<String> = Vec::with_capacity(initial_len);
+    let mut key_to_pos: std::collections::HashMap<String, usize> =
+        std::collections::HashMap::with_capacity(initial_len);
+
+    for term in flat_explanation {
+        let key = term.remove_rewrites().get_string();
+
+        if let Some(&prev_pos) = key_to_pos.get(&key) {
+            // Cycle detected: remove everything after prev_pos
+            for removed_key in stack_keys.drain(prev_pos + 1..) {
+                key_to_pos.remove(&removed_key);
             }
-            if let Some(j) = equal_index {
-                log::trace!(
-                    "Found identical terms {i} {j}\n{}\n{}",
-                    expl[i].remove_rewrites().get_string(),
-                    expl[j].remove_rewrites().get_string()
-                );
-                // expl.drain((i + 1)..=j);
-                pairs.push((i, j));
-
-                iterator.by_ref().nth(j - i - 1);
-                // let mut k = i;
-                // while k < j && iterator.peek().is_some() {
-                //     iterator.next();
-                //     k += 1;
-                // }
-            }
-        }
-
-        let mut offset = 0;
-        for (i, j) in pairs {
-            expl.drain((i - offset + 1)..=(j - offset));
-            offset += j - i;
-        }
-
-        if prev_len == expl.len() {
-            break;
+            stack.truncate(prev_pos + 1);
+            // Don't push the duplicate; the term at prev_pos is already there
         } else {
-            log::debug!("Round {round} reduced from {} to {}", prev_len, expl.len());
-            round += 1;
+            let pos = stack.len();
+            key_to_pos.insert(key.clone(), pos);
+            stack_keys.push(key);
+            stack.push(term);
         }
     }
-    return expl;
+
+    log::debug!(
+        "Proof size reduced from {} to {}",
+        initial_len,
+        stack.len()
+    );
+    stack
 }
 
 fn sanitise_and_warn(inputs: &Vec<String>) -> Vec<RecExpr<ModIR>> {
