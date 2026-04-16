@@ -11,6 +11,7 @@ use language::ModAnalysis;
 use log::debug;
 use log::info;
 use log::warn;
+use num::iter;
 use num::traits::ConstOne;
 use std::collections::HashSet;
 use std::time::Duration;
@@ -73,19 +74,15 @@ impl From<EquivalenceString> for Equivalence {
 fn remove_redundant_proof(flat_explanation: FlatExplanation<ModIR>) -> FlatExplanation<ModIR> {
     log::info!("Reducing size");
     let mut expl: FlatExplanation<ModIR> = flat_explanation;
+    let mut round: usize = 0;
     loop {
         let prev_len = expl.len();
-        let mut i: usize = 0;
-        while i < expl.len() {
+        let mut iterator = expl.iter().enumerate().peekable();
+        let mut pairs: Vec<(usize, usize)> = vec![];
+        while let Some((i, term_outer)) = iterator.next() {
             let mut equal_index: Option<usize> = None;
             for (j, term) in expl.iter().skip(i + 1).enumerate() {
-                if expl[i] == *term {
-                    // log::warn!(
-                    //     "{} Found equal terms {i} {j}\n{}\n{}",
-                    //     expl.len(),
-                    //     expl[i].remove_rewrites(),
-                    //     term.remove_rewrites()
-                    // );
+                if *term_outer == *term {
                     equal_index = Some(j + i + 1);
                 }
             }
@@ -95,15 +92,29 @@ fn remove_redundant_proof(flat_explanation: FlatExplanation<ModIR>) -> FlatExpla
                     expl[i].remove_rewrites().get_string(),
                     expl[j].remove_rewrites().get_string()
                 );
-                expl.drain((i + 1)..=j);
-                i = j
-            } else {
-                i += 1
+                // expl.drain((i + 1)..=j);
+                pairs.push((i, j));
+
+                iterator.by_ref().nth(j - i - 1);
+                // let mut k = i;
+                // while k < j && iterator.peek().is_some() {
+                //     iterator.next();
+                //     k += 1;
+                // }
             }
+        }
+
+        let mut offset = 0;
+        for (i, j) in pairs {
+            expl.drain((i - offset + 1)..=(j - offset));
+            offset += j - i;
         }
 
         if prev_len == expl.len() {
             break;
+        } else {
+            log::debug!("Round {round} reduced from {} to {}", prev_len, expl.len());
+            round += 1;
         }
     }
     return expl;
