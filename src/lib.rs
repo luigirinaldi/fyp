@@ -96,11 +96,7 @@ fn remove_redundant_proof(flat_explanation: FlatExplanation<ModIR>) -> FlatExpla
         }
     }
 
-    log::debug!(
-        "Proof size reduced from {} to {}",
-        initial_len,
-        stack.len()
-    );
+    log::debug!("Proof size reduced from {} to {}", initial_len, stack.len());
     stack
 }
 
