@@ -123,79 +123,62 @@ pub fn print_infix(
     expr: &RecExpr<ModIR>,
     nat_vars: &HashSet<Symbol>,
     add_type_hint: bool,
-) -> String {
-    let get_child_str = |e: &RecExpr<ModIR>, id: &Id| -> String {
-        print_infix(
-            &e[*id].build_recexpr(|i| e[i].clone()),
-            nat_vars,
-            add_type_hint,
-        )
-    };
-
-    fn is_nat_var(expr: &RecExpr<ModIR>, id: &Id, nat_vars: &HashSet<Symbol>) -> bool {
-        match &expr[*id] {
-            ModIR::Var(symbol) => nat_vars.contains(&symbol),
-            _ => false,
+) -> Result<String, String> {
+    fn has_neg_num(expr: &RecExpr<ModIR>, id: Id) -> bool {
+        match &expr[id] {
+            ModIR::Num(n) if *n < 0 => true,
+            ModIR::Not(_c) => true,
+            other => other.children().iter().any(|&c| has_neg_num(expr, c)),
         }
     }
 
-    match &expr[expr.root()] {
-        val
-        @ (ModIR::Mod([a, b]) | ModIR::And([a, b]) | ModIR::Or([a, b]) | ModIR::Xor([a, b])) => {
-            format!(
-                "({} {} {})",
-                val.to_string(),
-                get_child_str(expr, a),
-                get_child_str(expr, b)
-            )
-        }
-        val @ ModIR::Pow([a, b]) if !is_nat_var(expr, b, nat_vars) => {
-            format!(
-                "({} {} nat ({}))",
-                get_child_str(expr, a),
-                val.to_string(),
-                get_child_str(expr, b)
-            )
-        }
-        ModIR::Num(num) if add_type_hint => format!("({num}::int)"),
-        ModIR::Num(num) if *num < 0 => format!("({num})"),
-        op @ ModIR::Signed([w, e]) => {
-            format!(
-                "({} {} {})",
-                op.to_string(),
-                get_child_str(expr, w),
-                get_child_str(expr, e)
-            )
-        }
-        other => {
-            if other.children().len() == 3 {
-                format!(
-                    "({} {} {} {})",
-                    other.to_string(),
-                    get_child_str(expr, &other.children()[0]),
-                    get_child_str(expr, &other.children()[1]),
-                    get_child_str(expr, &other.children()[2])
-                )
-            } else if other.children().len() == 2 {
-                format!(
-                    "({} {} {})",
-                    get_child_str(expr, &other.children()[0]),
-                    other.to_string(),
-                    get_child_str(expr, &other.children()[1])
-                )
-            } else if other.children().len() == 1 {
-                format!(
-                    "({} {})",
-                    other.to_string(),
-                    get_child_str(expr, &other.children()[0])
-                )
-            } else if other.children().len() == 0 {
-                other.to_string()
-            } else {
-                panic!("Unknown operator : {}", other);
+    fn rec(
+        expr: &RecExpr<ModIR>,
+        id: Id,
+        nat_vars: &HashSet<Symbol>,
+        add_type_hint: bool,
+        int_nat_vars: bool,
+    ) -> Result<String, String> {
+        let child = |id: &Id| rec(expr, *id, nat_vars, add_type_hint, int_nat_vars);
+
+        match &expr[id] {
+            ModIR::Mod([a, b]) => {
+                let int_width_vars = has_neg_num(expr, *a);
+                let width_str = rec(expr, *a, nat_vars, add_type_hint, int_width_vars)?;
+                let body_str = rec(expr, *b, nat_vars, add_type_hint, false)?;
+                if int_width_vars {
+                    Ok(format!("(bw (nat({})) {})", width_str, body_str))
+                } else {
+                    Ok(format!("(bw {} {})", width_str, body_str))
+                }
             }
+            ModIR::Var(s) if int_nat_vars && nat_vars.contains(s) => Ok(format!("int({})", s)),
+            val @ (ModIR::And([a, b]) | ModIR::Or([a, b]) | ModIR::Xor([a, b])) => {
+                Ok(format!("({} {} {})", val, child(a)?, child(b)?))
+            }
+            val @ ModIR::Pow([a, b]) if !matches!(&expr[*b], ModIR::Var(s) if nat_vars.contains(s)) => {
+                Ok(format!("({} {} nat ({}))", child(a)?, val, child(b)?))
+            }
+            ModIR::Num(num) if add_type_hint => Ok(format!("({num}::int)")),
+            ModIR::Num(num) if *num < 0 => Ok(format!("({num})")),
+            op @ ModIR::Signed([w, e]) => Ok(format!("({} {} {})", op, child(w)?, child(e)?)),
+            other => match other.children() {
+                [a, b, c] => Ok(format!(
+                    "({} {} {} {})",
+                    other,
+                    child(a)?,
+                    child(b)?,
+                    child(c)?
+                )),
+                [a, b] => Ok(format!("({} {} {})", child(a)?, other, child(b)?)),
+                [a] => Ok(format!("({} {})", other, child(a)?)),
+                [] => Ok(other.to_string()),
+                _ => Err(format!("Unknown operator : {}", other)),
+            },
         }
     }
+
+    rec(expr, expr.root(), nat_vars, add_type_hint, false)
 }
 
 pub fn sanitise_vars(expr: &RecExpr<ModIR>) -> RecExpr<ModIR> {
@@ -204,4 +187,172 @@ pub fn sanitise_vars(expr: &RecExpr<ModIR>) -> RecExpr<ModIR> {
         ModIR::Var(var) => ModIR::Var(var.clone().to_string().replace("%", "var_").into()),
         _ => expr[id].clone(),
     })
+}
+
+/// Hacky struct in order to check a flat_term proof
+struct FakeExplanation<L: Language> {
+    #[allow(dead_code)]
+    pub explanation_trees: TreeExplanation<L>,
+    #[allow(dead_code)]
+    pub flat_explanation: Option<FlatExplanation<L>>,
+}
+
+pub fn check_flat_proof<'a, L, R, N>(flat_expl: FlatExplanation<L>) -> impl FnMut(R)
+where
+    R: IntoIterator<Item = &'a Rewrite<L, N>>,
+    L: Language + 'a,
+    N: Analysis<L> + 'a,
+{
+    let hacky_expl = FakeExplanation {
+        explanation_trees: vec![],
+        flat_explanation: Some(flat_expl),
+    };
+
+    let mut explanation: Explanation<L> = unsafe { std::mem::transmute(hacky_expl) };
+    move |r| explanation.check_proof(r)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn nats(vars: &[&str]) -> HashSet<Symbol> {
+        vars.iter().map(|&s| Symbol::from(s)).collect()
+    }
+
+    fn p(s: &str, nat_vars: &HashSet<Symbol>, type_hint: bool) -> Result<String, String> {
+        let expr: RecExpr<ModIR> = s.parse().unwrap();
+        print_infix(&expr, nat_vars, type_hint)
+    }
+
+    // --- leaf nodes ---
+
+    #[test]
+    fn plain_variable() {
+        assert_eq!(p("x", &nats(&[]), false), Ok("x".into()));
+    }
+
+    #[test]
+    fn positive_number() {
+        assert_eq!(p("5", &nats(&[]), false), Ok("5".into()));
+    }
+
+    #[test]
+    fn negative_number_is_parenthesised() {
+        assert_eq!(p("-1", &nats(&[]), false), Ok("(-1)".into()));
+    }
+
+    #[test]
+    fn type_hint_wraps_number() {
+        assert_eq!(p("5", &nats(&[]), true), Ok("(5::int)".into()));
+    }
+
+    // --- bw (Mod) width logic ---
+
+    #[test]
+    fn bw_no_neg_literal_nat_var_unmodified() {
+        // width = k (no negative numeral) -> k stays as k even though it's a nat_var
+        assert_eq!(p("(bw k x)", &nats(&["k"]), false), Ok("(bw k x)".into()));
+    }
+
+    #[test]
+    fn bw_positive_literal_in_width_no_int_wrap() {
+        // width = (k - 1): Num(1) is positive -> has_neg_num = false -> k unchanged
+        assert_eq!(
+            p("(bw (- k 1) x)", &nats(&["k"]), false),
+            Ok("(bw (k - 1) x)".into())
+        );
+    }
+
+    #[test]
+    fn bw_neg_literal_in_width_wraps_nat_vars_with_int() {
+        // width = (k + -1): Num(-1) triggers int_nat_vars -> k becomes int(k)
+        assert_eq!(
+            p("(bw (+ k -1) x)", &nats(&["k"]), false),
+            Ok("(bw (nat((int(k) + (-1)))) x)".into())
+        );
+    }
+
+    #[test]
+    fn bw_body_never_gets_int_wrap_from_width() {
+        // even though width has a negative literal, the body k stays as k
+        assert_eq!(
+            p("(bw (+ k -1) k)", &nats(&["k"]), false),
+            Ok("(bw (nat((int(k) + (-1)))) k)".into())
+        );
+    }
+
+    #[test]
+    fn bw_non_nat_var_in_width_unaffected() {
+        // x is not in nat_vars, so it prints as x regardless
+        assert_eq!(
+            p("(bw (+ x -1) y)", &nats(&[]), false),
+            Ok("(bw (nat((x + (-1)))) y)".into())
+        );
+    }
+
+    // --- Pow ---
+
+    #[test]
+    fn pow_nat_var_exponent_falls_to_infix_fallback() {
+        // (^ 2 k) where k is a nat_var: guard fails, falls to 2-child infix
+        assert_eq!(p("(^ 2 k)", &nats(&["k"]), false), Ok("(2 ^ k)".into()));
+    }
+
+    #[test]
+    fn pow_non_nat_var_exponent_wrapped_with_nat() {
+        // (^ 2 3): 3 is not a nat_var -> Pow arm fires with nat() wrap
+        assert_eq!(p("(^ 2 3)", &nats(&[]), false), Ok("(2 ^ nat (3))".into()));
+    }
+
+    // --- explicit prefix operators (And / Or / Xor) ---
+
+    #[test]
+    fn and_is_prefix() {
+        assert_eq!(p("(and x y)", &nats(&[]), false), Ok("(and x y)".into()));
+    }
+
+    #[test]
+    fn or_is_prefix() {
+        assert_eq!(p("(or x y)", &nats(&[]), false), Ok("(or x y)".into()));
+    }
+
+    #[test]
+    fn xor_is_prefix() {
+        assert_eq!(p("(xor x y)", &nats(&[]), false), Ok("(xor x y)".into()));
+    }
+
+    // --- fallback infix / prefix ---
+
+    #[test]
+    fn add_is_infix() {
+        assert_eq!(p("(+ x y)", &nats(&[]), false), Ok("(x + y)".into()));
+    }
+
+    #[test]
+    fn sub_is_infix() {
+        assert_eq!(p("(- x y)", &nats(&[]), false), Ok("(x - y)".into()));
+    }
+
+    #[test]
+    fn neg_unary_is_prefix() {
+        // (- x) disambiguates to Neg(x) (1 child) -> prefix style
+        assert_eq!(p("(- x)", &nats(&[]), false), Ok("(- x)".into()));
+    }
+
+    #[test]
+    fn select_three_args_is_prefix() {
+        assert_eq!(
+            p("(sel a b c)", &nats(&[]), false),
+            Ok("(sel a b c)".into())
+        );
+    }
+
+    #[test]
+    fn signed_op() {
+        assert_eq!(
+            p("(signed k x)", &nats(&[]), false),
+            Ok("(signed k x)".into())
+        );
+    }
 }

@@ -91,8 +91,8 @@ fn generate_lemma_map() {
         }
     }
 
-    let mut out = File::create(output_file)
-        .unwrap_or_else(|_| panic!("Failed to create {:?}", output_file));
+    let mut out =
+        File::create(output_file).unwrap_or_else(|_| panic!("Failed to create {:?}", output_file));
     writeln!(out, "/*\nAUTO-GENERATED FILE — DO NOT EDIT\n*/").unwrap();
     writeln!(
         out,

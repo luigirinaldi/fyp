@@ -69,6 +69,35 @@ impl From<EquivalenceString> for Equivalence {
     }
 }
 
+fn remove_redundant_proof(flat_explanation: FlatExplanation<ModIR>) -> FlatExplanation<ModIR> {
+    log::info!("Reducing size");
+    let initial_len = flat_explanation.len();
+
+    let mut stack: Vec<FlatTerm<ModIR>> = Vec::with_capacity(initial_len);
+    let mut stack_keys: Vec<String> = Vec::with_capacity(initial_len);
+    let mut key_to_pos: std::collections::HashMap<String, usize> =
+        std::collections::HashMap::with_capacity(initial_len);
+
+    for term in flat_explanation {
+        let key = term.remove_rewrites().get_string();
+
+        if let Some(&prev_pos) = key_to_pos.get(&key) {
+            // Cycle detected: remove everything after prev_pos
+            for removed_key in stack_keys.drain(prev_pos + 1..) {
+                key_to_pos.remove(&removed_key);
+            }
+            stack.truncate(prev_pos + 1);
+            // Don't push the duplicate; the term at prev_pos is already there
+        } else {
+            let pos = stack.len();
+            key_to_pos.insert(key.clone(), pos);
+            stack_keys.push(key);
+            stack.push(term);
+        }
+    }
+    stack
+}
+
 fn sanitise_and_warn(inputs: &Vec<String>) -> Vec<RecExpr<ModIR>> {
     let exprs_in: Vec<RecExpr<ModIR>> = inputs.iter().map(|s| s.parse().unwrap()).collect();
     let exprs: Vec<RecExpr<ModIR>> = exprs_in.iter().map(|e| sanitise_vars(e)).collect();
@@ -152,7 +181,7 @@ impl Equivalence {
         self.preconditions
             .iter()
             .chain(&self.width_gt_zero)
-            .map(|e| format!("\"{}\"", print_infix(e, &self.bw_vars, false)))
+            .map(|e| format!("\"{}\"", print_infix(e, &self.bw_vars, false).unwrap()))
             .collect::<Vec<_>>()
             .join(" and ")
     }
@@ -172,8 +201,19 @@ impl Equivalence {
             self.proof = if equiv {
                 let mut expl = self.runner.egraph.explain_equivalence(&self.lhs, &self.rhs);
                 expl.check_proof(&rules());
+                let flat_proof = expl.make_flat_explanation();
+                let reduced = remove_redundant_proof(flat_proof.to_vec());
+                log::debug!(
+                    "Proof size reduced from {} to {}",
+                    flat_proof.len(),
+                    reduced.len()
+                );
+                let rules = rules();
+                let mut checker = check_flat_proof(reduced.clone());
+                // check proof after reduction
+                checker(&rules);
 
-                Some(expl.make_flat_explanation().clone())
+                Some(reduced)
             } else {
                 None
             };
@@ -222,7 +262,7 @@ impl Equivalence {
             output_str,
         );
 
-        debug!("{}", out_str);
+        log::trace!("{}", out_str);
         out_str
     }
 
@@ -254,6 +294,7 @@ impl Equivalence {
                 }
 
                 if !runner.egraph.equivs(&lhs_for_dot, &rhs_for_dot).is_empty() {
+                    log::trace!("Stop saturation, equivalence found");
                     Err("Found equivalence".into())
                 } else {
                     Ok(())
@@ -306,7 +347,7 @@ impl Equivalence {
                         (
                             acc + &format!(
                                 "have fact_{i}: \"{}\" by {reason}\n",
-                                print_infix(expr, &self.bw_vars, true)
+                                print_infix(expr, &self.bw_vars, true).unwrap()
                             ),
                             end + &format!("fact_{i} "),
                         )
@@ -356,7 +397,7 @@ impl Equivalence {
                     fw.unwrap()
                 };
                 let next_term_str =
-                    print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false);
+                    print_infix(&term.remove_rewrites().get_recexpr(), &self.bw_vars, false)?;
 
                 let rewrite_str = process_rewrite(rw.to_string(), &mut include_files)?;
 
@@ -364,7 +405,8 @@ impl Equivalence {
                 // to show that the single step in the equational reasoning is thanks to that rewrite
                 let proof_tactic = match rewrite_str.as_str() {
                     // Using add to allow for simplication of constants
-                    "constant_prop" => String::from("by (simp add: bw_def)"),
+                    // Include `that` to give context about the conditions of the variables (needed to nat/int castings)
+                    "constant_prop" => String::from("using that by (simp add: bw_def)"),
                     // use add instead of only to convert between nat type and int
                     val @ ("shl_def" | "shr_def" | "sel_def" | "signed_def") => {
                         format!("by (simp add: {val})")
@@ -381,7 +423,7 @@ impl Equivalence {
                     val @ ("div_pow_join" | "div_mult_self" | "div_same") => {
                         format!("using that inferred_facts by (simp only: {val})")
                     }
-                    other => format!("using {rule} that by (simp only: {rule}; fail | simp add: {rule}; fail | blast; fail | metis)", rule = {other}),
+                    other => format!("using {rule} that by (simp ; fail | simp only: {rule}; fail | simp add: {rule}; fail | blast; fail | metis)", rule = {other}),
                 };
                 proof_str += &format!(
                     "    {prefix}have \"{lhs} = {term}\" {proof}\n",
@@ -456,8 +498,8 @@ if {preconditions}
 for {nat_string} :: nat and {int_string} :: int\n",
             imports = include_file_str,
             th_name = proof_name,
-            lhs = print_infix(&self.lhs, &self.bw_vars, false),
-            rhs = print_infix(&self.rhs, &self.bw_vars, false),
+            lhs = print_infix(&self.lhs, &self.bw_vars, false)?,
+            rhs = print_infix(&self.rhs, &self.bw_vars, false)?,
             preconditions = self.precond_str()
         ));
 
