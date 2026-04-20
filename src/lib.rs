@@ -95,8 +95,6 @@ fn remove_redundant_proof(flat_explanation: FlatExplanation<ModIR>) -> FlatExpla
             stack.push(term);
         }
     }
-
-    log::debug!("Proof size reduced from {} to {}", initial_len, stack.len());
     stack
 }
 
@@ -264,7 +262,7 @@ impl Equivalence {
             output_str,
         );
 
-        debug!("{}", out_str);
+        log::trace!("{}", out_str);
         out_str
     }
 
@@ -296,6 +294,7 @@ impl Equivalence {
                 }
 
                 if !runner.egraph.equivs(&lhs_for_dot, &rhs_for_dot).is_empty() {
+                    log::trace!("Stop saturation, equivalence found");
                     Err("Found equivalence".into())
                 } else {
                     Ok(())
