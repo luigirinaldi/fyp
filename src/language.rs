@@ -102,6 +102,7 @@ impl Analysis<ModIR> for ModAnalysis {
                 let b = get(width)?;
                 let bexp = 2_i32.pow(b.to_u32()?);
                 let res = a.rem_euclid(bexp);
+                assert_ne!(b, 0, "Mod width should never be 0, {b} {bexp} {res} {a}",);
                 Some((res, format!("(bw {b} {a})").parse().unwrap()))
             }
             ModIR::Neg(id) => Some((-1 * get(id)?, format!("(- {})", get(id)?).parse().unwrap())),
@@ -134,7 +135,11 @@ impl Analysis<ModIR> for ModAnalysis {
             ModIR::LTE(_) => None,
             ModIR::Bool(_) => None,
             ModIR::Select(_) => None,
+            _ => None,
         };
+        if let Some((v, expr)) = &result {
+            log::trace!("Evaluated {v}, {expr}");
+        }
         result
     }
 
@@ -147,6 +152,12 @@ impl Analysis<ModIR> for ModAnalysis {
 
     fn modify(egraph: &mut EGraph<ModIR, Self>, id: Id) {
         if let Some(c) = egraph[id].data.clone() {
+            let (v, expr) = &c;
+            // log::trace!(
+            //     "Merging {v}, {expr}, {:?}",
+            //     egraph.id_to_expr(id).to_string()
+            // );
+
             egraph.union_instantiations(
                 &c.1,
                 &c.0.to_string().parse().unwrap(),

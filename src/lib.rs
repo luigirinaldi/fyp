@@ -96,11 +96,7 @@ fn remove_redundant_proof(flat_explanation: FlatExplanation<ModIR>) -> FlatExpla
         }
     }
 
-    log::debug!(
-        "Proof size reduced from {} to {}",
-        initial_len,
-        stack.len()
-    );
+    log::debug!("Proof size reduced from {} to {}", initial_len, stack.len());
     stack
 }
 
@@ -195,6 +191,7 @@ impl Equivalence {
     pub fn reset_runner(mut self) -> Self {
         self.runner = Runner::<ModIR, ModAnalysis>::default()
             .with_explanations_enabled()
+            .without_explanation_length_optimization()
             .with_time_limit(Duration::from_secs(300))
             .with_iter_limit(2000)
             .with_node_limit(10000000)
@@ -311,7 +308,9 @@ impl Equivalence {
         // Create the true node
         let truth_id = self.runner.egraph.add(ModIR::Bool(true));
         // Add the preconditions to the truth node of the egraph
-        for precond in &self.preconditions {
+        log::warn!("{:?}", self.preconditions);
+        log::warn!("{:?}", self.preconditions.iter().chain(&self.width_gt_zero));
+        for precond in self.preconditions.iter().chain(&self.width_gt_zero) {
             let p_id = self.runner.egraph.add_expr(precond);
             self.runner
                 .egraph
