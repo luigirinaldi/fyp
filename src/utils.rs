@@ -189,9 +189,11 @@ pub fn sanitise_vars(expr: &RecExpr<ModIR>) -> RecExpr<ModIR> {
     })
 }
 
+/// Hacky struct in order to check a flat_term proof
 struct FakeExplanation<L: Language> {
-    /// The tree representation of the explanation.
+    #[allow(dead_code)]
     pub explanation_trees: TreeExplanation<L>,
+    #[allow(dead_code)]
     pub flat_explanation: Option<FlatExplanation<L>>,
 }
 
